@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+<generatorConfiguration>
+
+    <context id="unipay" targetRuntime="MyBatis3">
+
+
+        <plugin type="cn.gotoil.mybatis.generator.plugins.coral.Limited"/>
+        <plugin type="cn.gotoil.mybatis.generator.plugins.coral.MapperAnnotation"/>
+        <plugin type="org.mybatis.generator.plugins.ToStringPlugin"></plugin>
+
+        <commentGenerator>
+            <property name="suppressAllComments" value="true"/>
+        </commentGenerator>
+        <jdbcConnection driverClass="com.mysql.jdbc.Driver"
+                        connectionURL="jdbc:mysql://201.201.201.173:3306/banshee?characterEncoding=utf8"
+                        userId="dev"
+                        password="devMysql!@#!123">
+        </jdbcConnection>
+        <javaTypeResolver>
+            <property name="forceBigDecimals" value="false"/>
+        </javaTypeResolver>
+
+        <javaModelGenerator targetPackage="cn.gotoil.unipay.model.entity"
+                            targetProject="src/main/java">
+            <property name="enableSubPackages" value="true"/>
+            <property name="trimStrings" value="true"/>
+        </javaModelGenerator>
+
+        <sqlMapGenerator targetPackage="mapper"
+                         targetProject="src/main/resources">
+            <property name="enableSubPackages" value="true"/>
+        </sqlMapGenerator>
+
+        <javaClientGenerator type="XMLMAPPER"
+                             targetPackage="cn.gotoil.unipay.model.mapper"
+                             targetProject="src/main/java">
+            <property name="enableSubPackages" value="false"/>
+        </javaClientGenerator>
+
+        <!--<table tableName="dp_app" domainObjectName="App" mapperName="AppMapper"></table>-->
+        <!--<table tableName="dp_app_charge_account" domainObjectName="AppChargeAccount" mapperName="AppChargeAccountMapper"></table>-->
+        <!--<table tableName="dp_charge_config" domainObjectName="ChargeConfig" mapperName="ChargeConfigMapper"></table>-->
+        <!--<table tableName="dp_notice_log" domainObjectName="NoticeLog" mapperName="NoticeLogMapper"></table>-->
+        <!--<table tableName="dp_notify_accept" domainObjectName="NotifyAccept" mapperName="NotifyAcceptMapper"></table>-->
+        <!--<table tableName="dp_oplog" domainObjectName="OpLog" mapperName="OpLogMapper"></table>-->
+        <!--<table tableName="dp_order" domainObjectName="Order" mapperName="OrderMapper"></table>-->
+        <table tableName="dp_refund" domainObjectName="Refund" mapperName="RefundMapper"></table>
+
+
+    </context>
+</generatorConfiguration>

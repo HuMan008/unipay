@@ -1,0 +1,74 @@
+server:
+  port: 811
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  datasource:
+    url: "jdbc:mysql://201.201.201.173:3306/banshee?characterEncoding=utf8"
+    username:  dev
+    password:  devMysql!@#!123
+  redis:
+    database: 7
+    host: 201.201.201.176
+    port: 6379
+    timeout: 5s
+    jedis:
+      pool:
+        max-idle: 8
+        max-active: 64
+  rabbitmq:
+    host: 201.201.201.176
+    port: 5672
+    username: gtsy
+    password: gtsy
+    virtual-host: vhost
+    publisher-confirms: true
+    publisher-returns: true
+    template:
+      default-receive-queue: unipay_order_queen
+      exchange: unipay_order_exchange
+      routing-key: unipay_order_route
+    listener:
+      simple:
+        acknowledge-mode: MANUAL
+      direct:
+        acknowledge-mode: MANUAL
+logging:
+  level:
+    org.springframework.web: DEBUG
+  path: logs
+
+# 订单通知配置（支付、退款通知）
+ordermessageconfig:
+  messageQueues:
+  - queueName: "unipay.order.queue.ttl0" #队列名称
+    exchangeName: "unipay.order.exchange.ttl0"
+    ttl: 0 # 延迟时间 单位毫秒 1000 =1秒
+  - queueName: "unipay.order.queue.ttl1"
+    exchangeName: "unipay.order.exchange.ttl1"
+    ttl: 8000 #30s 30000
+  - queueName: "unipay.order.queue.ttl2"
+    exchangeName: "unipay.order.exchange.tt2"
+    ttl: 20000 # 300s 5分钟 300000
+  - queueName: "unipay.order.queue.ttl3"
+    exchangeName: "unipay.order.exchange.tt3"
+    ttl: 30000 # 30分钟 1800000
+  - queueName: "unipay.order.queue.ttl4"
+    exchangeName: "unipay.order.exchange.tt4"
+    ttl: 60000 # 2小时 72000000
+
+bill:
+  defaultAuthenticationType: NONE
+  keyOfHashCompareAuthenticationPathPrefix: "/api/v1/"
+  apiResponseAroundControllerPackagesExecution: "execution(* cn.gotoil.unipay.controller..*.*Action(..))"
+  keyOfHashCompareAuthenticationProviderClass: "cn.gotoil.unipay.classes.HashCompareAuthenticationKeyProvider"
+  keyOfHashCompareAuthenticationProviderMethod: "key"
+  allowDevSkipSignature: "YES"
+  exceptBodyContentHttpServletRequestWrapperUrls:
+  - "/web/"
+  - "/static/"
+secure:
+  filterUrl: "/web/**"  ##权限控制的
+  billWebAuthenicationClass: "cn.gotoil.unipay.classes.BillWebAuthenticationProvider"
+  billWebAuthenicationMethod: "findByUserCode"
+  tokenExpirseTimeMinute: 60
