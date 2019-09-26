@@ -7,22 +7,20 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * 订单通知配置（支付 ，退款）
+ * 用户配置
  *
  * @author think <syj247@qq.com>、
- * @date 2019-9-18、9:40
+ * @date 2019-9-26、10:27
  */
-
 @Component
-@ConfigurationProperties(prefix = "ordermessageconfig")
-@PropertySource(value = "classpath:mq.yml", factory = YamlPropertySourceFactory.class)
+@ConfigurationProperties(prefix = "userconfig")
+@PropertySource(value = "classpath:user.yml", factory = YamlPropertySourceFactory.class)
 @Setter
 @Getter
-public class OrderMessageConfig {
-
-    List<MessageQueueDefine> messageQueues = new ArrayList<>();
+public class UserConfig {
+    Map<String, UserDefine> users = new HashMap<>();
 }
