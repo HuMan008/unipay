@@ -6,6 +6,7 @@ userconfig:
       code: code1
       pwd: pwd1
       roleStr: "Admin,Order,Finance"
+      permissionStr: aaaa
     code2:
       code: code2
       pwd: pwd1

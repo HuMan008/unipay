@@ -9,6 +9,7 @@ import cn.gotoil.bill.web.message.BillApiResponse;
 import cn.gotoil.unipay.classes.HashCompareAuthenticationKeyProvider;
 import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.ChargeAlipayModel;
+import cn.gotoil.unipay.model.ChargeWechatModel;
 import cn.gotoil.unipay.model.entity.ChargeConfig;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.model.enums.EnumPayType;
@@ -69,6 +70,9 @@ public class APIController {
                 break;
 
             case WechatSDK:
+                ChargeWechatModel chargeWechatModel =
+                        JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
+                                ChargeWechatModel.class);
                 break;
 
             case AlipayH5:

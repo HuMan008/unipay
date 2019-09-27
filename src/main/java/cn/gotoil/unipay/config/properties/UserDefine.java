@@ -23,5 +23,6 @@ public class UserDefine extends BaseAdminUser {
     public static void fill(UserDefine userDefine) {
         userDefine.setUpwd(userDefine.getPwd());
         userDefine.setRoles(new HashSet<>(Arrays.asList(userDefine.getRoleStr().split(","))));
+        userDefine.setPermissions(new HashSet<>(Arrays.asList(userDefine.getPermissionStr().split(","))));
     }
 }
