@@ -1,5 +1,6 @@
 package cn.gotoil.unipay.utils;
 
+import cn.gotoil.bill.exception.BillError;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -20,4 +21,16 @@ public class UtilString {
         }
     }
 
+
+    public static String makeErrorPage(BillError billError) {
+        return "redirect:/web/error?errorCode=" + billError.getCode() + "&errorMsg=" + billError.getMessage();
+    }
+
+    public static String makeErrorPage(String errorCode, String errorMsg) {
+        return "redirect:/web/error?errorCode=" + errorCode + "&errorMsg=" + errorMsg;
+    }
+
+    public static String makeErrorPage(int errorCode, String errorMsg) {
+        return "redirect:/web/error?errorCode=" + errorCode + "&errorMsg=" + errorMsg;
+    }
 }

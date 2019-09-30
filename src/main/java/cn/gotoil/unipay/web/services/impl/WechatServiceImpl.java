@@ -5,7 +5,9 @@ import cn.gotoil.bill.tools.date.DateUtils;
 import cn.gotoil.unipay.model.ChargeAccount;
 import cn.gotoil.unipay.model.ChargeWechatModel;
 import cn.gotoil.unipay.model.entity.Order;
+import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.utils.UtilHttpClient;
+import cn.gotoil.unipay.utils.UtilMoney;
 import cn.gotoil.unipay.utils.UtilString;
 import cn.gotoil.unipay.utils.UtilWechat;
 import cn.gotoil.unipay.web.message.request.PayRequest;
@@ -13,9 +15,12 @@ import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.message.response.OrderRefundQueryResponse;
 import cn.gotoil.unipay.web.services.WechatService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +33,9 @@ import java.util.Map;
 @Service
 @Slf4j
 public class WechatServiceImpl implements WechatService {
+    @Value("${domain}")
+    String domain;
+
     /**
      * 页面支付
      *
@@ -37,8 +45,66 @@ public class WechatServiceImpl implements WechatService {
      * @return
      */
     @Override
-    public ModelAndView pagePay(PayRequest payRequest, Order order, ChargeAccount chargeConfig) {
-        return null;
+    public ModelAndView pagePay(PayRequest payRequest, Order order, ChargeAccount chargeConfig,
+                                HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+        ChargeWechatModel chargeModel = (ChargeWechatModel) chargeConfig;
+        HashMap<String, String> data = new HashMap<String, String>();
+        data.put("appid", chargeModel.getAppID());
+        data.put("mch_id", chargeModel.getMerchID());
+        data.put("nonce_str", UtilWechat.generateNonceStr());
+        data.put("body", UtilString.getLongString("[" + order.getSubjects() + "]" + order.getDescp(), 128));
+        data.put("sign_type", UtilWechat.SignType.MD5.name());
+        data.put("out_trade_no", order.getId());
+        data.put("total_fee", String.valueOf(order.getFee()));
+        data.put("time_expire",
+                DateUtils.simpleDateTimeNoSymbolFormatter().format(DateUtils.dateAdd(order.getCreatedAt(), 0, 0, 0, 0
+                        , order.getExpiredTimeMinute(), 0)));
+
+        data.put("notify_url", domain + "/payment/wechat/" + order.getId());
+        if (EnumPayType.WechatJSAPI.getCode().equals(payRequest.getPayType())) {
+            data.put("trade_type", TradeType.JSAPI.name());
+        } else if (EnumPayType.WechatH5.getCode().equals(payRequest.getPayType())) {
+            data.put("trade_type", TradeType.MWEB.name());
+            //这里还需要放IP todo
+            data.put("spbill_create_ip", "123.33.3.3");
+        }
+        String sign = "";
+        try {
+            sign = UtilWechat.generateSignature(data, chargeModel.getMerchKey());
+        } catch (Exception e) {
+            log.error("微信加签错误", e.getMessage());
+            return new ModelAndView(UtilString.makeErrorPage(5000, "微信加签错误"));
+        }
+        data.put("sign", sign);
+        try {
+            String repStr = UtilHttpClient.doPostStr(WechatService.CreateOrderUrl, UtilWechat.mapToXml(data));
+            Map<String, String> reMap = processResponseXml(repStr, chargeModel.getMerchKey());
+            if (reMap.containsKey(RETURN_CODE) && reMap.containsKey(RESULT_CODE) && SUCCESS.equals(reMap.get(RETURN_CODE)) && SUCCESS.equals(reMap.get(RESULT_CODE))) {
+                //保存订单 todo
+
+                if (TradeType.MWEB.name().equals(reMap.get("trade_type"))) {
+                    return new ModelAndView("redirect:" + reMap.get("mweb_url"));
+                }
+                ModelAndView modelAndView = new ModelAndView("/wechat/jsapipay");
+                modelAndView.addAllObjects(reMap);
+                modelAndView.addObject("domain", domain);
+                modelAndView.addObject("appOrderNo", order.getAppOrderNo());
+                modelAndView.addObject("orderId", order.getAppOrderNo());
+                modelAndView.addObject("cancelUrl", payRequest.getCancelUrl());
+                modelAndView.addObject("backUrl", payRequest.getBackUrl());
+                modelAndView.addObject("successUrl", payRequest.getSyncUrl());
+                modelAndView.addObject("subject", order.getSubjects());
+                modelAndView.addObject("descp", order.getDescp());
+                modelAndView.addObject("orderFeeY", UtilMoney.fenToYuan(order.getFee(), true));
+                return modelAndView;
+
+            } else {
+                return new ModelAndView(UtilString.makeErrorPage(5001, reMap.getOrDefault("return_msg", "微信支付出错")));
+            }
+        } catch (Exception e) {
+            log.error("微信APP支付订单创建出错{}", e.getMessage());
+            return new ModelAndView(UtilString.makeErrorPage(5000, e.getMessage()));
+        }
     }
 
     /**
@@ -64,21 +130,18 @@ public class WechatServiceImpl implements WechatService {
                 DateUtils.simpleDateTimeNoSymbolFormatter().format(DateUtils.dateAdd(order.getCreatedAt(), 0, 0, 0, 0
                         , order.getExpiredTimeMinute(), 0)));
 
-        //        JSONObject jo = new JSONObject();
-        //        jo.put(SysConfig.ChargeAccountIdKey, unionOrder.getChargeAccountId());
-        //        jo.put("orderFee", unionOrder.getOrderFee());
-        //        data.put("attach", jo.toString());
-        //
-        //        data.put("total_fee", unionOrder.getOrderFee() + "");
-        //
-        //        data.put("spbill_create_ip", UtilHttp.getIpAddr(ServletRequestHelper.httpServletRequest()));
-        //        data.put("notify_url", ConstsWechat.sdkNotifyURL);
-        data.put("trade_type", "APP");
+        data.put("notify_url", domain + "/payment/wechat/" + order.getId());
+        if (EnumPayType.WechatSDK.getCode().equals(payRequest.getPayType())) {
+            data.put("trade_type", TradeType.APP.name());
+        } else if (EnumPayType.WechatNAtive.getCode().equals(payRequest.getPayType())) {
+            data.put("trade_type", TradeType.NATIVE.name());
+        }
         String sign = "";
         try {
             sign = UtilWechat.generateSignature(data, chargeModel.getMerchKey());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("微信加签错误", e.getMessage());
+            return "";
         }
         data.put("sign", sign);
         try {
@@ -87,9 +150,9 @@ public class WechatServiceImpl implements WechatService {
             return ObjectHelper.jsonString(reMap);
         } catch (Exception e) {
             log.error("微信APP支付订单创建出错{}", e.getMessage());
+            return "";
         }
 
-        return null;
     }
 
     /**

@@ -45,4 +45,15 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
         int accountId = appChargeAccount.getAccountId();
         return chargeConfigMapper.selectByPrimaryKey(accountId);
     }
+
+    /**
+     * 根据账号ID加载对象
+     *
+     * @param configId
+     * @return
+     */
+    @Override
+    public ChargeConfig loadByChargeId(int configId) {
+        return chargeConfigMapper.selectByPrimaryKey(configId);
+    }
 }

@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Optional;
 
 /**
@@ -36,7 +38,8 @@ public interface BasePayService<T extends ChargeAccount> {
      * @param payRequest
      * @return
      */
-    ModelAndView pagePay(PayRequest payRequest, Order order, T chargeConfig);
+    ModelAndView pagePay(PayRequest payRequest, Order order, T chargeConfig, HttpServletRequest httpServletRequest,
+                         HttpServletResponse httpServletResponse);
 
     /**
      * SDK 支付 返回JSON

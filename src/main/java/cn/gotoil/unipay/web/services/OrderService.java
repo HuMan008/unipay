@@ -52,4 +52,12 @@ public interface OrderService {
      * @param payRequest 支付请求
      */
     Order warpPayRequest2UnionOrder(PayRequest payRequest);
+
+    /**
+     * 根据主键 统一订单号找订单
+     *
+     * @param orderID
+     * @return
+     */
+    Order loadByOrderID(String orderID);
 }

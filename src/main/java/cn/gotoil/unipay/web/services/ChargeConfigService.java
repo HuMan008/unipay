@@ -17,4 +17,12 @@ public interface ChargeConfigService {
      * @return
      */
     ChargeConfig loadByAppIdPayType(String appId, String payType);
+
+    /**
+     * 根据账号ID加载对象
+     *
+     * @param configId
+     * @return
+     */
+    ChargeConfig loadByChargeId(int configId);
 }

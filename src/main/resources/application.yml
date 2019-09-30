@@ -38,6 +38,12 @@ logging:
     org.springframework.web: DEBUG
   path: logs
 
+#本机域名或者IP 必须能外网访问的
+domain: "http://unipay.pgt"
+#微信授权域名
+wechat_open_id_grant_url: "http://thirdparty.guotongshiyou.cn/third_party/oauth/wechat/%s?redirect=%s"
+
+
 bill:
   defaultAuthenticationType: NONE
   keyOfHashCompareAuthenticationPathPrefix: "/api/v1/"

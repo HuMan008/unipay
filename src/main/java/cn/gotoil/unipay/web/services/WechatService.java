@@ -16,4 +16,23 @@ public interface WechatService extends BasePayService {
 
     //下单请求地址
     String CreateOrderUrl = "https://api.mch.weixin.qq.com/pay/unifiedorder";
+
+    enum TradeType {
+        /**
+         * jsapi
+         */
+        JSAPI,
+        /**
+         * H5
+         */
+        MWEB,
+        /**
+         * 扫码
+         */
+        NATIVE,
+        /**
+         * APP
+         */
+        APP
+    }
 }

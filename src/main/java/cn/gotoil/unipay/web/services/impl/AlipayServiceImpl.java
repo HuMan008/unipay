@@ -26,8 +26,12 @@ import com.alipay.api.response.AlipayTradeCreateResponse;
 import com.google.common.base.Charsets;
 import com.google.common.net.UrlEscapers;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * 支付宝支付实现
@@ -38,6 +42,8 @@ import org.springframework.web.servlet.ModelAndView;
 @Service
 public class AlipayServiceImpl implements AlipayService {
 
+    @Value("${domain}")
+    String domain;
 
     /**
      * 退款状态查询 远程查
@@ -59,7 +65,8 @@ public class AlipayServiceImpl implements AlipayService {
      * @return
      */
     @Override
-    public ModelAndView pagePay(PayRequest payRequest, Order order, ChargeAccount chargeConfig) {
+    public ModelAndView pagePay(PayRequest payRequest, Order order, ChargeAccount chargeConfig,
+                                HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         ChargeAlipayModel chargeModel = (ChargeAlipayModel) chargeConfig;
         AlipayClient alipayClient = new DefaultAlipayClient(GateWayURL, chargeModel.getAppID(),
                 chargeModel.getPriKey(), Format, Charsets.UTF_8.name(), chargeModel.getPubKey(), SignType);
@@ -75,8 +82,8 @@ public class AlipayServiceImpl implements AlipayService {
         }
         alipayTradeWapPayModel.setProductCode("QUICK_WAP_WAY");
         alipayTradeWapPayRequest.setBizModel(alipayTradeWapPayModel);
-        alipayTradeWapPayRequest.setNotifyUrl(order.getAsyncUrl());
-        alipayTradeWapPayRequest.setReturnUrl(order.getSyncUrl());
+        alipayTradeWapPayRequest.setNotifyUrl(domain + "/payment/alipay/" + order.getId());
+        alipayTradeWapPayRequest.setReturnUrl(domain + "/payment/alipay/return/" + order.getId());
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName("/alipay/submit");
         try {
@@ -134,8 +141,8 @@ public class AlipayServiceImpl implements AlipayService {
                 alipayTradeAppPayModel.setTimeoutExpress(payRequest.getExpireOutTime() + "m");
                 alipayTradeAppPayModel.setTotalAmount(UtilMoney.fenToYuan(order.getFee(), false));
                 alipayTradeAppPayRequest.setBizModel(alipayTradeAppPayModel);
-                alipayTradeAppPayRequest.setNotifyUrl(order.getAsyncUrl());
-                alipayTradeAppPayRequest.setReturnUrl(order.getSyncUrl());
+                alipayTradeAppPayRequest.setNotifyUrl(domain + "/payment/alipay/" + order.getId());
+                alipayTradeAppPayRequest.setReturnUrl(domain + "/payment/alipay/return/" + order.getId());
                 AlipayTradeAppPayResponse alipayTradeAppPayResponse = alipayClient.sdkExecute(alipayTradeAppPayRequest);
                 if (alipayTradeAppPayResponse.isSuccess()) {
                     logger.debug("支付宝创建订单【{}】成功");

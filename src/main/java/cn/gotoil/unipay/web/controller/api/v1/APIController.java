@@ -17,6 +17,7 @@ import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.services.AlipayService;
 import cn.gotoil.unipay.web.services.ChargeConfigService;
 import cn.gotoil.unipay.web.services.OrderService;
+import cn.gotoil.unipay.web.services.WechatService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.EnumUtils;
@@ -47,6 +48,9 @@ public class APIController {
     @Autowired
     AlipayService alipayService;
 
+    @Autowired
+    WechatService wechatService;
+
     @RequestMapping(value = "doPay", method = RequestMethod.POST)
     public BillApiResponse createOrder(@Valid @RequestBody PayRequest payRequest) {
         if (!payRequest.getAppId().equals(ServletRequestHelper.XU())) {
@@ -63,21 +67,20 @@ public class APIController {
         ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(payRequest.getAppId(), payType.getCode());
         String payInfoStr = new String();
         switch (payType) {
-            case WechatH5:
-                break;
-
-            case WechatJSAPI:
-                break;
-
-            case WechatSDK:
+            case WechatSDK: {
                 ChargeWechatModel chargeWechatModel =
                         JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
                                 ChargeWechatModel.class);
+                payInfoStr = wechatService.sdkPay(payRequest, order, chargeWechatModel);
                 break;
-
-            case AlipayH5:
+            }
+            case WechatNAtive: {
+                ChargeWechatModel chargeWechatModel =
+                        JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
+                                ChargeWechatModel.class);
+                payInfoStr = wechatService.sdkPay(payRequest, order, chargeWechatModel);
                 break;
-
+            }
             case AlipaySDK:
                 ChargeAlipayModel chargeAlipayModel =
                         JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
@@ -96,7 +99,5 @@ public class APIController {
         jsonObject.put("extraParam", order.getExtraParam());
         jsonObject.put("sign", Hash.md5(HashCompareAuthenticationKeyProvider.key(payRequest.getAppId()) + payInfoStr));
         return new BillApiResponse(jsonObject);
-
-
     }
 }

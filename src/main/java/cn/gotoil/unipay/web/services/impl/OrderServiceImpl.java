@@ -187,4 +187,15 @@ public class OrderServiceImpl implements OrderService {
         setOperations.getOperations().expire(AppOrderNoKey, 5, TimeUnit.MINUTES);
         return order;
     }
+
+    /**
+     * 根据主键 统一订单号找订单
+     *
+     * @param orderID
+     * @return
+     */
+    @Override
+    public Order loadByOrderID(String orderID) {
+        return orderMapper.selectByPrimaryKey(orderID);
+    }
 }

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <title>系统错误</title>
+    <!--<link href="https://cdn.bootcss.com/weui/1.1.2/style/weui.css" rel="stylesheet">-->
+    <link href="https://cdn.bootcss.com/weui/1.1.2/style/weui.min.css" rel="stylesheet">
+    <link th:href="@{domain+'/wechat/example.css'}" rel="stylesheet">
+
+</head>
+<style>
+
+    .title1 {
+        font-family: PingFangSC-Regular;
+        font-size: 15px;
+        color: #333333;
+        letter-spacing: 0;
+        line-height: 15px;
+    }
+
+    .title2 {
+        font-family: PingFangSC-Medium;
+        font-size: 35px;
+        color: #000000;
+        letter-spacing: 0;
+        line-height: 35px;
+    }
+</style>
+<body style="background-color: white">
+
+
+<div class="container">
+    <div class="page__hd">
+                    <span style="text-align: center">
+                      系统错误
+                    </span>
+        <!--<h2>订单金额 <h1 th:text="'￥'+${orderFeeY}+'元'">￥0.01元</h1></h2>-->
+
+    </div>
+    <div class="page__bd" style="margin-top: 35pt">
+        <div class="weui-cells">
+            <div class="weui-cell" style="padding: 14px 28px;">
+                <div class="weui-cell__bd">
+                    <p style="color: #666666">错误代码</p>
+                </div>
+                <div class="weui-cell__ft">
+                    <p style="color: #000000" th:text="${errorCode}"></p>
+                </div>
+            </div>
+
+            <div class="weui-cell" style="padding: 14px 28px;">
+                <div class="weui-cell__bd">
+                    <p style="color: #666666">错误原因</p>
+                </div>
+                <div class="weui-cell__ft">
+                    <p style="color: #000000" th:text="${errorMsg}"></p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!--<div class="page__ft" style="margin-top: 20pt;padding: 10px 24px;">
+        <input type="button" class="weui-btn weui-btn_primary" onclick="callPay()" value="确认支付">
+    </div>
+-->
+
+</div>
+</body>
+
+</html>
