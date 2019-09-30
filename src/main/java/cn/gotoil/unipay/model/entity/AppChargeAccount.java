@@ -9,6 +9,8 @@ public class AppChargeAccount {
 
     private String payType;
 
+    private Byte status;
+
     private Integer accountId;
 
     private Date createdAt;
@@ -37,6 +39,14 @@ public class AppChargeAccount {
 
     public void setPayType(String payType) {
         this.payType = payType == null ? null : payType.trim();
+    }
+
+    public Byte getStatus() {
+        return status;
+    }
+
+    public void setStatus(Byte status) {
+        this.status = status;
     }
 
     public Integer getAccountId() {
@@ -72,6 +82,7 @@ public class AppChargeAccount {
         sb.append(", id=").append(id);
         sb.append(", appId=").append(appId);
         sb.append(", payType=").append(payType);
+        sb.append(", status=").append(status);
         sb.append(", accountId=").append(accountId);
         sb.append(", createdAt=").append(createdAt);
         sb.append(", updatedAt=").append(updatedAt);

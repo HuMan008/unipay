@@ -2,10 +2,9 @@ package cn.gotoil.unipay.model.mapper;
 
 import cn.gotoil.unipay.model.entity.AppChargeAccount;
 import cn.gotoil.unipay.model.entity.AppChargeAccountExample;
+import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-
-import java.util.List;
 
 @Mapper
 public interface AppChargeAccountMapper {
@@ -23,8 +22,7 @@ public interface AppChargeAccountMapper {
 
     AppChargeAccount selectByPrimaryKey(Integer id);
 
-    int updateByExampleSelective(@Param("record") AppChargeAccount record,
-                                 @Param("example") AppChargeAccountExample example);
+    int updateByExampleSelective(@Param("record") AppChargeAccount record, @Param("example") AppChargeAccountExample example);
 
     int updateByExample(@Param("record") AppChargeAccount record, @Param("example") AppChargeAccountExample example);
 
