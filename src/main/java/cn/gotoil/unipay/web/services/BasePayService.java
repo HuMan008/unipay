@@ -4,9 +4,7 @@ package cn.gotoil.unipay.web.services;
 import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.ChargeAccount;
-import cn.gotoil.unipay.model.NotifyBean;
 import cn.gotoil.unipay.model.entity.Order;
-import cn.gotoil.unipay.model.enums.EnumOrderMessageType;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.message.response.OrderRefundQueryResponse;
@@ -63,13 +61,13 @@ public interface BasePayService<T extends ChargeAccount> {
      * @param orderId
      */
     OrderRefundQueryResponse orderRefundQuery(String orderId, T chargeConfig);
-    //    NotifyBean orderQuery(String appOrderNo, String appId);
+    //    OrderNotifyBean orderQuery(String appOrderNo, String appId);
 
-    default NotifyBean orderQuery(String appOrderNo, String appId) {
+    default OrderQueryResponse orderQuery(String appOrderNo, String appId) {
         Order order = orderService.loadByAppOrderNo(appOrderNo, appId);
         Optional.ofNullable(order).map(app1 -> app1).orElseThrow(() -> new BillException(UnipayError.OrderNotExists));
-        NotifyBean notifyBean =
-                NotifyBean.builder().appOrderNO(order.getAppOrderNo()).asyncUrl(order.getSyncUrl()).extraParam(order.getExtraParam()).method(EnumOrderMessageType.PAY.name()).asyncUrl(order.getAsyncUrl()).orderFee(order.getFee()).payDate(order.getOrderPayDatetime()).build();
-        return notifyBean;
+        OrderQueryResponse orderQueryResponse =
+                OrderQueryResponse.builder().unionOrderID(order.getId()).appOrderNO(order.getAppOrderNo()).paymentOrderID(order.getPaymentId()).status(order.getStatus()).orderFee(order.getFee()).payFee(order.getPayFee()).build();
+        return orderQueryResponse;
     }
 }

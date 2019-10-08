@@ -54,6 +54,7 @@ public class WechatServiceImpl implements WechatService {
         data.put("nonce_str", UtilWechat.generateNonceStr());
         data.put("body", UtilString.getLongString("[" + order.getSubjects() + "]" + order.getDescp(), 128));
         data.put("sign_type", UtilWechat.SignType.MD5.name());
+        data.put("openid", payRequest.getPaymentUserID());
         data.put("out_trade_no", order.getId());
         data.put("total_fee", String.valueOf(order.getFee()));
         data.put("time_expire",
@@ -66,6 +67,9 @@ public class WechatServiceImpl implements WechatService {
         } else if (EnumPayType.WechatH5.getCode().equals(payRequest.getPayType())) {
             data.put("trade_type", TradeType.MWEB.name());
             //这里还需要放IP todo
+            //http://ip138.com/ ？
+            //https://ip.huomao.com/ip？
+            //request里取？
             data.put("spbill_create_ip", "123.33.3.3");
         }
         String sign = "";

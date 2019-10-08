@@ -97,6 +97,7 @@ public class WebPayContoller {
                     String redirectUrlP = String.format(wechat_open_id_grant_url, chargeWechatModel.getAppID(),
                             domain + "/web/afterwechatgrant?param=" + param);
                     try {
+                        //这里转发了，后面没事干了。这个时候订单还没保存
                         httpServletResponse.sendRedirect(redirectUrlP);
                     } catch (IOException e) {
                         log.error("获取微信OPEI跳转过程中出错{}", e.getMessage());
@@ -150,6 +151,7 @@ public class WebPayContoller {
             param = URLDecoder.decode(param, Charsets.UTF_8.name());
             PayRequest payRequest = JSONObject.toJavaObject(JSONObject.parseObject(param), PayRequest.class);
             //校验请求
+            payRequest.setPaymentUserID(open_id);
             orderService.checkPayRequest(payRequest);
             //填充请求 有些参数请求里没传的
             orderService.fillPayRequest(payRequest);

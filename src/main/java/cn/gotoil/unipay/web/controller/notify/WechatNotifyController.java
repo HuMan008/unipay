@@ -2,12 +2,17 @@ package cn.gotoil.unipay.web.controller.notify;
 
 import cn.gotoil.bill.tools.date.DateUtils;
 import cn.gotoil.bill.web.annotation.NeedLogin;
+import cn.gotoil.unipay.config.consts.ConstsRabbitMQ;
 import cn.gotoil.unipay.model.ChargeWechatModel;
+import cn.gotoil.unipay.model.OrderNotifyBean;
 import cn.gotoil.unipay.model.entity.ChargeConfig;
 import cn.gotoil.unipay.model.entity.Order;
+import cn.gotoil.unipay.model.enums.EnumOrderMessageType;
 import cn.gotoil.unipay.model.enums.EnumOrderStatus;
+import cn.gotoil.unipay.utils.UtilMySign;
 import cn.gotoil.unipay.utils.UtilWechat;
 import cn.gotoil.unipay.web.helper.RedisLockHelper;
+import cn.gotoil.unipay.web.services.AppService;
 import cn.gotoil.unipay.web.services.ChargeConfigService;
 import cn.gotoil.unipay.web.services.OrderService;
 import cn.gotoil.unipay.web.services.WechatService;
@@ -16,6 +21,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.io.CharStreams;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,6 +50,10 @@ public class WechatNotifyController {
     OrderService orderService;
     @Autowired
     ChargeConfigService chargeConfigService;
+    @Autowired
+    AppService appService;
+    @Autowired
+    RabbitTemplate rabbitTemplate;
 
     @RequestMapping(value = {"{orderId:^\\d{21}$}"})
     @NeedLogin(value = false)
@@ -66,20 +77,20 @@ public class WechatNotifyController {
             if (reMap.containsKey(WechatService.RETURN_CODE) && WechatService.SUCCESS.equals(reMap.get(WechatService.RETURN_CODE).toString())) {
                 //路径里的订单号不等于通知内容里的商户订单号，直接返回处理失败
                 if (!orderId.equals(reMap.get("out_trade_no"))) {
-                    mm.put(WechatService.RETURN_CODE, WechatService.SUCCESS);
+                    mm.put(WechatService.RETURN_CODE, WechatService.FAIL);
                     mm.put("return_msg", "订单号错误");
                     return UtilWechat.mapToXml(mm);
                 }
                 //订单查询
                 Order order = orderService.loadByOrderID(orderId);
                 if (order == null) {
-                    mm.put(WechatService.RETURN_CODE, WechatService.SUCCESS);
+                    mm.put(WechatService.RETURN_CODE, WechatService.FAIL);
                     mm.put("return_msg", "订单不存在");
                     return UtilWechat.mapToXml(mm);
                 }
                 //订单不是支付中状态
                 if (EnumOrderStatus.Created.getCode() != order.getStatus().byteValue()) {
-                    mm.put(WechatService.RETURN_CODE, WechatService.SUCCESS);
+                    mm.put(WechatService.RETURN_CODE, WechatService.FAIL);
                     mm.put("return_msg", "本地订单状态不正确");
                     return UtilWechat.mapToXml(mm);
                 }
@@ -91,13 +102,14 @@ public class WechatNotifyController {
                         ChargeWechatModel.class);
 
                 String merchanKey = model == null ? "" : model.getMerchKey();
-                if (UtilWechat.isSignatureValid(reMap, merchanKey)) {
+                if (UtilWechat.isSignatureValid(reMap, merchanKey) && model.getAppID().equalsIgnoreCase(reMap.get(
+                        "appid"))) {
                     //支付成功
                     if (WechatService.SUCCESS.equalsIgnoreCase(reMap.get(WechatService.RESULT_CODE))) {
                         //                        更新订单
                         Order newOrder = new Order();
                         newOrder.setId(order.getId());
-                        newOrder.setPayFee(Integer.parseInt(reMap.get("total_fee")));
+                        newOrder.setPayFee(Integer.parseInt(reMap.get("cash_fee")));
                         newOrder.setStatus(EnumOrderStatus.PaySuccess.getCode());
                         if (StringUtils.isNotEmpty(reMap.get("time_end"))) {
                             //yyyyMMddHHmmss
@@ -106,42 +118,32 @@ public class WechatNotifyController {
                         } else {
                             newOrder.setOrderPayDatetime(0L);
                         }
-                        newOrder.setPaymentId(reMap.get("openid"));
+                        newOrder.setPaymentUid(reMap.get("openid"));
                         newOrder.setPaymentId(reMap.get("transaction_id"));
-                        //更新订单 todo
-                        //发通知；
-                    /*    int u = unionOrderService.update(order, newUnionOrder); //更新订单
+                        int x = orderService.updateOrder(order, newOrder);
+                        if (x != 1) {
+                            mm.put(WechatService.RETURN_CODE, WechatService.FAIL);
+                            mm.put("return_msg", "本地订单状态不正确");
+                            return UtilWechat.mapToXml(mm);
+                        } else {
+                            OrderNotifyBean orderNotifyBean =
+                                    OrderNotifyBean.builder().unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appOrderNO(newOrder.getPaymentId()).status(newOrder.getStatus()).orderFee(order.getFee()).refundFee(0).totalRefundFee(0).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(newOrder.getOrderPayDatetime()).timeStamp(Instant.now().getEpochSecond()).build();
+                            String appSecret = appService.key(order.getAppId());
+                            String signStr = UtilMySign.sign(orderNotifyBean, appSecret);
+                            orderNotifyBean.setSign(signStr);
+                            rabbitTemplate.convertAndSend(ConstsRabbitMQ.orderFirstExchangeName,
+                                    ConstsRabbitMQ.orderRoutingKey, JSON.toJSONString(orderNotifyBean));
 
-                        if (u != 1) {
-                            beenToldMsg.setDeal(EnumStatus.Disable.getCode());
-                            beenToldMsg.setDealMsg("订单状态已经被更新了");
-                            logger.error("微信支付异步通知处理订单的时候发现订单已经被修改了");
-                            return false;
+                            mm.put(WechatService.RETURN_CODE, WechatService.SUCCESS);
+                            mm.put("return_msg", "OK");
+                            return UtilWechat.mapToXml(mm);
                         }
-                        logger.info("微信异步通知处理订单支付结果{}-->{}", order.toString(), newUnionOrder.toString());
-
-
-                        App app = appService.findById(order.getAppId());
-                        UnionNotifyBean unionNotifyBean = new UnionNotifyBean(order.getAppId(), order.getId(),
-                                order.getAppOrderNo(),
-                                newUnionOrder.getThirdOrderNo(),
-                                EnumOrderStatus.wechatSdkResultCode2UnionPayReslut(reMap.get(ConstsWechat
-                                .RESULT_CODE)).getCode(),
-                                order.getOrderFee(),
-                                newUnionOrder.getOrderActualFee(),
-                                order.getNotifyUrl(), order.getExtraParam(), newUnionOrder.getOrderPayDatetime()
-                        );
-                        //            2、发送消息
-                        rabbitMqSender.send(unionNotifyBean, 0, app.getAppKey());
-                        beenToldMsg.setDealMsg(beenToldMsg.getDealMsg() + "并发送通知");
-                        logger.info("微信异步通知{}处理完成并发送通知[{}]", order.toString(), unionNotifyBean.toString());
-
-                        return true;*/
+                    } else {
+                        //  不是成功状态
+                        mm.put(WechatService.RETURN_CODE, WechatService.SUCCESS);
+                        mm.put("return_msg", "不是成功状态，不处理");
+                        return UtilWechat.mapToXml(mm);
                     }
-                    mm.put(WechatService.RETURN_CODE, WechatService.SUCCESS);
-                    mm.put("return_msg", "OK");
-                    return UtilWechat.mapToXml(mm);
-
                 } else {
                     mm.put(WechatService.RETURN_CODE, WechatService.FAIL);
                     mm.put("return_msg", "签名验证失败");

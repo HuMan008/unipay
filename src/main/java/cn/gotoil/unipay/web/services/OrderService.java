@@ -60,4 +60,10 @@ public interface OrderService {
      * @return
      */
     Order loadByOrderID(String orderID);
+
+
+    /**
+     * 更新订单
+     */
+    int updateOrder(Order dbOrder, Order newOrder);
 }

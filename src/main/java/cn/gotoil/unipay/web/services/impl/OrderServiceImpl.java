@@ -198,4 +198,19 @@ public class OrderServiceImpl implements OrderService {
     public Order loadByOrderID(String orderID) {
         return orderMapper.selectByPrimaryKey(orderID);
     }
+
+
+    /**
+     * 更新订单
+     */
+    @Override
+    public int updateOrder(Order dbOrder, Order newOrder) {
+        //这里要重写
+        assert newOrder != null && newOrder.getId() != null && newOrder.getId().equals(dbOrder.getId());
+        newOrder.setUpdatedAt(new Date());
+        newOrder.setDataVersion(dbOrder.getDataVersion() + 1);
+        OrderExample orderExample = new OrderExample();
+        orderExample.createCriteria().andDataVersionEqualTo(dbOrder.getDataVersion()).andIdEqualTo(dbOrder.getId());
+        return orderMapper.updateByExampleSelective(newOrder, orderExample);
+    }
 }
