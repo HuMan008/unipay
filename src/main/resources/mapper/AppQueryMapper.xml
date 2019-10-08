@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.gotoil.unionpay.model.mapper.ext.AppQueryMapper">
+  <resultMap id="BaseResultMap" type="cn.gotoil.unionpay.model.entity.AppChargeAccount">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="pay_type" jdbcType="VARCHAR" property="payType" />
+    <result column="acc_id" jdbcType="INTEGER" property="accId" />
+    <result column="app_id" jdbcType="CHAR" property="appId" />
+    <result column="status" jdbcType="TINYINT" property="status"/>
+    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
+    <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
+  </resultMap>
+
+
+  <sql id="sql_where">
+  <where>
+    <if test=" state != null and state != '' ">
+      and state  = ${state}
+    </if>
+    <if test=" name != null and name != '' ">
+      and app_Name  like  '%${name}%'
+    </if>
+  </where>
+  </sql>
+
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="cn.gotoil.unionpay.model.entity.AppChargeAccount">
+    insert into dk_app_chargeaccount (id, pay_type, acc_id,
+    app_id, status, created_at,
+    updated_at)
+    values (#{id,jdbcType=INTEGER}, #{payType,jdbcType=VARCHAR}, #{accId,jdbcType=INTEGER},
+    #{appId,jdbcType=CHAR}, #{status,jdbcType=TINYINT}, #{createdAt,jdbcType=TIMESTAMP},
+    #{updatedAt,jdbcType=TIMESTAMP})
+  </insert>
+
+
+  <!--支付宝收款帐号查询-->
+  <select id="queryList" parameterType="map" resultType="cn.gotoil.unionpay.model.entity.App">
+     SELECT * from dk_app
+     <include refid="sql_where" />
+    ORDER BY state,updated_at desc,created_at desc limit #{begRow}, #{pageSize}
+  </select>
+  <!--支付宝收款帐号查询总数-->
+  <select id="queryListCount" parameterType="map" resultType="int">
+    SELECT count(*) from dk_app
+    <include refid="sql_where" />
+  </select>
+
+  <!--更新帐号状态-->
+  <update id="updateAccountState" parameterType="map">
+    update ${table} set state=#{state},updated_at=now() where id=#{id}
+  </update>
+
+  <!--检查名称是否重复-->
+  <select id="checkName" parameterType="map" resultType="int" >
+    select count(*) from dp_app
+    where app_name=#{name}
+    <if test="id != null and id != ''">
+      and app_id !=#{id}
+    </if>
+  </select>
+
+  <!--更新支付帐号关联状态-->
+  <update id="updateChargeaccountStatusById" parameterType="map" >
+    update dp_app_charge_account set status=#{status} where app_id=#{appid} and pay_type=#{payType}
+    and acc_id != #{accid}
+  </update>
+
+  <!--查询支付帐号关联-->
+  <select id="selectChargeaccountStatusById" parameterType="map" resultMap="BaseResultMap">
+    select * from dp_app_charge_account where app_id=#{appid} and pay_type=#{payType}
+    and acc_id != #{accid}
+  </select>
+
+  <!--更新支付帐号关联状态-->
+  <update id="updateChargeaccountStatusByType" parameterType="map">
+  update dp_app_charge_account set status=#{status} where app_id=#{appkey}
+  and pay_type in
+    <foreach collection="pays" item="pay" index="index"
+             open="(" close=")" separator=",">
+      #{pay}
+    </foreach>
+  </update>
+
+  <select id="selectChargeaccountStatusByType" parameterType="map" resultMap="BaseResultMap">
+    select * from dp_app_charge_account where app_id=#{appid}
+    and pay_type in
+    <foreach collection="pays" item="pay" index="index"
+             open="(" close=")" separator=",">
+      #{pay}
+    </foreach>
+  </select>
+
+</mapper>

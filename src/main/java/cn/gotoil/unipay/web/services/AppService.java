@@ -59,4 +59,20 @@ public interface AppService {
     List queryAllAccount(String payType);
 
     BasePageResponse queryApps(AppListRequest appListRequest);
+
+    /**
+     * 更新APP状态
+     * @param appkey
+     * @param status
+     * @return
+     */
+    Object updateStatus(String appkey, Byte status);
+
+    /**
+     * 更新APP
+     * @param app
+     * @param appAccountIds
+     * @return
+     */
+    int updateApp(App app, AppAccountIds appAccountIds);
 }

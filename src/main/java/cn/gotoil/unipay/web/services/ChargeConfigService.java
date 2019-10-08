@@ -1,5 +1,6 @@
 package cn.gotoil.unipay.web.services;
 
+import cn.gotoil.unipay.model.entity.AppChargeAccount;
 import cn.gotoil.unipay.model.entity.ChargeConfig;
 
 /**
@@ -9,6 +10,8 @@ import cn.gotoil.unipay.model.entity.ChargeConfig;
  * @date 2019-9-20、16:02
  */
 public interface ChargeConfigService {
+    void addAppChargeAccount2Redis(AppChargeAccount appChargeAccount);
+
     /**
      * 根据appid,收款类型，找具体的收款账号对象
      *

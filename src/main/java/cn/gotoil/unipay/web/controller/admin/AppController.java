@@ -11,14 +11,13 @@ import cn.gotoil.unipay.web.message.request.AppListRequest;
 import cn.gotoil.unipay.web.services.AppService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
@@ -75,5 +74,46 @@ public class AppController {
     @NeedLogin
     public Object queryApp(@Valid @RequestBody AppListRequest appListRequest){
         return appService.queryApps(appListRequest);
+    }
+
+    @ResponseBody
+    @ApiOperation(value = "修改APP状态", position = 9, tags = "应用管理")
+    @RequestMapping(value = "/updateStatus", method = {RequestMethod.GET})
+    @NeedLogin
+    public Object updateStatus(@ApiParam(value = "APPKEY") @PathVariable String appkey,@ApiParam(value = "新状态 0启用 1禁用", allowableValues = "0,1", example = "0") @PathVariable Integer status){
+        return appService.updateStatus(appkey,status.byteValue());
+    }
+
+    @ResponseBody
+    @ApiOperation(value = "检查APP名称是否重复", position = 11, tags = "应用管理")
+    @RequestMapping(value = "/checkAppName", method = {RequestMethod.GET})
+    @NeedLogin
+    public Object checkAppName(@ApiParam(value = "APPKEY") @PathVariable String appName,@ApiParam(value = "APPKEY") @PathVariable String appKey){
+        return appService.nameHasExist(appName,appKey);
+    }
+
+    @ResponseBody
+    @ApiOperation(value = "根据APPKEY获取APP", position = 13, tags = "应用管理")
+    @RequestMapping(value = "/getAppByAppKey", method = {RequestMethod.GET})
+    @NeedLogin
+    public Object getAppByAppKey(String appKey){
+        return new BillApiResponse(appService.load(appKey));
+    }
+
+    @ResponseBody
+    @ApiOperation(value = "修改APP", position = 15, tags = "应用管理")
+    @RequestMapping(value = "/updateApp", method = {RequestMethod.POST})
+    @NeedLogin
+    public Object updateApp(@RequestBody AppAddReuqest appAddReuqest, @RequestBody AppAccountIds appAccountIds,HttpServletRequest request){
+        if(appService.nameHasExist(appAddReuqest.getAppName(),appAddReuqest.getAppKey())){
+            throw new BillException(5000,"应用名称重复");
+        }
+
+        App app = new App();
+        BeanUtils.copyProperties(appAddReuqest, app);
+        if(appService.updateApp(app,appAccountIds) != 1){
+            throw new BillException(5000,"修改应用失败");
+        }
+        return new BillApiResponse("修改应用成功");
     }
 }

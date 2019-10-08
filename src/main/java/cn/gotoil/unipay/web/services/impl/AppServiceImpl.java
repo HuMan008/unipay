@@ -1,6 +1,7 @@
 package cn.gotoil.unipay.web.services.impl;
 
 
+import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.web.helper.RedisHashHelper;
 import cn.gotoil.unipay.model.entity.*;
 import cn.gotoil.unipay.model.enums.EnumPayCategory;
@@ -8,9 +9,11 @@ import cn.gotoil.unipay.model.enums.EnumStatus;
 import cn.gotoil.unipay.model.mapper.AppChargeAccountMapper;
 import cn.gotoil.unipay.model.mapper.AppMapper;
 import cn.gotoil.unipay.model.mapper.ChargeConfigMapper;
+import cn.gotoil.unipay.model.mapper.ext.AppQueryMapper;
 import cn.gotoil.unipay.web.message.BasePageResponse;
 import cn.gotoil.unipay.web.message.request.AppListRequest;
 import cn.gotoil.unipay.web.services.AppService;
+import cn.gotoil.unipay.web.services.ChargeConfigService;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -20,10 +23,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 应用服务实现
@@ -33,6 +34,8 @@ import java.util.Set;
  */
 @Service
 public class AppServiceImpl implements AppService {
+
+    public static final String APPCHARGKEY = "appCharge:";
 
     static final Set<String> IGNORESET = Sets.newHashSet("createdAt", "updatedAt");
 
@@ -47,6 +50,10 @@ public class AppServiceImpl implements AppService {
     ChargeConfigMapper chargeConfigMapper;
     @Resource
     AppChargeAccountMapper appChargeAccountMapper;
+    @Resource
+    AppQueryMapper appQueryMapper;
+    @Resource
+    ChargeConfigService chargeConfigService;
 
 
     /**
@@ -163,5 +170,124 @@ public class AppServiceImpl implements AppService {
         appExample.setOrderByClause("created_at desc");
         pageResponse.setRows(appMapper.selectByExample(appExample));
         return pageResponse;
+    }
+
+    /**
+     * 更新APP状态
+     * @param appkey
+     * @param status
+     * @return
+     */
+    @Override
+    public Object updateStatus(String appkey, Byte status){
+        App old = appMapper.selectByPrimaryKey(appkey);
+        if(old == null){
+            throw new BillException(9100,"找不到对应APP");
+        }
+        App updateApp = new App();
+        updateApp.setAppKey(appkey);
+        updateApp.setStatus(status);
+        updateApp.setUpdatedAt(new Date());
+        return appMapper.updateByPrimaryKeySelective(updateApp) == 1 ? true : false;
+    }
+
+
+    /**
+     * 更新APP
+     * @param app
+     * @param appAccountIds
+     * @return
+     */
+    @Override
+    public int updateApp(App app, AppAccountIds appAccountIds) {
+        int result = appMapper.updateByPrimaryKeySelective(app);
+
+        //禁用类型
+        List<String> disable = new ArrayList<String>();
+
+        setAccount(disable,appAccountIds.getAlipayId(),EnumPayCategory.Alipay.getCode(),app.getAppKey());
+        setAccount(disable,appAccountIds.getWechatId(),EnumPayCategory.Wechat.getCode(),app.getAppKey());
+
+        if(disable.size() > 0) {
+            //禁用关联支付帐号信息
+            HashMap param = new HashMap();
+            param.put("appkey", app.getAppKey());
+            param.put("pays", disable);
+            param.put("status", EnumStatus.Disable.getCode());
+
+            appQueryMapper.updateChargeaccountStatusByType(param);
+
+            List<AppChargeAccount> acs = appQueryMapper.selectChargeaccountStatusByType(param);
+            for(AppChargeAccount ac : acs){
+                chargeConfigService.addAppChargeAccount2Redis(ac);
+            }
+        }
+        if (result == 1) {
+            App appNew = appMapper.selectByPrimaryKey(app.getAppKey());
+            redisHashHelper.set(AppKey + app.getAppKey(), appNew, IGNORESET);
+            for (String t : disable) {
+                removeAppChargeAccountFromRedis(t, app.getAppKey());
+            }
+        }
+        return result;
+    }
+
+    private void removeAppChargeAccountFromRedis(String payType, String appId) {
+        String key = ChargeConfigServiceImpl.APPCHARGKEY + payType + "_" + appId;
+        redisTemplate.opsForHash().getOperations().expire(key, 0, TimeUnit.SECONDS);
+    }
+
+    private void setAccount(List<String> disable,Integer accountId,String type,String appId){
+        if(accountId == null || "".equals(accountId)){
+            disable.add(type);
+        }else{//启用或新增关联支付帐号信息
+            AppChargeAccountExample example = new AppChargeAccountExample();
+            example.createCriteria().andAppIdEqualTo(appId)
+                    .andPayTypeEqualTo(type)
+                    .andAccountIdEqualTo(accountId);
+            List<AppChargeAccount> chares = appChargeAccountMapper.selectByExample(example);
+
+            if(chares.size() > 0){
+                setCharge(chares.get(0));
+            }else{
+                createAndSetStatus(appId,accountId,type);
+            }
+        }
+    }
+
+    private void setCharge(AppChargeAccount appChargeAccount){
+        if(appChargeAccount != null && appChargeAccount.getStatus() != EnumStatus.Enable.getCode()){
+            AppChargeAccount updateAC = new AppChargeAccount();
+            updateAC.setId(appChargeAccount.getId());
+            updateAC.setUpdatedAt(new Date());
+            updateAC.setStatus(EnumStatus.Enable.getCode());
+            appChargeAccountMapper.updateByPrimaryKeySelective(updateAC);
+            updateAC = appChargeAccountMapper.selectByPrimaryKey(updateAC.getId());
+//            redisHashHelper.set(APPCHARGKEY+updateAC.getId(),updateAC,redisExceptFieldsForApp);
+
+            Map param = new HashMap<>();
+            param.put("status",EnumStatus.Disable.getCode());
+            param.put("appid",appChargeAccount.getAppId());
+            param.put("payType",appChargeAccount.getPayType());
+            param.put("accid",appChargeAccount.getAccountId());
+            appQueryMapper.updateChargeaccountStatusById(param);
+
+            List<AppChargeAccount> acs = appQueryMapper.selectChargeaccountStatusById(param);
+            for(AppChargeAccount ac : acs){
+//                redisHashHelper.set(APPCHARGKEY+ac.getId(),ac,redisExceptFieldsForApp);
+                chargeConfigService.addAppChargeAccount2Redis(ac);
+            }
+        }
+    }
+
+    private void createAndSetStatus(String appid,Integer accid,String type){
+        created(appid,accid,type);
+
+        Map param = new HashMap<>();
+        param.put("status",EnumStatus.Disable.getCode());
+        param.put("appid",appid);
+        param.put("payType",type);
+        param.put("accid",accid);
+        appQueryMapper.updateChargeaccountStatusById(param);
     }
 }

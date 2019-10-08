@@ -14,6 +14,9 @@ public class AppAddReuqest {
     @ApiModelProperty(required = true, example = "", value = "名称", position = 1)
     String appName;
 
+    @ApiModelProperty(required = true, example = "", value = "appkey", position = 2)
+    String appKey;
+
     @NotNull
     @Size(max = 1)
     @ApiModelProperty(required = true, example = "", value = "状态", position = 3,
