@@ -1,6 +1,11 @@
 package cn.gotoil.unipay.web.services;
 
 import cn.gotoil.unipay.model.entity.App;
+import cn.gotoil.unipay.model.entity.AppAccountIds;
+import cn.gotoil.unipay.web.message.BasePageResponse;
+import cn.gotoil.unipay.web.message.request.AppListRequest;
+
+import java.util.List;
 
 /**
  * 应用服务
@@ -18,7 +23,7 @@ public interface AppService {
      * @param app
      * @return
      */
-    int createApp(App app);
+    int createApp(App app, AppAccountIds appAccountIds);
 
     /**
      * 根据appKey找对戏
@@ -44,4 +49,14 @@ public interface AppService {
      * @return
      */
     String key(String appKey);
+
+    /**
+     * 根据枚举类型获取收款帐号
+     *
+     * @param payType
+     * @return
+     */
+    List queryAllAccount(String payType);
+
+    BasePageResponse queryApps(AppListRequest appListRequest);
 }
