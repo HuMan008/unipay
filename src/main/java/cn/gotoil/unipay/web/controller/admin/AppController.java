@@ -53,7 +53,7 @@ public class AppController {
 
     @ResponseBody
     @ApiOperation(value = "收款账号类型", position = 3, tags = "应用管理")
-    @RequestMapping(value = "getAccounts", method = RequestMethod.GET)
+    @RequestMapping(value = "getAccountTypes", method = RequestMethod.GET)
     @NeedLogin
     public Object getAccountTypes(){
         return new BillApiResponse(EnumPayCategory.values());
