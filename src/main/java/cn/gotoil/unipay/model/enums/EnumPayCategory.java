@@ -2,6 +2,10 @@ package cn.gotoil.unipay.model.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * 支付类型，一个类型对应一种账号
@@ -17,4 +21,15 @@ public enum EnumPayCategory {
     byte codeValue;
     String code;
     String descp;
+
+    public static String getDescByCode(String code) {
+        if (StringUtils.isEmpty(code)) return "";
+        List<EnumPayCategory> types = Arrays.asList(EnumPayCategory.values());
+        for (EnumPayCategory e : types) {
+            if (e.getCode().equals(code)) {
+                return e.getDescp();
+            }
+        }
+        return "";
+    }
 }

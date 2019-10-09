@@ -3,6 +3,8 @@ package cn.gotoil.unipay.utils;
 import cn.gotoil.bill.exception.BillError;
 import org.apache.commons.lang3.StringUtils;
 
+import java.lang.reflect.Field;
+
 /**
  * 字符串工具类
  *
@@ -32,5 +34,21 @@ public class UtilString {
 
     public static String makeErrorPage(int errorCode, String errorMsg) {
         return "redirect:/web/error?errorCode=" + errorCode + "&errorMsg=" + errorMsg;
+    }
+
+    public synchronized static boolean checkObjFieldIsNull(Object obj)  {
+        try {
+            boolean flag = false;
+            for (Field f : obj.getClass().getDeclaredFields()) {
+                f.setAccessible(true);
+                if (f.get(obj) == null || f.get(obj).equals("")) {
+                    flag = true;
+                    return flag;
+                }
+            }
+            return flag;
+        }catch (Exception e){
+            return true;
+        }
     }
 }

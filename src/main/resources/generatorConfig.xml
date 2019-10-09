@@ -48,7 +48,8 @@
         <!--<table tableName="dp_notify_accept" domainObjectName="NotifyAccept" mapperName="NotifyAcceptMapper"></table>-->
         <!--<table tableName="dp_oplog" domainObjectName="OpLog" mapperName="OpLogMapper"></table>-->
         <!--<table tableName="dp_order" domainObjectName="Order" mapperName="OrderMapper"></table>-->
-        <table tableName="dp_refund" domainObjectName="Refund" mapperName="RefundMapper"></table>
+        <!--<table tableName="dp_refund" domainObjectName="Refund" mapperName="RefundMapper"></table>-->
+        <table tableName="dp_app_charge_account" domainObjectName="AppChargeAccount" mapperName="AppChargeAccountMapper"></table>
 
 
     </context>

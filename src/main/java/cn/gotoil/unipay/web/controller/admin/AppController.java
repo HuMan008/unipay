@@ -6,7 +6,8 @@ import cn.gotoil.bill.web.message.BillApiResponse;
 import cn.gotoil.unipay.model.entity.App;
 import cn.gotoil.unipay.model.entity.AppAccountIds;
 import cn.gotoil.unipay.model.enums.EnumPayCategory;
-import cn.gotoil.unipay.web.message.request.AppAddReuqest;
+import cn.gotoil.unipay.model.enums.EnumStatus;
+import cn.gotoil.unipay.web.message.request.AppAddRquest;
 import cn.gotoil.unipay.web.message.request.AppListRequest;
 import cn.gotoil.unipay.web.services.AppService;
 import io.swagger.annotations.Api;
@@ -43,6 +44,14 @@ public class AppController {
     }
 
     @ResponseBody
+    @ApiOperation(value = "状态类型", position = 2, tags = "应用管理")
+    @RequestMapping(value = "getStatus", method = RequestMethod.GET)
+    @NeedLogin
+    public Object getStatus(){
+        return new BillApiResponse(EnumStatus.values());
+    }
+
+    @ResponseBody
     @ApiOperation(value = "收款账号类型", position = 3, tags = "应用管理")
     @RequestMapping(value = "getAccounts", method = RequestMethod.GET)
     @NeedLogin
@@ -54,13 +63,13 @@ public class AppController {
     @ApiOperation(value = "新增APP", position = 5, tags = "应用管理")
     @RequestMapping(value = "/addApp", method = {RequestMethod.POST})
     @NeedLogin
-    public Object addAccount(@RequestBody AppAddReuqest appAddReuqest,@RequestBody AppAccountIds appAccountIds){
-        if(appService.nameHasExist(appAddReuqest.getAppName(),null)){
+    public Object addAccount(@RequestBody AppAddRquest appAddRquest, @RequestBody AppAccountIds appAccountIds){
+        if(appService.nameHasExist(appAddRquest.getAppName(),null)){
             throw new BillException(5000,"应用名称重复");
         }
 
         App app = new App();
-        BeanUtils.copyProperties(appAddReuqest, app);
+        BeanUtils.copyProperties(appAddRquest, app);
         if(appService.createApp(app,appAccountIds) != 1){
             throw new BillException(5000,"新增应用失败");
         }
@@ -88,7 +97,7 @@ public class AppController {
     @ApiOperation(value = "检查APP名称是否重复", position = 11, tags = "应用管理")
     @RequestMapping(value = "/checkAppName", method = {RequestMethod.GET})
     @NeedLogin
-    public Object checkAppName(@ApiParam(value = "APPKEY") @PathVariable String appName,@ApiParam(value = "APPKEY") @PathVariable String appKey){
+    public Object checkAppName(@ApiParam(value = "名称") @PathVariable String appName,@ApiParam(value = "APPKEY") @PathVariable String appKey){
         return appService.nameHasExist(appName,appKey);
     }
 
@@ -104,13 +113,13 @@ public class AppController {
     @ApiOperation(value = "修改APP", position = 15, tags = "应用管理")
     @RequestMapping(value = "/updateApp", method = {RequestMethod.POST})
     @NeedLogin
-    public Object updateApp(@RequestBody AppAddReuqest appAddReuqest, @RequestBody AppAccountIds appAccountIds,HttpServletRequest request){
-        if(appService.nameHasExist(appAddReuqest.getAppName(),appAddReuqest.getAppKey())){
+    public Object updateApp(@RequestBody AppAddRquest appAddRquest, @RequestBody AppAccountIds appAccountIds, HttpServletRequest request){
+        if(appService.nameHasExist(appAddRquest.getAppName(), appAddRquest.getAppKey())){
             throw new BillException(5000,"应用名称重复");
         }
 
         App app = new App();
-        BeanUtils.copyProperties(appAddReuqest, app);
+        BeanUtils.copyProperties(appAddRquest, app);
         if(appService.updateApp(app,appAccountIds) != 1){
             throw new BillException(5000,"修改应用失败");
         }
