@@ -67,7 +67,13 @@ public interface BasePayService<T extends ChargeAccount> {
         Order order = orderService.loadByAppOrderNo(appOrderNo, appId);
         Optional.ofNullable(order).map(app1 -> app1).orElseThrow(() -> new BillException(UnipayError.OrderNotExists));
         OrderQueryResponse orderQueryResponse =
-                OrderQueryResponse.builder().unionOrderID(order.getId()).appOrderNO(order.getAppOrderNo()).paymentOrderID(order.getPaymentId()).status(order.getStatus()).orderFee(order.getFee()).payFee(order.getPayFee()).build();
+                OrderQueryResponse.builder()
+                        .unionOrderID(order.getId())
+//                        .appOrderNO(order.getAppOrderNo())
+                        .paymentOrderID(order.getPaymentId())
+                        .status(order.getStatus())
+                        .orderFee(order.getFee())
+                        .payFee(order.getPayFee()).build();
         return orderQueryResponse;
     }
 }
