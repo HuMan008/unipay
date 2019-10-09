@@ -1,5 +1,6 @@
 package cn.gotoil.unipay.web.message.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class OrderQueryResponse {
     /**
      * 我的订单ID 提交给支付方的商户订单号
