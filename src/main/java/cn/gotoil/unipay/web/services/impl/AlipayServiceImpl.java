@@ -4,25 +4,22 @@ import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.unipay.model.ChargeAccount;
 import cn.gotoil.unipay.model.ChargeAlipayModel;
 import cn.gotoil.unipay.model.entity.Order;
+import cn.gotoil.unipay.model.enums.EnumOrderStatus;
 import cn.gotoil.unipay.utils.UtilMoney;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.message.response.OrderRefundQueryResponse;
 import cn.gotoil.unipay.web.services.AlipayService;
+import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
-import com.alipay.api.domain.AlipayTradeAppPayModel;
-import com.alipay.api.domain.AlipayTradeCloseModel;
-import com.alipay.api.domain.AlipayTradeCreateModel;
-import com.alipay.api.domain.AlipayTradeWapPayModel;
-import com.alipay.api.request.AlipayTradeAppPayRequest;
-import com.alipay.api.request.AlipayTradeCloseRequest;
-import com.alipay.api.request.AlipayTradeCreateRequest;
-import com.alipay.api.request.AlipayTradeWapPayRequest;
+import com.alipay.api.domain.*;
+import com.alipay.api.request.*;
 import com.alipay.api.response.AlipayTradeAppPayResponse;
 import com.alipay.api.response.AlipayTradeCloseResponse;
 import com.alipay.api.response.AlipayTradeCreateResponse;
+import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.google.common.base.Charsets;
 import com.google.common.net.UrlEscapers;
 import org.apache.commons.lang3.StringUtils;
@@ -179,12 +176,53 @@ public class AlipayServiceImpl implements AlipayService {
     /**
      * 订单支付状态查询 远程查
      *
+     * thirdCode = 5000的时候表示查询异常
      * @param orderId
      * @param chargeConfig
      */
     @Override
     public OrderQueryResponse orderQueryFromRemote(String orderId, ChargeAccount chargeConfig) {
-        return null;
+        ChargeAlipayModel chargeModel = (ChargeAlipayModel) chargeConfig;
+        AlipayTradeQueryRequest alipay_request = new AlipayTradeQueryRequest();
+        AlipayTradeQueryModel model = new AlipayTradeQueryModel();
+        model.setOutTradeNo(orderId);
+        alipay_request.setBizModel(model);
+        AlipayClient client = new DefaultAlipayClient(GateWayURL, chargeModel.getAppID(),
+                chargeModel.getPriKey(), Format, Charsets.UTF_8.name(), chargeModel.getPubKey(), SignType);
+        try {
+            AlipayTradeQueryResponse alipayTradeQueryResponse = client.execute(alipay_request);
+            if (alipayTradeQueryResponse.isSuccess()) {
+                String tradeStatus = alipayTradeQueryResponse.getTradeStatus();
+
+                OrderQueryResponse orderQueryResponse = OrderQueryResponse.builder()
+                        .unionOrderID(orderId)
+                        .paymentOrderID(alipayTradeQueryResponse.getOutTradeNo())
+                        .orderFee(UtilMoney.yuanToFen(alipayTradeQueryResponse.getTotalAmount()))
+                        .payFee(UtilMoney.yuanToFen(alipayTradeQueryResponse.getBuyerPayAmount()))
+                        .thirdStatus(alipayTradeQueryResponse.getTradeStatus())
+                        .thirdCode(alipayTradeQueryResponse.getCode())
+                        .thirdMsg(alipayTradeQueryResponse.getMsg()).build();
+                //                交易状态：WAIT_BUYER_PAY（交易创建，等待买家付款）、TRADE_CLOSED（未付款交易超时关闭，或支付完成后全额退款）、TRADE_SUCCESS
+// （交易支付成功）、TRADE_FINISHED（交易结束，不可退款）
+                if ("WAIT_BUYER_PAY".equalsIgnoreCase(tradeStatus)) {
+                    orderQueryResponse.setStatus(EnumOrderStatus.Created.getCode());
+                } else if ("TRADE_CLOSED".equalsIgnoreCase(tradeStatus)) {
+                    orderQueryResponse.setStatus(EnumOrderStatus.PayFailed.getCode());
+                } else if ("TRADE_SUCCESS".equalsIgnoreCase(tradeStatus) || "TRADE_FINISHED".equalsIgnoreCase(tradeStatus)) {
+                    orderQueryResponse.setStatus(EnumOrderStatus.PaySuccess.getCode());
+                }
+                return orderQueryResponse;
+
+            } else {
+                logger.error("执行【{}】支付宝订单状态查询失败{}", orderId, JSONObject.toJSONString(alipayTradeQueryResponse));
+                return OrderQueryResponse.builder().
+                        thirdCode(alipayTradeQueryResponse.getCode() + "#" + alipayTradeQueryResponse.getSubCode()).thirdMsg(alipayTradeQueryResponse.getMsg() + "#" + alipayTradeQueryResponse.getSubMsg()).build();
+
+            }
+        } catch (Exception e) {
+            logger.error("执行【{}】支付宝订单状态查询出错{}", orderId, e);
+            return OrderQueryResponse.builder().thirdCode("5000").thirdMsg(e.getMessage()).build();
+        }
     }
 
 
