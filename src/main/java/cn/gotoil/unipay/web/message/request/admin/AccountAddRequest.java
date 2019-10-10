@@ -1,4 +1,4 @@
-package cn.gotoil.unipay.web.message.request;
+package cn.gotoil.unipay.web.message.request.admin;
 
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.models.auth.In;

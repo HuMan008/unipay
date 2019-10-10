@@ -3,7 +3,7 @@ package cn.gotoil.unipay.web.services;
 import cn.gotoil.unipay.model.entity.App;
 import cn.gotoil.unipay.model.entity.AppAccountIds;
 import cn.gotoil.unipay.web.message.BasePageResponse;
-import cn.gotoil.unipay.web.message.request.AppListRequest;
+import cn.gotoil.unipay.web.message.request.admin.AppListRequest;
 
 import java.util.List;
 

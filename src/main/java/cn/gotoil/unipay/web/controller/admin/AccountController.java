@@ -4,17 +4,16 @@ import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.web.annotation.NeedLogin;
 import cn.gotoil.bill.web.message.BillApiResponse;
 import cn.gotoil.unipay.model.entity.ChargeConfig;
-import cn.gotoil.unipay.web.message.request.AccountAddRequest;
+import cn.gotoil.unipay.web.message.request.admin.AccountAddRequest;
 import cn.gotoil.unipay.web.services.ChargeConfigService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
 @RequestMapping("web/account")
 @Api(description = "账号管理api")
 public class AccountController {
@@ -22,7 +21,6 @@ public class AccountController {
     @Autowired
     ChargeConfigService configService;
 
-    @ResponseBody
     @ApiOperation(value = "新增账号", position = 1, tags = "账号管理")
     @RequestMapping(value = "/addAccount", method = {RequestMethod.POST})
     @NeedLogin
@@ -38,7 +36,6 @@ public class AccountController {
         return new BillApiResponse("新增成功");
     }
 
-    @ResponseBody
     @ApiOperation(value = "检查账号名称是否重复", position = 3, tags = "账号管理")
     @RequestMapping(value = "/checkAccountName", method = {RequestMethod.GET})
     @NeedLogin
@@ -46,7 +43,6 @@ public class AccountController {
         return configService.checkName(appName,id);
     }
 
-    @ResponseBody
     @ApiOperation(value = "修改状态", position = 5, tags = "账号管理")
     @RequestMapping(value = "/updateAccountStatus", method = {RequestMethod.POST})
     @NeedLogin
@@ -54,7 +50,6 @@ public class AccountController {
         return configService.updateStatus(id,status.byteValue());
     }
 
-    @ResponseBody
     @ApiOperation(value = "获取账号", position = 7, tags = "账号管理")
     @RequestMapping(value = "/getAccountById", method = {RequestMethod.GET})
     @NeedLogin
@@ -62,7 +57,6 @@ public class AccountController {
         return new BillApiResponse(configService.loadByChargeId(id));
     }
 
-    @ResponseBody
     @ApiOperation(value = "修改账号", position = 11, tags = "账号管理")
     @RequestMapping(value = "/updateAccount", method = {RequestMethod.GET})
     @NeedLogin
@@ -78,7 +72,6 @@ public class AccountController {
         return new BillApiResponse("修改成功");
     }
 
-    @ResponseBody
     @ApiOperation(value = "账号列表", position = 13, tags = "账号管理")
     @RequestMapping(value = "/queryAccounts", method = {RequestMethod.GET})
     @NeedLogin
@@ -88,7 +81,6 @@ public class AccountController {
         return new BillApiResponse(configService.queryAccounts(name,payType,status));
     }
 
-    @ResponseBody
     @ApiOperation(value = "刷新账号列表", position = 15, tags = "账号管理")
     @RequestMapping(value = "/refreshAccount", method = {RequestMethod.GET})
     @NeedLogin
