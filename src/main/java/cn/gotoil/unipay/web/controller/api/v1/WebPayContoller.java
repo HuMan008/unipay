@@ -74,7 +74,7 @@ public class WebPayContoller {
     String wechat_open_id_grant_url;
 
     @NeedLogin(value = false)
-    @RequestMapping(value = "doPay", method = RequestMethod.GET)
+    @RequestMapping(value = "dopay", method = RequestMethod.GET)
     @ApiOperation(value = "Web订单创建", position = 5)
 
     public ModelAndView createOrder(@Valid @RequestBody PayRequest payRequest,
