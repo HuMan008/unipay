@@ -1,7 +1,11 @@
 package cn.gotoil.unipay.model.enums;
 
+import com.google.common.base.Joiner;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * 支付方式
@@ -21,4 +25,16 @@ public enum EnumPayType {
     String code;
     String descp;
     EnumPayCategory enumPayCategory;
+
+
+    public static String str() {
+        ;
+        return Joiner.on(",").skipNulls().join(Arrays.stream(EnumPayType.values()).map(e -> e.getCode()
+        ).collect(Collectors.toList()));
+
+    }
+
+//    public static void main(String[] args) {
+//        System.out.println(str());
+//    }
 }

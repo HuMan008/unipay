@@ -20,6 +20,7 @@ import cn.gotoil.unipay.web.services.OrderService;
 import cn.gotoil.unipay.web.services.WechatService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,7 @@ public class APIController {
     WechatService wechatService;
 
     @RequestMapping(value = "doPay", method = RequestMethod.POST)
+    @ApiOperation(value = "API订单创建", position = 5)
     public BillApiResponse createOrder(@Valid @RequestBody PayRequest payRequest) {
         if (!payRequest.getAppId().equals(ServletRequestHelper.XU())) {
             throw new BillException(UnipayError.CreatOrderError);

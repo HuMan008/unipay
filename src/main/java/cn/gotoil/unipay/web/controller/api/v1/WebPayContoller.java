@@ -3,6 +3,7 @@ package cn.gotoil.unipay.web.controller.api.v1;
 import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.exception.CommonError;
 import cn.gotoil.bill.tools.ObjectHelper;
+import cn.gotoil.bill.tools.encoder.Hash;
 import cn.gotoil.bill.web.annotation.NeedLogin;
 import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.ChargeAlipayModel;
@@ -13,12 +14,14 @@ import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.utils.UtilBase64;
 import cn.gotoil.unipay.utils.UtilString;
 import cn.gotoil.unipay.web.message.request.PayRequest;
+import cn.gotoil.unipay.web.services.AppService;
 import cn.gotoil.unipay.web.services.ChargeConfigService;
 import cn.gotoil.unipay.web.services.OrderService;
 import cn.gotoil.unipay.web.services.WechatService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Charsets;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,6 +35,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -60,6 +64,9 @@ public class WebPayContoller {
     @Autowired
     WechatService wechatService;
 
+    @Autowired
+    AppService appService;
+
     @Value("${domain}")
     String domain;
 
@@ -68,8 +75,19 @@ public class WebPayContoller {
 
     @NeedLogin(value = false)
     @RequestMapping(value = "doPay", method = RequestMethod.GET)
-    public ModelAndView createOrder(@Valid @RequestBody PayRequest payRequest, HttpServletRequest httpServletRequest,
+    @ApiOperation(value = "Web订单创建", position = 5)
+
+    public ModelAndView createOrder(@Valid @RequestBody PayRequest payRequest,
+                                    HttpServletRequest httpServletRequest,
                                     HttpServletResponse httpServletResponse) {
+        //校验SIGN
+//        appId+appOrderNo+payType+fee+appKey
+        String signStr =
+                payRequest.getAppId() + payRequest.getAppOrderNo() + payRequest.getPayType() + payRequest.getFee() + appService.key(payRequest.getAppId());
+        if (StringUtils.isEmpty(payRequest.getSign()) || !payRequest.getSign().equals(Hash.md5(signStr).toUpperCase())) {
+            return new ModelAndView(UtilString.makeErrorPage(UnipayError.IllegalRequest));
+        }
+
 
         //校验请求
         orderService.checkPayRequest(payRequest);
@@ -121,6 +139,7 @@ public class WebPayContoller {
 
     @NeedLogin(value = false)
     @RequestMapping(value = "error")
+    @ApiIgnore
     public ModelAndView error(String errorCode, String errorMsg) {
 
         ModelAndView modelAndView = new ModelAndView("/error/error");
@@ -130,6 +149,7 @@ public class WebPayContoller {
     }
 
     @NeedLogin(value = false)
+    @ApiIgnore
     @RequestMapping(value = "error1")
     public ModelAndView error1(String errorCode, String errorMsg) {
         return new ModelAndView(UtilString.makeErrorPage(399, "aaaa--be"));
@@ -142,6 +162,7 @@ public class WebPayContoller {
 
     @RequestMapping("afterwechatgrant")
     @NeedLogin(value = false)
+    @ApiIgnore
     public Object t3(HttpRequest request, HttpResponse response, @RequestParam String param,
                      @RequestParam String open_id, HttpServletRequest httpServletRequest,
                      HttpServletResponse httpServletResponse) throws Exception {
