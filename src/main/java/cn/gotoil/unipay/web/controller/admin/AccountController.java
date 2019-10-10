@@ -30,6 +30,7 @@ public class AccountController {
         }
         ChargeConfig chargeConfig = new ChargeConfig();
         BeanUtils.copyProperties(accountAddRequest, chargeConfig);
+        chargeConfig.setStatus(accountAddRequest.getStatus().byteValue());
         if(configService.addChargeConfig(chargeConfig) != 1){
             throw new BillException(5000,"新增收款账号失败");
         }

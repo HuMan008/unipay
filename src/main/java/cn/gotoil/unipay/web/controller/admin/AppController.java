@@ -6,6 +6,7 @@ import cn.gotoil.bill.web.message.BillApiResponse;
 import cn.gotoil.unipay.model.entity.App;
 import cn.gotoil.unipay.model.entity.AppAccountIds;
 import cn.gotoil.unipay.model.enums.EnumPayCategory;
+import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.model.enums.EnumStatus;
 import cn.gotoil.unipay.web.message.request.admin.AppAddRquest;
 import cn.gotoil.unipay.web.message.request.admin.AppListRequest;
@@ -35,7 +36,7 @@ public class AppController {
     @NeedLogin
     public Object getAccounts(){
         HashMap<String,List> result = new HashMap<>();
-        for(EnumPayCategory enums : EnumPayCategory.values()){
+        for(EnumPayType enums : EnumPayType.values()){
             result.put(enums.getDescp(),appService.queryAllAccount(enums.getCode()));
         }
         return result;
@@ -52,7 +53,7 @@ public class AppController {
     @RequestMapping(value = "getAccountTypes", method = RequestMethod.GET)
     @NeedLogin
     public Object getAccountTypes(){
-        return new BillApiResponse(EnumPayCategory.values());
+        return new BillApiResponse(EnumPayType .values());
     }
 
     @ApiOperation(value = "新增APP", position = 5, tags = "应用管理")

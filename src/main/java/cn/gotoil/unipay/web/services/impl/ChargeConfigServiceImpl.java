@@ -10,6 +10,7 @@ import cn.gotoil.unipay.model.entity.AppChargeAccountExample;
 import cn.gotoil.unipay.model.entity.ChargeConfig;
 import cn.gotoil.unipay.model.entity.ChargeConfigExample;
 import cn.gotoil.unipay.model.enums.EnumPayCategory;
+import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.model.mapper.AppChargeAccountMapper;
 import cn.gotoil.unipay.model.mapper.ChargeConfigMapper;
 import cn.gotoil.unipay.model.mapper.ext.ExtChargeConfigMapper;
@@ -38,7 +39,7 @@ import java.util.*;
 @Slf4j
 public class ChargeConfigServiceImpl implements ChargeConfigService {
 
-    public static final String APPCHARGKEY = "appCharge:";
+    public static final String APPCHARGKEY = "Unipay:appCharge:";
 
     static final Set<String> IGNORESET = Sets.newHashSet("createdAt", "updatedAt");
 
@@ -165,15 +166,20 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
     }
 
     private boolean checkConfig(ChargeConfig chargeConfig){
-        if(EnumPayCategory.Alipay.getCode().equals(chargeConfig.getPayType())){
+        if(EnumPayType.WechatH5.getCode().equals(chargeConfig.getPayType())
+        ||EnumPayType.WechatJSAPI.getCode().equals(chargeConfig.getPayType())
+        ||EnumPayType.WechatNAtive.getCode().equals(chargeConfig.getPayType())
+        ||EnumPayType.WechatSDK.getCode().equals(chargeConfig.getPayType())){
+            JSONObject jsonObject = JSONObject.parseObject(chargeConfig.getConfigJson());
+            ChargeWechatModel wechatModel = JSON.toJavaObject(jsonObject,ChargeWechatModel.class);
+            return UtilString.checkObjFieldIsNull(wechatModel);
+
+        }else if(EnumPayType.AlipayH5.getCode().equals(chargeConfig.getPayType())
+        ||EnumPayType.AlipaySDK.getCode().equals(chargeConfig.getPayType())){
             JSONObject jsonObject = JSONObject.parseObject(chargeConfig.getConfigJson());
             ChargeAlipayModel alipayModel = JSON.toJavaObject(jsonObject,ChargeAlipayModel.class);
             return UtilString.checkObjFieldIsNull(alipayModel);
 
-        }else if(EnumPayCategory.Wechat.getCode().equals(chargeConfig.getPayType())){
-            JSONObject jsonObject = JSONObject.parseObject(chargeConfig.getConfigJson());
-            ChargeWechatModel wechatModel = JSON.toJavaObject(jsonObject,ChargeWechatModel.class);
-            return UtilString.checkObjFieldIsNull(wechatModel);
 
         }else{
             throw new BillException(9100,"没有对应支付类型");
@@ -193,7 +199,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
         if(flag){
             throw new BillException(9100,"收款信息配置有误");
         }
-
+        chargeConfig.setCreatedAt(new Date());
         chargeConfig.setUpdatedAt(new Date());
         int result = extChargeConfigMapper.insertChargeConfig(chargeConfig);
         if(result == 1){
