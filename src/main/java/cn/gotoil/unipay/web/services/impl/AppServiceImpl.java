@@ -11,7 +11,7 @@ import cn.gotoil.unipay.model.mapper.AppMapper;
 import cn.gotoil.unipay.model.mapper.ChargeConfigMapper;
 import cn.gotoil.unipay.model.mapper.ext.AppQueryMapper;
 import cn.gotoil.unipay.web.message.BasePageResponse;
-import cn.gotoil.unipay.web.message.request.AppListRequest;
+import cn.gotoil.unipay.web.message.request.admin.AppListRequest;
 import cn.gotoil.unipay.web.services.AppService;
 import cn.gotoil.unipay.web.services.ChargeConfigService;
 import com.google.common.collect.Sets;

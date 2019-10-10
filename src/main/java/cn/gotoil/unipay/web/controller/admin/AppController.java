@@ -7,15 +7,14 @@ import cn.gotoil.unipay.model.entity.App;
 import cn.gotoil.unipay.model.entity.AppAccountIds;
 import cn.gotoil.unipay.model.enums.EnumPayCategory;
 import cn.gotoil.unipay.model.enums.EnumStatus;
-import cn.gotoil.unipay.web.message.request.AppAddRquest;
-import cn.gotoil.unipay.web.message.request.AppListRequest;
+import cn.gotoil.unipay.web.message.request.admin.AppAddRquest;
+import cn.gotoil.unipay.web.message.request.admin.AppListRequest;
 import cn.gotoil.unipay.web.services.AppService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -23,7 +22,7 @@ import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 
-@Controller
+@RestController
 @RequestMapping("web/app")
 @Api(description = "应用管理api")
 public class AppController {
@@ -31,7 +30,6 @@ public class AppController {
     @Autowired
     AppService appService;
 
-    @ResponseBody
     @ApiOperation(value = "收款账号", position = 1, tags = "应用管理")
     @RequestMapping(value = "getAccounts", method = RequestMethod.GET)
     @NeedLogin
@@ -43,7 +41,6 @@ public class AppController {
         return result;
     }
 
-    @ResponseBody
     @ApiOperation(value = "状态类型", position = 2, tags = "应用管理")
     @RequestMapping(value = "getStatus", method = RequestMethod.GET)
     @NeedLogin
@@ -51,7 +48,6 @@ public class AppController {
         return new BillApiResponse(EnumStatus.values());
     }
 
-    @ResponseBody
     @ApiOperation(value = "收款账号类型", position = 3, tags = "应用管理")
     @RequestMapping(value = "getAccountTypes", method = RequestMethod.GET)
     @NeedLogin
@@ -59,7 +55,6 @@ public class AppController {
         return new BillApiResponse(EnumPayCategory.values());
     }
 
-    @ResponseBody
     @ApiOperation(value = "新增APP", position = 5, tags = "应用管理")
     @RequestMapping(value = "/addApp", method = {RequestMethod.POST})
     @NeedLogin
@@ -77,7 +72,6 @@ public class AppController {
     }
 
 
-    @ResponseBody
     @ApiOperation(value = "查询APP", position = 7, tags = "应用管理")
     @RequestMapping(value = "/queryApp", method = {RequestMethod.GET})
     @NeedLogin
@@ -85,7 +79,6 @@ public class AppController {
         return appService.queryApps(appListRequest);
     }
 
-    @ResponseBody
     @ApiOperation(value = "修改APP状态", position = 9, tags = "应用管理")
     @RequestMapping(value = "/updateStatus", method = {RequestMethod.GET})
     @NeedLogin
@@ -93,7 +86,6 @@ public class AppController {
         return appService.updateStatus(appkey,status.byteValue());
     }
 
-    @ResponseBody
     @ApiOperation(value = "检查APP名称是否重复", position = 11, tags = "应用管理")
     @RequestMapping(value = "/checkAppName", method = {RequestMethod.GET})
     @NeedLogin
@@ -101,7 +93,6 @@ public class AppController {
         return appService.nameHasExist(appName,appKey);
     }
 
-    @ResponseBody
     @ApiOperation(value = "根据APPKEY获取APP", position = 13, tags = "应用管理")
     @RequestMapping(value = "/getAppByAppKey", method = {RequestMethod.GET})
     @NeedLogin
@@ -109,7 +100,6 @@ public class AppController {
         return new BillApiResponse(appService.load(appKey));
     }
 
-    @ResponseBody
     @ApiOperation(value = "修改APP", position = 15, tags = "应用管理")
     @RequestMapping(value = "/updateApp", method = {RequestMethod.POST})
     @NeedLogin
@@ -124,5 +114,9 @@ public class AppController {
             throw new BillException(5000,"修改应用失败");
         }
         return new BillApiResponse("修改应用成功");
+    }
+
+    public Object getApp(){
+        return null;
     }
 }
