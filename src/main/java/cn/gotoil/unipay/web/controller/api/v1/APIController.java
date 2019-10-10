@@ -52,7 +52,7 @@ public class APIController {
     @Autowired
     WechatService wechatService;
 
-    @RequestMapping(value = "doPay", method = RequestMethod.POST)
+    @RequestMapping(value = "dopay", method = RequestMethod.POST)
     @ApiOperation(value = "API订单创建", position = 5)
     public BillApiResponse createOrder(@Valid @RequestBody PayRequest payRequest) {
         if (!payRequest.getAppId().equals(ServletRequestHelper.XU())) {

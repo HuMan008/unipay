@@ -8,7 +8,7 @@ import cn.gotoil.unipay.model.enums.EnumPayType;
  * @author think <syj247@qq.com>、
  * @date 2019-9-19、16:57
  */
-public class UtilVailid {
+public class UtilValid {
 
     public static boolean validEnumPayTypeByCode(String payTypeCode) {
         EnumPayType[] types = EnumPayType.values();

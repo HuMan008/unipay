@@ -79,7 +79,7 @@ public class PayRequest {
     @Min(value = 3, message = "有效时间不得为负！")
     @Max(value = 60, message = "订单有效时间不超过1小时")
     @ApiModelProperty(required = false, example = "", value = "订单有效时间", position = 45)
-    private int expireOutTime;
+    private int expireOutTime = 10;
 
 
     /**
