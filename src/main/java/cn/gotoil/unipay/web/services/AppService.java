@@ -75,4 +75,10 @@ public interface AppService {
      * @return
      */
     int updateApp(App app, AppAccountIds appAccountIds);
+
+    /**
+     * 查询有效APP
+     * @return
+     */
+    List getApps();
 }

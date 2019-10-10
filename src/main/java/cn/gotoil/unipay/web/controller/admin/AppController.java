@@ -116,7 +116,10 @@ public class AppController {
         return new BillApiResponse("修改应用成功");
     }
 
-    public Object getApp(){
-        return null;
+    @ApiOperation(value = "获取有效APP", position = 17, tags = "应用管理")
+    @RequestMapping(value = "/getApps", method = {RequestMethod.GET})
+    @NeedLogin
+    public Object getApps(){
+        return new BillApiResponse(appService.getApps());
     }
 }

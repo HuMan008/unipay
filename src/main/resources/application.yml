@@ -7,6 +7,7 @@ spring:
     url: "jdbc:mysql://201.201.201.173:3306/banshee?characterEncoding=utf8"
     username:  dev
     password:  devMysql!@#!123
+    driver-class-name: "com.mysql.jdbc.Driver"
   redis:
     database: 7
     host: 201.201.201.176

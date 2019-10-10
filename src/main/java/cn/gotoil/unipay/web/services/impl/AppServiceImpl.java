@@ -290,4 +290,15 @@ public class AppServiceImpl implements AppService {
         param.put("accid",accid);
         appQueryMapper.updateChargeaccountStatusById(param);
     }
+
+    /**
+     * 查询有效APP
+     * @return
+     */
+    @Override
+    public List getApps(){
+        AppExample example = new AppExample();
+        example.createCriteria().andStatusEqualTo(EnumStatus.Enable.getCode());
+        return appMapper.selectByExample(example);
+    }
 }

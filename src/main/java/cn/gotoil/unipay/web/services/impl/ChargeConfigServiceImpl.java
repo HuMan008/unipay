@@ -239,7 +239,8 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
         if(id != null){
             criteria.andIdNotEqualTo(id);
         }
-        criteria.andNameNotEqualTo(name);
+        criteria.andNameEqualTo(name);
+
         List list = chargeConfigMapper.selectByExample(example);
         if(list != null && list.size() > 0){
             return false;
