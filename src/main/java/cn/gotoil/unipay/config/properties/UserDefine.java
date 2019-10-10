@@ -18,6 +18,7 @@ import java.util.HashSet;
 public class UserDefine extends BaseAdminUser {
     String code;
     String pwd;
+    String token;
 
 
     public static void fill(UserDefine userDefine) {

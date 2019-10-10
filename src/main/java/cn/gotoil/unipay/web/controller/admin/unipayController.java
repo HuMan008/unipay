@@ -10,15 +10,15 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@Controller
+@RestController
 @RequestMapping("web/user")
 @Api(description = "用户管理api")
 public class unipayController {
@@ -32,7 +32,8 @@ public class unipayController {
     @ApiOperation(value = "登录接口", position = 5, tags = "用户")
     @RequestMapping(value = "/login", method = {RequestMethod.POST})
     @NeedLogin(value = false)
-    public Object loginAction(@ApiParam(value = "用户名") @PathVariable String code, @ApiParam(value = "密码") @PathVariable String pwd, HttpServletRequest request,
+    public Object loginAction(@ApiParam(value = "用户名") @RequestParam String code,
+                              @ApiParam(value = "密码") @RequestParam String pwd, HttpServletRequest request,
                               HttpServletResponse response) {
         UserDefine dd = userConfig.getUsers().get(code);
         if (null == dd) {
@@ -40,7 +41,8 @@ public class unipayController {
         }
         if (dd.getPwd().equals(pwd)) {
             UserDefine.fill(dd);
-            adminUserService.afterLogin(dd, code, pwd);
+            String token = adminUserService.afterLogin(dd, code, pwd);
+            dd.setToken(token);
             return new BillApiResponse(dd);
         } else {
             throw new BillException(5100, "用户不存在或者密码错误");

@@ -36,7 +36,7 @@ public class Swagger2Config {
 
 
         return new Docket(DocumentationType.SWAGGER_2)
-                .globalOperationParameters(pars)
+//                .globalOperationParameters(pars)
                 .apiInfo(webApiInfo())
                 .groupName("WebApi接口文档")
 //                .pathMapping("/web")
