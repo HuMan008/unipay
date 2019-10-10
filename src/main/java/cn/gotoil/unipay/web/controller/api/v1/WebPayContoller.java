@@ -3,7 +3,6 @@ package cn.gotoil.unipay.web.controller.api.v1;
 import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.exception.CommonError;
 import cn.gotoil.bill.tools.ObjectHelper;
-import cn.gotoil.bill.tools.encoder.Hash;
 import cn.gotoil.bill.web.annotation.NeedLogin;
 import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.ChargeAlipayModel;
@@ -14,10 +13,7 @@ import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.utils.UtilBase64;
 import cn.gotoil.unipay.utils.UtilString;
 import cn.gotoil.unipay.web.message.request.PayRequest;
-import cn.gotoil.unipay.web.services.AppService;
-import cn.gotoil.unipay.web.services.ChargeConfigService;
-import cn.gotoil.unipay.web.services.OrderService;
-import cn.gotoil.unipay.web.services.WechatService;
+import cn.gotoil.unipay.web.services.*;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Charsets;
@@ -30,7 +26,6 @@ import org.apache.http.HttpResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -39,7 +34,6 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -65,28 +59,32 @@ public class WebPayContoller {
     WechatService wechatService;
 
     @Autowired
+    AlipayService alipayService;
+
+    @Autowired
     AppService appService;
 
     @Value("${domain}")
     String domain;
 
-    @Value("$(wechat_open_id_grant_url)")
+    @Value("${wechat_open_id_grant_url}")
     String wechat_open_id_grant_url;
 
     @NeedLogin(value = false)
     @RequestMapping(value = "dopay", method = RequestMethod.GET)
     @ApiOperation(value = "Web订单创建", position = 5)
 
-    public ModelAndView createOrder(@Valid @RequestBody PayRequest payRequest,
+    public ModelAndView createOrder(PayRequest payRequest,
+            //    public ModelAndView createOrder(@Valid @RequstBody PayRequest payRequest,
                                     HttpServletRequest httpServletRequest,
                                     HttpServletResponse httpServletResponse) {
         //校验SIGN
 //        appId+appOrderNo+payType+fee+appKey
         String signStr =
                 payRequest.getAppId() + payRequest.getAppOrderNo() + payRequest.getPayType() + payRequest.getFee() + appService.key(payRequest.getAppId());
-        if (StringUtils.isEmpty(payRequest.getSign()) || !payRequest.getSign().equals(Hash.md5(signStr).toUpperCase())) {
+      /*  if (StringUtils.isEmpty(payRequest.getSign()) || !payRequest.getSign().equals(Hash.md5(signStr).toUpperCase())) {
             return new ModelAndView(UtilString.makeErrorPage(UnipayError.IllegalRequest));
-        }
+        }*/
 
 
         //校验请求
@@ -117,6 +115,7 @@ public class WebPayContoller {
                     try {
                         //这里转发了，后面没事干了。这个时候订单还没保存
                         httpServletResponse.sendRedirect(redirectUrlP);
+                        return null;
                     } catch (IOException e) {
                         log.error("获取微信OPEI跳转过程中出错{}", e.getMessage());
                         return new ModelAndView(UtilString.makeErrorPage(CommonError.SystemError));
@@ -129,7 +128,7 @@ public class WebPayContoller {
                 ChargeAlipayModel chargeAlipayModel =
                         JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
                                 ChargeAlipayModel.class);
-                return wechatService.pagePay(payRequest, order, chargeAlipayModel, httpServletRequest,
+                return alipayService.pagePay(payRequest, order, chargeAlipayModel, httpServletRequest,
                         httpServletResponse);
             default:
                 throw new BillException(UnipayError.PayTypeNotImpl);
