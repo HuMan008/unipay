@@ -6,6 +6,7 @@ import cn.gotoil.bill.web.message.BillApiResponse;
 import cn.gotoil.bill.web.services.AdminUserService;
 import cn.gotoil.unipay.config.properties.UserConfig;
 import cn.gotoil.unipay.config.properties.UserDefine;
+import cn.gotoil.unipay.exceptions.UnipayError;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -37,7 +38,7 @@ public class unipayController {
                               HttpServletResponse response) {
         UserDefine dd = userConfig.getUsers().get(code);
         if (null == dd) {
-            throw new BillException(5100, "用户不存在或者密码错误");
+            throw new BillException(UnipayError.WebUserError_UserPwdError);
         }
         if (dd.getPwd().equals(pwd)) {
             UserDefine.fill(dd);
@@ -45,7 +46,7 @@ public class unipayController {
             dd.setToken(token);
             return new BillApiResponse(dd);
         } else {
-            throw new BillException(5100, "用户不存在或者密码错误");
+            throw new BillException(UnipayError.WebUserError_UserPwdError);
 
         }
     }

@@ -11,6 +11,9 @@ public enum UnipayError implements BillError {
     OrderNotExists(4020, "订单不存在"),
 
     IllegalRequest(5000, "非法请求"),
+
+    WebUserError_UserPwdError(11009, "用户名密码错误"),
+
     ;
 
     private int code;
