@@ -14,6 +14,7 @@ import java.util.List;
 public interface ChargeConfigService {
     /**
      * 根据条件查询收款账号
+     *
      * @param accountName
      * @param payType
      * @param status
@@ -42,6 +43,7 @@ public interface ChargeConfigService {
 
     /**
      * 新增收款账号
+     *
      * @param chargeConfig
      * @return
      */
@@ -49,6 +51,7 @@ public interface ChargeConfigService {
 
     /**
      * 更新收款账号
+     *
      * @param chargeConfig
      * @return
      */
@@ -56,6 +59,7 @@ public interface ChargeConfigService {
 
     /**
      * 检查名字是否重复
+     *
      * @param name
      * @param id
      * @return
@@ -64,6 +68,7 @@ public interface ChargeConfigService {
 
     /**
      * 修改状态
+     *
      * @param id
      * @param status
      * @return
@@ -72,6 +77,7 @@ public interface ChargeConfigService {
 
     /**
      * 刷新账号配置
+     *
      * @return
      */
     int refreshAccount();

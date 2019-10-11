@@ -3,6 +3,7 @@ package cn.gotoil.unipay.web.services;
 
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.web.message.request.PayRequest;
+import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 
 /**
  * 订单服务
@@ -71,4 +72,12 @@ public interface OrderService {
      * 保存订单
      */
     int saveOrder(Order order);
+
+    /**
+     * 远程查询订单状态
+     *
+     * @param order
+     * @return
+     */
+    OrderQueryResponse queryOrderStatusFromRemote(Order order);
 }

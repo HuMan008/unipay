@@ -36,7 +36,7 @@ public class UtilString {
         return "redirect:/web/error?errorCode=" + errorCode + "&errorMsg=" + errorMsg;
     }
 
-    public synchronized static boolean checkObjFieldIsNull(Object obj)  {
+    public synchronized static boolean checkObjFieldIsNull(Object obj) {
         try {
             boolean flag = false;
             for (Field f : obj.getClass().getDeclaredFields()) {
@@ -47,7 +47,7 @@ public class UtilString {
                 }
             }
             return flag;
-        }catch (Exception e){
+        } catch (Exception e) {
             return true;
         }
     }

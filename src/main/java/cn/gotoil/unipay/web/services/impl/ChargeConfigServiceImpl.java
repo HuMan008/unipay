@@ -61,14 +61,15 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
 
     /**
      * 根据条件查询收款账号
+     *
      * @param accountName
      * @param payType
      * @param status
      * @return
      */
     @Override
-    public List queryAccounts(String accountName, String payType, String status){
-        Set<String> keys = stringRedisTemplate.keys(APPCHARGKEY+"*");
+    public List queryAccounts(String accountName, String payType, String status) {
+        Set<String> keys = stringRedisTemplate.keys(APPCHARGKEY + "*");
         List<Map<String, Object>> list = new ArrayList<>();
         ArrayList<AccountView> avs = new ArrayList<>();
         for (String strkey : keys) {
@@ -80,14 +81,14 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
             type = type.split("_")[0];
             String state = String.valueOf(mm.get("state"));
 
-            if(StringUtils.isNotEmpty(accountName)
-                    && !accountName.equals(name)){
+            if (StringUtils.isNotEmpty(accountName)
+                    && !accountName.equals(name)) {
                 continue;
-            }else if(StringUtils.isNotEmpty(status)
-                    && !status.equals(state)){
+            } else if (StringUtils.isNotEmpty(status)
+                    && !status.equals(state)) {
                 continue;
-            }else if(StringUtils.isNotEmpty(payType)
-                    && !payType.equals(type)){
+            } else if (StringUtils.isNotEmpty(payType)
+                    && !payType.equals(type)) {
                 continue;
             }
 
@@ -95,7 +96,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
             av.setId(Integer.valueOf(String.valueOf(mm.get("id"))));
             av.setName(name);
             av.setState(Byte.valueOf(state));
-            if(mm.get("createdAt") != null) {
+            if (mm.get("createdAt") != null) {
                 av.setCreatedAt(DateUtil.stringtoDateByNyrsfm(String.valueOf(mm.get("createdAt"))));
             }
             av.setUpdatedAt(DateUtil.stringtoDateByNyrsfm(String.valueOf(mm.get("updatedAt"))));
@@ -106,11 +107,11 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
         Collections.sort(avs, new Comparator<AccountView>() {
             @Override
             public int compare(AccountView o1, AccountView o2) {
-                if(o1.getPayType().hashCode() > o2.getPayType().hashCode()){
+                if (o1.getPayType().hashCode() > o2.getPayType().hashCode()) {
                     return 1;
-                }else if(o1.getPayType().hashCode() == o2.getPayType().hashCode()) {
+                } else if (o1.getPayType().hashCode() == o2.getPayType().hashCode()) {
                     return 0;
-                }else{
+                } else {
                     return -1;
                 }
             }
@@ -165,45 +166,46 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
         return chargeConfigMapper.selectByPrimaryKey(configId);
     }
 
-    private boolean checkConfig(ChargeConfig chargeConfig){
-        if(EnumPayType.WechatH5.getCode().equals(chargeConfig.getPayType())
-        ||EnumPayType.WechatJSAPI.getCode().equals(chargeConfig.getPayType())
-        ||EnumPayType.WechatNAtive.getCode().equals(chargeConfig.getPayType())
-        ||EnumPayType.WechatSDK.getCode().equals(chargeConfig.getPayType())){
+    private boolean checkConfig(ChargeConfig chargeConfig) {
+        if (EnumPayType.WechatH5.getCode().equals(chargeConfig.getPayType())
+                || EnumPayType.WechatJSAPI.getCode().equals(chargeConfig.getPayType())
+                || EnumPayType.WechatNAtive.getCode().equals(chargeConfig.getPayType())
+                || EnumPayType.WechatSDK.getCode().equals(chargeConfig.getPayType())) {
             JSONObject jsonObject = JSONObject.parseObject(chargeConfig.getConfigJson());
-            ChargeWechatModel wechatModel = JSON.toJavaObject(jsonObject,ChargeWechatModel.class);
+            ChargeWechatModel wechatModel = JSON.toJavaObject(jsonObject, ChargeWechatModel.class);
             return UtilString.checkObjFieldIsNull(wechatModel);
 
-        }else if(EnumPayType.AlipayH5.getCode().equals(chargeConfig.getPayType())
-        ||EnumPayType.AlipaySDK.getCode().equals(chargeConfig.getPayType())){
+        } else if (EnumPayType.AlipayH5.getCode().equals(chargeConfig.getPayType())
+                || EnumPayType.AlipaySDK.getCode().equals(chargeConfig.getPayType())) {
             JSONObject jsonObject = JSONObject.parseObject(chargeConfig.getConfigJson());
-            ChargeAlipayModel alipayModel = JSON.toJavaObject(jsonObject,ChargeAlipayModel.class);
+            ChargeAlipayModel alipayModel = JSON.toJavaObject(jsonObject, ChargeAlipayModel.class);
             return UtilString.checkObjFieldIsNull(alipayModel);
 
 
-        }else{
-            throw new BillException(9100,"没有对应支付类型");
+        } else {
+            throw new BillException(9100, "没有对应支付类型");
         }
     }
 
     /**
      * 新增收款账号
+     *
      * @param chargeConfig
      * @return
      */
     @Override
-    public int addChargeConfig(ChargeConfig chargeConfig){
+    public int addChargeConfig(ChargeConfig chargeConfig) {
 
         boolean flag = checkConfig(chargeConfig);
 
-        if(flag){
-            throw new BillException(9100,"收款信息配置有误");
+        if (flag) {
+            throw new BillException(9100, "收款信息配置有误");
         }
         chargeConfig.setCreatedAt(new Date());
         chargeConfig.setUpdatedAt(new Date());
         int result = extChargeConfigMapper.insertChargeConfig(chargeConfig);
-        if(result == 1){
-            String key = chargeConfigKey(chargeConfig.getId(),chargeConfig.getPayType());
+        if (result == 1) {
+            String key = chargeConfigKey(chargeConfig.getId(), chargeConfig.getPayType());
             redisHashHelper.set(key, chargeConfig, Sets.newHashSet("config"));
         }
         return result;
@@ -211,22 +213,23 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
 
     /**
      * 更新收款账号
+     *
      * @param chargeConfig
      * @return
      */
     @Override
-    public int updateAccount(ChargeConfig chargeConfig){
+    public int updateAccount(ChargeConfig chargeConfig) {
         boolean flag = checkConfig(chargeConfig);
 
-        if(flag){
-            throw new BillException(9100,"收款信息配置有误");
+        if (flag) {
+            throw new BillException(9100, "收款信息配置有误");
         }
 
         Date now = new Date();
         chargeConfig.setUpdatedAt(now);
         int result = chargeConfigMapper.updateByPrimaryKey(chargeConfig);
-        if(result == 1){
-            String key = chargeConfigKey(chargeConfig.getId(),chargeConfig.getPayType());
+        if (result == 1) {
+            String key = chargeConfigKey(chargeConfig.getId(), chargeConfig.getPayType());
             redisHashHelper.set(key, chargeConfig, Sets.newHashSet("config"));
         }
         return result;
@@ -234,38 +237,40 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
 
     /**
      * 检查名字是否重复
+     *
      * @param name
      * @param id
      * @return
      */
     @Override
-    public boolean checkName(String name, Integer id){
+    public boolean checkName(String name, Integer id) {
         ChargeConfigExample example = new ChargeConfigExample();
         ChargeConfigExample.Criteria criteria = example.createCriteria();
-        if(id != null){
+        if (id != null) {
             criteria.andIdNotEqualTo(id);
         }
         criteria.andNameEqualTo(name);
 
         List list = chargeConfigMapper.selectByExample(example);
-        if(list != null && list.size() > 0){
+        if (list != null && list.size() > 0) {
             return false;
-        }else{
+        } else {
             return true;
         }
     }
 
     /**
      * 修改状态
+     *
      * @param id
      * @param status
      * @return
      */
     @Override
-    public boolean updateStatus(Integer id, Byte status){
+    public boolean updateStatus(Integer id, Byte status) {
         ChargeConfig old = loadByChargeId(id);
-        if(old == null){
-            throw new BillException(9100,"账号不存在");
+        if (old == null) {
+            throw new BillException(9100, "账号不存在");
         }
 
         ChargeConfig updateConfig = new ChargeConfig();
@@ -277,19 +282,20 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
 
     /**
      * 刷新账号配置
+     *
      * @return
      */
     @Override
-    public int refreshAccount(){
+    public int refreshAccount() {
         try {
             ChargeConfigExample example = new ChargeConfigExample();
             List<ChargeConfig> list = chargeConfigMapper.selectByExample(example);
             for (ChargeConfig config : list) {
-                String key = chargeConfigKey(config.getId(),config.getPayType());
+                String key = chargeConfigKey(config.getId(), config.getPayType());
                 redisHashHelper.set(key, config, Sets.newHashSet("config"));
             }
             return 1;
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error(e.getMessage());
         }
         return 0;

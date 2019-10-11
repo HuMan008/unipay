@@ -25,14 +25,14 @@ public class AccountController {
     @RequestMapping(value = "/addAccount", method = {RequestMethod.POST})
     @NeedLogin
     public Object addAccount(@RequestBody AccountAddRequest accountAddRequest) {
-        if(!configService.checkName(accountAddRequest.getName(),null)){
-            throw new BillException(5000,"名称重复");
+        if (!configService.checkName(accountAddRequest.getName(), null)) {
+            throw new BillException(5000, "名称重复");
         }
         ChargeConfig chargeConfig = new ChargeConfig();
         BeanUtils.copyProperties(accountAddRequest, chargeConfig);
         chargeConfig.setStatus(accountAddRequest.getStatus().byteValue());
-        if(configService.addChargeConfig(chargeConfig) != 1){
-            throw new BillException(5000,"新增收款账号失败");
+        if (configService.addChargeConfig(chargeConfig) != 1) {
+            throw new BillException(5000, "新增收款账号失败");
         }
         return new BillApiResponse("新增成功");
     }
@@ -40,35 +40,37 @@ public class AccountController {
     @ApiOperation(value = "检查账号名称是否重复", position = 3, tags = "账号管理")
     @RequestMapping(value = "/checkAccountName", method = {RequestMethod.GET})
     @NeedLogin
-    public Object checkAccountName(@ApiParam(value = "名称") @PathVariable String appName, @ApiParam(value = "id") @PathVariable Integer id){
-        return configService.checkName(appName,id);
+    public Object checkAccountName(@ApiParam(value = "名称") @PathVariable String appName,
+                                   @ApiParam(value = "id") @PathVariable Integer id) {
+        return configService.checkName(appName, id);
     }
 
     @ApiOperation(value = "修改状态", position = 5, tags = "账号管理")
     @RequestMapping(value = "/updateAccountStatus", method = {RequestMethod.POST})
     @NeedLogin
-    public Object updateAccountStatus(@ApiParam(value = "id") @PathVariable Integer id,@ApiParam(value = "新状态 0启用 1禁用", allowableValues = "0,1", example = "0") @PathVariable Integer status){
-        return configService.updateStatus(id,status.byteValue());
+    public Object updateAccountStatus(@ApiParam(value = "id") @PathVariable Integer id, @ApiParam(value = "新状态 0启用 " +
+            "1禁用", allowableValues = "0,1", example = "0") @PathVariable Integer status) {
+        return configService.updateStatus(id, status.byteValue());
     }
 
     @ApiOperation(value = "获取账号", position = 7, tags = "账号管理")
     @RequestMapping(value = "/getAccountById", method = {RequestMethod.GET})
     @NeedLogin
-    public Object getAccountById(@ApiParam(value = "id") @PathVariable Integer id){
+    public Object getAccountById(@ApiParam(value = "id") @PathVariable Integer id) {
         return new BillApiResponse(configService.loadByChargeId(id));
     }
 
     @ApiOperation(value = "修改账号", position = 11, tags = "账号管理")
     @RequestMapping(value = "/updateAccount", method = {RequestMethod.GET})
     @NeedLogin
-    public Object updateAccount(@RequestBody AccountAddRequest accountAddRequest){
-        if(!configService.checkName(accountAddRequest.getName(),accountAddRequest.getId())){
-            throw new BillException(5000,"名称重复");
+    public Object updateAccount(@RequestBody AccountAddRequest accountAddRequest) {
+        if (!configService.checkName(accountAddRequest.getName(), accountAddRequest.getId())) {
+            throw new BillException(5000, "名称重复");
         }
         ChargeConfig chargeConfig = new ChargeConfig();
         BeanUtils.copyProperties(accountAddRequest, chargeConfig);
-        if(configService.updateAccount(chargeConfig) != 1){
-            throw new BillException(5000,"修改收款账号失败");
+        if (configService.updateAccount(chargeConfig) != 1) {
+            throw new BillException(5000, "修改收款账号失败");
         }
         return new BillApiResponse("修改成功");
     }
@@ -76,18 +78,19 @@ public class AccountController {
     @ApiOperation(value = "账号列表", position = 13, tags = "账号管理")
     @RequestMapping(value = "/queryAccounts", method = {RequestMethod.GET})
     @NeedLogin
-    public Object queryAccounts(@ApiParam(value = "name") @PathVariable String name, @ApiParam(value = "payType") @PathVariable String payType,
-                                @ApiParam(value = "status") @PathVariable String status){
+    public Object queryAccounts(@ApiParam(value = "name") @PathVariable String name,
+                                @ApiParam(value = "payType") @PathVariable String payType,
+                                @ApiParam(value = "status") @PathVariable String status) {
 
-        return new BillApiResponse(configService.queryAccounts(name,payType,status));
+        return new BillApiResponse(configService.queryAccounts(name, payType, status));
     }
 
     @ApiOperation(value = "刷新账号列表", position = 15, tags = "账号管理")
     @RequestMapping(value = "/refreshAccount", method = {RequestMethod.GET})
     @NeedLogin
-    public Object refreshAccount(){
-        if(configService.refreshAccount() != 1){
-            throw new BillException(5000,"刷新失败");
+    public Object refreshAccount() {
+        if (configService.refreshAccount() != 1) {
+            throw new BillException(5000, "刷新失败");
         }
         return new BillApiResponse("刷新成功");
     }

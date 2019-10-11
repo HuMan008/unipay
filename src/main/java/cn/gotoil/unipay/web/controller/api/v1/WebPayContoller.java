@@ -75,14 +75,15 @@ public class WebPayContoller {
     @ApiOperation(value = "Web订单创建", position = 5)
 
     public ModelAndView createOrder(PayRequest payRequest,
-            //    public ModelAndView createOrder(@Valid @RequstBody PayRequest payRequest,
+                                    //    public ModelAndView createOrder(@Valid @RequstBody PayRequest payRequest,
                                     HttpServletRequest httpServletRequest,
                                     HttpServletResponse httpServletResponse) {
         //校验SIGN
 //        appId+appOrderNo+payType+fee+appKey
         String signStr =
                 payRequest.getAppId() + payRequest.getAppOrderNo() + payRequest.getPayType() + payRequest.getFee() + appService.key(payRequest.getAppId());
-      /*  if (StringUtils.isEmpty(payRequest.getSign()) || !payRequest.getSign().equals(Hash.md5(signStr).toUpperCase())) {
+      /*  if (StringUtils.isEmpty(payRequest.getSign()) || !payRequest.getSign().equals(Hash.md5(signStr).toUpperCase
+      ())) {
             return new ModelAndView(UtilString.makeErrorPage(UnipayError.IllegalRequest));
         }*/
 

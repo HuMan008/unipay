@@ -61,6 +61,7 @@ public class DateUtil {
             return null;
         }
     }
+
     /**
      * 获取当月的最后1天
      *
@@ -88,17 +89,17 @@ public class DateUtil {
         return simpleDateFormat.format(endTime);
     }
 
-    public static Long getTomorrowMin(){
-        try{
+    public static Long getTomorrowMin() {
+        try {
             SimpleDateFormat nyr = DateUtils.simpleDateFormatter();
             SimpleDateFormat nyrsfm = DateUtils.simpleDatetimeFormatter();
             Date d1 = new Date();
-            String end = nyr.format(d1)+" 23:59:59";
+            String end = nyr.format(d1) + " 23:59:59";
             Date d2 = nyrsfm.parse(end);
-            Long number = (d2.getTime() -d1.getTime()) / (1000 * 60);
-            number = number +2879;
+            Long number = (d2.getTime() - d1.getTime()) / (1000 * 60);
+            number = number + 2879;
             return number;
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error("提油码计算时间出错:", e);
             return null;
         }
@@ -106,10 +107,11 @@ public class DateUtil {
 
     /**
      * 根据数字计算日期
+     *
      * @param day
      * @return
      */
-    public static String getByDay(int day){
+    public static String getByDay(int day) {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DATE, day);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(nyr);

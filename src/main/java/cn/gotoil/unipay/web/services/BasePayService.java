@@ -50,9 +50,9 @@ public interface BasePayService<T extends ChargeAccount> {
     /**
      * 订单支付状态查询 远程查
      *
-     * @param orderId
+     * @param order
      */
-    OrderQueryResponse orderQueryFromRemote(String orderId, T chargeConfig);
+    OrderQueryResponse orderQueryFromRemote(Order order, T chargeConfig);
 
 
     /**

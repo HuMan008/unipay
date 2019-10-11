@@ -1,7 +1,6 @@
 package cn.gotoil.unipay.web.message.request.admin;
 
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.models.auth.In;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
@@ -9,7 +8,6 @@ import javax.validation.constraints.Size;
 
 @Data
 public class AccountAddRequest {
-
 
 
     @NotNull
@@ -24,7 +22,7 @@ public class AccountAddRequest {
     @NotNull
     @Size(max = 20)
     @ApiModelProperty(required = true, example = "", value = "支付类型", position = 3,
-            dataType="cn.gotoil.unipay.model.enums.EnumPayType")
+            dataType = "cn.gotoil.unipay.model.enums.EnumPayType")
     String payType;
 
     @NotNull
@@ -34,6 +32,6 @@ public class AccountAddRequest {
     @NotNull
     @Size(max = 1)
     @ApiModelProperty(required = true, example = "", value = "状态", position = 7,
-            dataType="cn.gotoil.unipay.model.enums.EnumStatus")
+            dataType = "cn.gotoil.unipay.model.enums.EnumStatus")
     Integer status;
 }

@@ -14,9 +14,15 @@ import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
-import com.alipay.api.domain.*;
-import com.alipay.api.request.*;
-import com.alipay.api.response.*;
+import com.alipay.api.domain.AlipayTradeAppPayModel;
+import com.alipay.api.domain.AlipayTradeQueryModel;
+import com.alipay.api.domain.AlipayTradeWapPayModel;
+import com.alipay.api.request.AlipayTradeAppPayRequest;
+import com.alipay.api.request.AlipayTradeQueryRequest;
+import com.alipay.api.request.AlipayTradeWapPayRequest;
+import com.alipay.api.response.AlipayTradeAppPayResponse;
+import com.alipay.api.response.AlipayTradeQueryResponse;
+import com.alipay.api.response.AlipayTradeWapPayResponse;
 import com.google.common.base.Charsets;
 import com.google.common.net.UrlEscapers;
 import org.apache.commons.lang3.StringUtils;
@@ -66,21 +72,7 @@ public class AlipayServiceImpl implements AlipayService {
 
         AlipayClient alipayClient = new DefaultAlipayClient(GateWayURL, chargeModel.getAppID(),
                 chargeModel.getPriKey(), Format, Charsets.UTF_8.name(), chargeModel.getPubKey(), SignType);
-        //下单
-        AlipayTradeCreateRequest tradeCreateRequest = new AlipayTradeCreateRequest();
-        AlipayTradeCreateModel tradeCreateModel = new AlipayTradeCreateModel();
-        tradeCreateModel.setOutTradeNo(order.getId());
-        //单位元
-        tradeCreateModel.setTotalAmount(UtilMoney.fenToYuan(order.getFee(), false));
-        tradeCreateModel.setSubject(order.getSubjects());
-        tradeCreateModel.setBody(order.getDescp());
-        if (StringUtils.isNotEmpty(payRequest.getPaymentUserID())) {
-            tradeCreateModel.setBuyerId(payRequest.getPaymentUserID());
-        }
-        tradeCreateModel.setTimeoutExpress(payRequest.getExpireOutTime() + "m");
-        tradeCreateRequest.setBizModel(tradeCreateModel);
-        tradeCreateRequest.setNotifyUrl(order.getAsyncUrl());
-        tradeCreateRequest.setReturnUrl(order.getSyncUrl());
+
 
         AlipayTradeWapPayRequest alipayTradeWapPayRequest = new AlipayTradeWapPayRequest();
         AlipayTradeWapPayModel alipayTradeWapPayModel = new AlipayTradeWapPayModel();
@@ -99,21 +91,14 @@ public class AlipayServiceImpl implements AlipayService {
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName("/alipay/submit");
         try {
-            AlipayTradeCreateResponse alipayTradeCreateResponse = alipayClient.sdkExecute(tradeCreateRequest);
-            if (alipayTradeCreateResponse.isSuccess()) {
-                AlipayTradeWapPayResponse alipayTradeWapPayResponse =
-                        alipayClient.pageExecute(alipayTradeWapPayRequest);
-                if (alipayTradeCreateResponse.isSuccess()) {
-                    modelAndView.addObject("from", alipayTradeWapPayResponse.getBody());
-                } else {
-                    modelAndView.addObject("errorCode", 5000);
-                    modelAndView.addObject("errorMsg", "下单失败");
-                }
+
+            AlipayTradeWapPayResponse alipayTradeWapPayResponse = alipayClient.pageExecute(alipayTradeWapPayRequest);
+            if (alipayTradeWapPayResponse.isSuccess()) {
+                modelAndView.addObject("from", alipayTradeWapPayResponse.getBody());
             } else {
                 modelAndView.addObject("errorCode", 5000);
-                modelAndView.addObject("errorMsg", "支付宝订单创建出错");
+                modelAndView.addObject("errorMsg", "下单失败");
             }
-
 
 
         } catch (AlipayApiException e) {
@@ -135,117 +120,87 @@ public class AlipayServiceImpl implements AlipayService {
     @Override
     public String sdkPay(PayRequest payRequest, Order order, ChargeAccount chargeConfig) {
         ChargeAlipayModel chargeModel = (ChargeAlipayModel) chargeConfig;
-
         //实例化客户端
         AlipayClient alipayClient = new DefaultAlipayClient(GateWayURL, chargeModel.getAppID(),
                 chargeModel.getPriKey(), Format, Charsets.UTF_8.name(), chargeModel.getPubKey(), SignType);
-        //增加下单过程
-        AlipayTradeCreateRequest tradeCreateRequest = new AlipayTradeCreateRequest();
-        AlipayTradeCreateModel tradeCreateModel = new AlipayTradeCreateModel();
-        tradeCreateModel.setOutTradeNo(order.getId());
-        //单位元
-        tradeCreateModel.setTotalAmount(UtilMoney.fenToYuan(order.getFee(), false));
-        tradeCreateModel.setSubject(order.getSubjects());
-        tradeCreateModel.setBody(order.getDescp());
-        if (StringUtils.isNotEmpty(payRequest.getPaymentUserID())) {
-            tradeCreateModel.setBuyerId(payRequest.getPaymentUserID());
-        }
-        tradeCreateModel.setTimeoutExpress(payRequest.getExpireOutTime() + "m");
-        tradeCreateRequest.setBizModel(tradeCreateModel);
-        tradeCreateRequest.setNotifyUrl(order.getAsyncUrl());
-        tradeCreateRequest.setReturnUrl(order.getSyncUrl());
         try {
-            //创建订单;
-            AlipayTradeCreateResponse alipayTradeCreateResponse = alipayClient.sdkExecute(tradeCreateRequest);
-            if (alipayTradeCreateResponse.isSuccess()) {
-
-                //去支付
-                AlipayTradeAppPayRequest alipayTradeAppPayRequest = new AlipayTradeAppPayRequest();
-                AlipayTradeAppPayModel alipayTradeAppPayModel = new AlipayTradeAppPayModel();
-                alipayTradeAppPayModel.setBody(order.getDescp());
-                alipayTradeAppPayModel.setSubject(order.getSubjects());
-                alipayTradeAppPayModel.setOutTradeNo(alipayTradeCreateResponse.getOutTradeNo());
-                alipayTradeAppPayModel.setTimeoutExpress(payRequest.getExpireOutTime() + "m");
-                alipayTradeAppPayModel.setTotalAmount(UtilMoney.fenToYuan(order.getFee(), false));
-                alipayTradeAppPayRequest.setBizModel(alipayTradeAppPayModel);
-                alipayTradeAppPayRequest.setNotifyUrl(domain + "/payment/alipay/" + order.getId());
-                alipayTradeAppPayRequest.setReturnUrl(domain + "/payment/alipay/return/" + order.getId());
-                AlipayTradeAppPayResponse alipayTradeAppPayResponse = alipayClient.sdkExecute(alipayTradeAppPayRequest);
-                if (alipayTradeAppPayResponse.isSuccess()) {
-                    logger.debug("支付宝创建订单【{}】成功");
-                    return alipayTradeAppPayResponse.getBody();
-                } else {
-                    //关闭订单
-                    AlipayTradeCloseRequest alipayTradeCloseRequest = new AlipayTradeCloseRequest();
-                    AlipayTradeCloseModel alipayTradeCloseModel = new AlipayTradeCloseModel();
-                    alipayTradeCloseModel.setOutTradeNo(order.getId());
-                    alipayTradeCloseModel.setOperatorId("UnipayAPI");
-                    alipayTradeCloseRequest.setBizModel(alipayTradeCloseModel);
-                    AlipayTradeCloseResponse alipayTradeCloseResponse =
-                            alipayClient.sdkExecute(alipayTradeCloseRequest);
-                    if (alipayTradeCloseResponse.isSuccess()) {
-                        logger.error("订单【{}】创建成功，去支付失败...关闭成功", order.getId());
-                        return "";
-                    } else {
-                        logger.error("订单【{}】关闭失败{}", order.getId(), alipayTradeCloseResponse.getBody());
-                        return "";
-                    }
-                }
+            //去支付
+            AlipayTradeAppPayRequest alipayTradeAppPayRequest = new AlipayTradeAppPayRequest();
+            AlipayTradeAppPayModel alipayTradeAppPayModel = new AlipayTradeAppPayModel();
+            alipayTradeAppPayModel.setBody(order.getDescp());
+            alipayTradeAppPayModel.setSubject(order.getSubjects());
+            alipayTradeAppPayModel.setOutTradeNo(order.getId());
+            alipayTradeAppPayModel.setTimeoutExpress(payRequest.getExpireOutTime() + "m");
+            alipayTradeAppPayModel.setTotalAmount(UtilMoney.fenToYuan(order.getFee(), false));
+            alipayTradeAppPayRequest.setBizModel(alipayTradeAppPayModel);
+            alipayTradeAppPayRequest.setNotifyUrl(domain + "/payment/alipay/" + order.getId());
+            alipayTradeAppPayRequest.setReturnUrl(domain + "/payment/alipay/return/" + order.getId());
+            AlipayTradeAppPayResponse alipayTradeAppPayResponse = alipayClient.sdkExecute(alipayTradeAppPayRequest);
+            if (alipayTradeAppPayResponse.isSuccess()) {
+                logger.debug("支付宝创建订单【{}】成功");
+                return alipayTradeAppPayResponse.getBody();
             } else {
-                logger.error("支付宝创建订单【{}】失败{}", order.getId(), alipayTradeCreateResponse.getBody());
-                throw new BillException(alipayTradeCreateResponse.hashCode(), alipayTradeCreateResponse.getBody());
+                return "";
             }
         } catch (AlipayApiException e) {
             logger.error("支付宝出错了{}【{}】", e.getErrCode(), e.getErrMsg());
             throw new BillException(e.hashCode(), e.getErrCode() + "【" + e.getErrMsg() + "】");
         }
-
-
     }
 
     /**
      * 订单支付状态查询 远程查
-     *
+     * <p>
      * thirdCode = 5000的时候表示查询异常
-     * @param orderId
+     *
+     * @param order
      * @param chargeConfig
      */
     @Override
-    public OrderQueryResponse orderQueryFromRemote(String orderId, ChargeAccount chargeConfig) {
+    public OrderQueryResponse orderQueryFromRemote(Order order, ChargeAccount chargeConfig) {
         ChargeAlipayModel chargeModel = (ChargeAlipayModel) chargeConfig;
         AlipayTradeQueryRequest alipay_request = new AlipayTradeQueryRequest();
         AlipayTradeQueryModel model = new AlipayTradeQueryModel();
-        model.setOutTradeNo(orderId);
+        model.setOutTradeNo(order.getId());
         alipay_request.setBizModel(model);
-        AlipayClient client = new DefaultAlipayClient(GateWayURL, chargeModel.getAppID(),
-                chargeModel.getPriKey(), Format, Charsets.UTF_8.name(), chargeModel.getPubKey(), SignType);
+        AlipayClient client = new DefaultAlipayClient(GateWayURL, chargeModel.getAppID(), chargeModel.getPriKey(),
+                Format, Charsets.UTF_8.name(), chargeModel.getPubKey(), SignType);
         try {
             AlipayTradeQueryResponse alipayTradeQueryResponse = client.execute(alipay_request);
             if (alipayTradeQueryResponse.isSuccess()) {
                 String tradeStatus = alipayTradeQueryResponse.getTradeStatus();
 
-                OrderQueryResponse orderQueryResponse = OrderQueryResponse.builder().unionOrderID(orderId).paymentOrderID(alipayTradeQueryResponse.getOutTradeNo()).orderFee(UtilMoney.yuanToFen(alipayTradeQueryResponse.getTotalAmount())).payFee(UtilMoney.yuanToFen(alipayTradeQueryResponse.getBuyerPayAmount())).thirdStatus(alipayTradeQueryResponse.getTradeStatus()).thirdCode(alipayTradeQueryResponse.getCode()).thirdMsg(alipayTradeQueryResponse.getMsg()).build();
+                OrderQueryResponse orderQueryResponse =
+                        OrderQueryResponse.builder().unionOrderID(order.getId()).paymentId(alipayTradeQueryResponse.getOutTradeNo()).orderFee(UtilMoney.yuanToFen(alipayTradeQueryResponse.getTotalAmount())).payFee(UtilMoney.yuanToFen(alipayTradeQueryResponse.getBuyerPayAmount())).thirdStatus(alipayTradeQueryResponse.getTradeStatus()).thirdCode(alipayTradeQueryResponse.getCode()).thirdMsg(alipayTradeQueryResponse.getMsg()).build();
                 //                交易状态：WAIT_BUYER_PAY（交易创建，等待买家付款）、TRADE_CLOSED（未付款交易超时关闭，或支付完成后全额退款）、TRADE_SUCCESS
-// （交易支付成功）、TRADE_FINISHED（交易结束，不可退款）
+                // （交易支付成功）、TRADE_FINISHED（交易结束，不可退款）
                 if ("WAIT_BUYER_PAY".equalsIgnoreCase(tradeStatus)) {
                     orderQueryResponse.setStatus(EnumOrderStatus.Created.getCode());
                 } else if ("TRADE_CLOSED".equalsIgnoreCase(tradeStatus)) {
                     orderQueryResponse.setStatus(EnumOrderStatus.PayFailed.getCode());
                 } else if ("TRADE_SUCCESS".equalsIgnoreCase(tradeStatus) || "TRADE_FINISHED".equalsIgnoreCase(tradeStatus)) {
+                    orderQueryResponse.setPaymentId(alipayTradeQueryResponse.getTradeNo());
+                    orderQueryResponse.setPaymentUid(alipayTradeQueryResponse.getBuyerUserId());
+                    orderQueryResponse.setPayFee(StringUtils.isEmpty(alipayTradeQueryResponse.getBuyerPayAmount()) ?
+                            UtilMoney.yuanToFen(alipayTradeQueryResponse.getTotalAmount()) :
+                            UtilMoney.yuanToFen(alipayTradeQueryResponse.getBuyerPayAmount()));
+                    if (null != alipayTradeQueryResponse.getSendPayDate()) {
+                        orderQueryResponse.setPayDateTime(alipayTradeQueryResponse.getSendPayDate().toInstant().getEpochSecond());
+                    }
                     orderQueryResponse.setStatus(EnumOrderStatus.PaySuccess.getCode());
                 }
                 return orderQueryResponse;
 
             } else if ("40004".equals(alipayTradeQueryResponse.getCode()) && "ACQ.TRADE_NOT_EXIST".equals(alipayTradeQueryResponse.getSubCode())) {
-                return OrderQueryResponse.builder().unionOrderID(orderId).paymentOrderID(alipayTradeQueryResponse.getOutTradeNo()).orderFee(0).payFee(0).thirdStatus(alipayTradeQueryResponse.getTradeStatus()).thirdCode(alipayTradeQueryResponse.getCode()).status(EnumOrderStatus.Created.getCode()).thirdMsg(alipayTradeQueryResponse.getMsg()).build();
+                return OrderQueryResponse.builder().unionOrderID(order.getId()).paymentId(alipayTradeQueryResponse.getOutTradeNo()).orderFee(0).payFee(0).thirdStatus(alipayTradeQueryResponse.getTradeStatus()).thirdCode(alipayTradeQueryResponse.getCode()).status(EnumOrderStatus.Created.getCode()).thirdMsg(alipayTradeQueryResponse.getMsg()).build();
             } else {
-                logger.error("执行【{}】支付宝订单状态查询失败{}", orderId, JSONObject.toJSONString(alipayTradeQueryResponse));
+                logger.error("执行【{}】支付宝订单状态查询失败{}", order.getId(), JSONObject.toJSONString(alipayTradeQueryResponse));
                 return OrderQueryResponse.builder().
                         thirdCode(alipayTradeQueryResponse.getCode() + "#" + alipayTradeQueryResponse.getSubCode()).thirdMsg(alipayTradeQueryResponse.getMsg() + "#" + alipayTradeQueryResponse.getSubMsg()).build();
 
             }
         } catch (Exception e) {
-            logger.error("执行【{}】支付宝订单状态查询出错{}", orderId, e);
+            logger.error("执行【{}】支付宝订单状态查询出错{}", order.getId(), e);
             return OrderQueryResponse.builder().thirdCode("5000").thirdMsg(e.getMessage()).build();
         }
     }

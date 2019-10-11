@@ -127,7 +127,19 @@ public class WechatNotifyController {
                             return UtilWechat.mapToXml(mm);
                         } else {
                             OrderNotifyBean orderNotifyBean =
-                                    OrderNotifyBean.builder().unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appOrderNO(newOrder.getPaymentId()).status(newOrder.getStatus()).orderFee(order.getFee()).refundFee(0).totalRefundFee(0).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(newOrder.getOrderPayDatetime()).timeStamp(Instant.now().getEpochSecond()).build();
+                                    OrderNotifyBean.builder()
+                                            .unionOrderID(order.getId())
+                                            .method(EnumOrderMessageType.PAY.name())
+                                            .appOrderNO(newOrder.getPaymentId())
+                                            .status(newOrder.getStatus())
+                                            .orderFee(order.getFee())
+                                            .payFee(newOrder.getPayFee())
+                                            .refundFee(0)
+                                            .totalRefundFee(0)
+                                            .asyncUrl(order.getAsyncUrl())
+                                            .extraParam(order.getExtraParam())
+                                            .payDate(newOrder.getOrderPayDatetime())
+                                            .timeStamp(Instant.now().getEpochSecond()).build();
                             String appSecret = appService.key(order.getAppId());
                             String signStr = UtilMySign.sign(orderNotifyBean, appSecret);
                             orderNotifyBean.setSign(signStr);

@@ -122,6 +122,7 @@ public class AlipayNotifyController {
                                         .orderFee(order.getFee())
                                         .refundFee(0)
                                         .totalRefundFee(0)
+                                        .payFee(newOrder.getPayFee())
                                         .asyncUrl(order.getAsyncUrl())
                                         .extraParam(order.getExtraParam())
                                         .payDate(newOrder.getOrderPayDatetime()).

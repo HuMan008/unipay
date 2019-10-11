@@ -165,11 +165,11 @@ public class WechatServiceImpl implements WechatService {
     /**
      * 订单支付状态查询 远程查
      *
-     * @param orderId
+     * @param order
      * @param chargeConfig
      */
     @Override
-    public OrderQueryResponse orderQueryFromRemote(String orderId, ChargeAccount chargeConfig) {
+    public OrderQueryResponse orderQueryFromRemote(Order order, ChargeAccount chargeConfig) {
         ChargeWechatModel chargeWechatModel = (ChargeWechatModel) chargeConfig;
         Map<String, String> reMap = new HashMap<>();
         String return_code;
@@ -177,7 +177,7 @@ public class WechatServiceImpl implements WechatService {
             TreeMap<String, String> map = new TreeMap<>();
             map.put("appid", chargeWechatModel.getAppID());
             map.put("mch_id", chargeWechatModel.getMerchID());
-            map.put("out_trade_no", orderId);
+            map.put("out_trade_no", order.getId());
             map.put("nonce_str", UtilWechat.generateNonceStr());
             String sign = UtilWechat.generateSignature(map, chargeWechatModel.getMerchKey());
             map.put(UtilWechat.FIELD_SIGN, sign); //加签
@@ -192,7 +192,9 @@ public class WechatServiceImpl implements WechatService {
                         OrderQueryResponse orderQueryResponse = orderQueryResponse = OrderQueryResponse.builder()
 //                                    .unionOrderID(orderId)
                                 .unionOrderID(reMap.get("out_trade_no"))
-                                .paymentOrderID(reMap.get("transaction_id"))
+                                .paymentId(reMap.get("transaction_id"))
+                                .paymentUid(reMap.get("openid"))
+                                .payDateTime(DateUtils.simpleDateTimeNoSymbolFormatter().parse(reMap.get("time_end")).getTime())
                                 .orderFee(Integer.parseInt(reMap.get("total_fee")))
                                 .payFee(Integer.parseInt(reMap.get("cash_fee")))
                                 .thirdStatus(reMap.get("trade_state"))
@@ -217,13 +219,13 @@ public class WechatServiceImpl implements WechatService {
                         }
                         return orderQueryResponse;
                     } else {
-                        log.error("执行【{}】微信订单状态查询出错{}", orderId, JSON.toJSONString(reMap));
+                        log.error("执行【{}】微信订单状态查询出错{}", order.getId(), JSON.toJSONString(reMap));
                         return OrderQueryResponse.builder().thirdCode(reMap.get("result_code")).thirdMsg(reMap.get(
                                 "err_code") + reMap.get("err_code_des")).build();
                     }
 
                 } else {
-                    log.error("执行【{}】微信订单状态查询出错{}", orderId, JSON.toJSONString(reMap));
+                    log.error("执行【{}】微信订单状态查询出错{}", order.getId(), JSON.toJSONString(reMap));
                     return OrderQueryResponse.builder().thirdCode(reMap.get(RETURN_CODE)).thirdMsg(reMap.get(
                             "return_msg")).build();
 
@@ -231,13 +233,13 @@ public class WechatServiceImpl implements WechatService {
 
 
             } else {
-                log.error("执行【{}】微信订单状态查询出错{}", orderId, reMap == null ? "查询响应为空" : JSON.toJSONString(reMap));
+                log.error("执行【{}】微信订单状态查询出错{}", order.getId(), reMap == null ? "查询响应为空" : JSON.toJSONString(reMap));
                 return OrderQueryResponse.builder().thirdCode(reMap == null ? "5000" : reMap.get(RETURN_CODE)).thirdMsg(reMap == null ? "查询响应为空" : reMap.get("return_msg")).build();
 
             }
 
         } catch (Exception e) {
-            log.error("执行【{}】微信订单状态查询出错{}", orderId, e);
+            log.error("执行【{}】微信订单状态查询出错{}", order.getId(), e);
             return OrderQueryResponse.builder().thirdCode("5000").thirdMsg(e.getMessage()).build();
         }
 

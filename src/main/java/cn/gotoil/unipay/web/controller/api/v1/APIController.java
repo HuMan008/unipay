@@ -109,18 +109,8 @@ public class APIController {
         if (o == null) {
             throw new BillException(UnipayError.OrderNotExists);
         }
-        ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(o.getAppId(), o.getPayType());
-
-        OrderQueryResponse orderQueryResponse = null;
-        if (EnumPayType.AlipayH5.getCode().equals(o.getPayType()) || EnumPayType.AlipaySDK.getCode().equals(o.getPayType())) {
-            ChargeAlipayModel chargeAlipayModel =
-                    JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()), ChargeAlipayModel.class);
-            orderQueryResponse = alipayService.orderQueryFromRemote(oid, chargeAlipayModel);
-        } else if (EnumPayType.WechatH5.getCode().equals(o.getPayType()) || EnumPayType.WechatJSAPI.getCode().equals(o.getPayType()) || EnumPayType.WechatNAtive.getCode().equals(o.getPayType()) || EnumPayType.WechatSDK.getCode().equals(o.getPayType())) {
-            ChargeWechatModel chargeWechatModel =
-                    JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()), ChargeWechatModel.class);
-            orderQueryResponse = wechatService.orderQueryFromRemote(oid, chargeWechatModel);
-        } else {
+        OrderQueryResponse orderQueryResponse = orderService.queryOrderStatusFromRemote(o);
+        if (orderQueryResponse == null || orderQueryResponse.getStatus() == -127) {
             throw new BillException(UnipayError.PayTypeNotImpl);
         }
         return new BillApiResponse(orderQueryResponse);

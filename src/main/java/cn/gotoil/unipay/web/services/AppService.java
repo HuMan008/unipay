@@ -62,6 +62,7 @@ public interface AppService {
 
     /**
      * 更新APP状态
+     *
      * @param appkey
      * @param status
      * @return
@@ -70,6 +71,7 @@ public interface AppService {
 
     /**
      * 更新APP
+     *
      * @param app
      * @param appAccountIds
      * @return
@@ -78,6 +80,7 @@ public interface AppService {
 
     /**
      * 查询有效APP
+     *
      * @return
      */
     List getApps();

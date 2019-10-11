@@ -1,9 +1,6 @@
 package cn.gotoil.unipay.web.message.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 /**
  * 订单状态查询响应
@@ -15,6 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class OrderQueryResponse {
     /**
      * 我的订单ID 提交给支付方的商户订单号
@@ -24,7 +22,17 @@ public class OrderQueryResponse {
     /**
      * 支付方订单号
      */
-    String paymentOrderID;
+    String paymentId;
+
+    /**
+     * 支付方用户ID
+     */
+    String paymentUid;
+
+    /**
+     * 订单支付时间  支付成功才有的
+     */
+    long payDateTime;
 
     /**
      * 状态
@@ -46,7 +54,6 @@ public class OrderQueryResponse {
 
     String thirdCode;
     String thirdMsg;
-
 
 
 }

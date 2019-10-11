@@ -4,6 +4,8 @@ package cn.gotoil.unipay.web.services.impl;
 import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.tools.date.DateUtils;
 import cn.gotoil.unipay.exceptions.UnipayError;
+import cn.gotoil.unipay.model.ChargeAlipayModel;
+import cn.gotoil.unipay.model.ChargeWechatModel;
 import cn.gotoil.unipay.model.entity.App;
 import cn.gotoil.unipay.model.entity.ChargeConfig;
 import cn.gotoil.unipay.model.entity.Order;
@@ -13,9 +15,10 @@ import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.model.enums.EnumStatus;
 import cn.gotoil.unipay.model.mapper.OrderMapper;
 import cn.gotoil.unipay.web.message.request.PayRequest;
-import cn.gotoil.unipay.web.services.AppService;
-import cn.gotoil.unipay.web.services.ChargeConfigService;
-import cn.gotoil.unipay.web.services.OrderService;
+import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
+import cn.gotoil.unipay.web.services.*;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -25,7 +28,6 @@ import org.springframework.data.redis.core.SetOperations;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -46,6 +48,11 @@ public class OrderServiceImpl implements OrderService {
     RedisTemplate redisTemplate;
     @Resource
     OrderMapper orderMapper;
+
+    @Autowired
+    AlipayService alipayService;
+    @Autowired
+    WechatService wechatService;
 
     @Autowired
     ChargeConfigService chargeConfigService;
@@ -153,14 +160,14 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order warpPayRequest2UnionOrder(PayRequest payRequest) {
         Order order = new Order();
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.MILLISECOND, 0);
+
         String currentDateTime = DateUtils.simpleDateTimeWithMilliSecondNoSymbolFormatter().format(new Date());
         order.setAppId(payRequest.getAppId());
         order.setAppOrderNo(payRequest.getAppOrderNo());
         order.setAppUserId(payRequest.getAppUserId());
         order.setExpiredTimeMinute(payRequest.getExpireOutTime());
         order.setFee(payRequest.getFee());
+        order.setPayFee(0);
         order.setSubjects(payRequest.getSubject());
         order.setDescp(payRequest.getReMark());
         order.setExtraParam(payRequest.getExtraParam());
@@ -178,7 +185,7 @@ public class OrderServiceImpl implements OrderService {
         order.setChargeAccountId(chargeConfig.getId());
         order.setApiVersion("v1.0");
         order.setDataVersion(0);
-        order.setCreatedAt(calendar.getTime());
+        order.setCreatedAt(new Date());
         order.setUpdatedAt(order.getCreatedAt());
 
         //appOrderNo存一下 防止重复请求
@@ -220,5 +227,30 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public int saveOrder(Order order) {
         return orderMapper.insert(order);
+    }
+
+
+    /**
+     * 远程查询订单状态
+     *
+     * @param order
+     * @return
+     */
+    @Override
+    public OrderQueryResponse queryOrderStatusFromRemote(Order order) {
+        assert order != null;
+        ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(order.getAppId(), order.getPayType());
+
+        OrderQueryResponse orderQueryResponse = new OrderQueryResponse();
+        if (EnumPayType.AlipayH5.getCode().equals(order.getPayType()) || EnumPayType.AlipaySDK.getCode().equals(order.getPayType())) {
+            ChargeAlipayModel chargeAlipayModel =
+                    JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()), ChargeAlipayModel.class);
+            orderQueryResponse = alipayService.orderQueryFromRemote(order, chargeAlipayModel);
+        } else if (EnumPayType.WechatH5.getCode().equals(order.getPayType()) || EnumPayType.WechatJSAPI.getCode().equals(order.getPayType()) || EnumPayType.WechatNAtive.getCode().equals(order.getPayType()) || EnumPayType.WechatSDK.getCode().equals(order.getPayType())) {
+            ChargeWechatModel chargeWechatModel =
+                    JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()), ChargeWechatModel.class);
+            orderQueryResponse = wechatService.orderQueryFromRemote(order, chargeWechatModel);
+        }
+        return orderQueryResponse;
     }
 }

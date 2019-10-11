@@ -20,7 +20,7 @@ public class AppAddRquest {
     @NotNull
     @Size(max = 1)
     @ApiModelProperty(required = true, example = "", value = "状态", position = 3,
-            dataType="cn.gotoil.unipay.model.enums.EnumStatus")
+            dataType = "cn.gotoil.unipay.model.enums.EnumStatus")
     String status;
 
     @Size(max = 100)

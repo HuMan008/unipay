@@ -31,7 +31,7 @@ public class BasePageResponse {
     @ApiModelProperty(required = false, example = "{\"name\":\"admin\"}", value = "查询参数，name=admin", position = 25)
     private Map<String, Object> params;
 
-    @ApiModelProperty( value ="返回结果",position = 25)
+    @ApiModelProperty(value = "返回结果", position = 25)
     private List<?> rows = new ArrayList<>();
 
     public int getPageNo() {
@@ -82,14 +82,14 @@ public class BasePageResponse {
         this.rows = rows;
     }
 
-    public void setTotal(int total){
+    public void setTotal(int total) {
         this.totalCount = total;
         setTotalPage(this.getTotalCount() % this.getPageSize() == 0 ?
                 this.getTotalCount() / this.getPageSize() :
                 this.getTotalCount() / this.getPageSize() + 1);
     }
 
-    public Integer getOffset(){
+    public Integer getOffset() {
         return (this.getPageNo() - 1) * this.getPageSize();
     }
 }

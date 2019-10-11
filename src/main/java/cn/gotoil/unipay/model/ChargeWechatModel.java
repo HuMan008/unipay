@@ -13,15 +13,23 @@ import lombok.Setter;
 @Setter
 public class ChargeWechatModel extends ChargeAccount {
 
-    /** 微信应用ID wx开头那个 */
+    /**
+     * 微信应用ID wx开头那个
+     */
     String appID;
-    /** 应用秘钥 */
+    /**
+     * 应用秘钥
+     */
     String appSecret;
 
-    /** 商户ID */
+    /**
+     * 商户ID
+     */
     String merchID;
 
-    /** 商户Key */
+    /**
+     * 商户Key
+     */
     String merchKey;
 
 }

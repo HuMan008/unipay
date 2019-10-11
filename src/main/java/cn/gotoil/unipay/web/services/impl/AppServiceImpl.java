@@ -71,7 +71,7 @@ public class AppServiceImpl implements AppService {
         app.setCreatedAt(d);
         app.setUpdatedAt(d);
         redisHashHelper.set(AppKey + app.getAppKey(), app, IGNORESET);
-        appChargeAccountMapper(app.getAppKey(),appAccountIds);
+        appChargeAccountMapper(app.getAppKey(), appAccountIds);
         return appMapper.insert(app);
     }
 
@@ -122,7 +122,7 @@ public class AppServiceImpl implements AppService {
         AppExample appExample = new AppExample();
         AppExample.Criteria criteria = appExample.createCriteria();
         criteria.andAppNameEqualTo(name);
-        if(StringUtils.isNotEmpty(appKey)) {
+        if (StringUtils.isNotEmpty(appKey)) {
             criteria.andAppKeyNotEqualTo(appKey);
         }
         return appMapper.selectByExample(appExample).size() != 0;
@@ -149,7 +149,7 @@ public class AppServiceImpl implements AppService {
     }
 
     @Override
-    public BasePageResponse queryApps(AppListRequest appListRequest){
+    public BasePageResponse queryApps(AppListRequest appListRequest) {
         BasePageResponse pageResponse = new BasePageResponse();
         BeanUtils.copyProperties(appListRequest, pageResponse);
         AppExample appExample = new AppExample();
@@ -174,15 +174,16 @@ public class AppServiceImpl implements AppService {
 
     /**
      * 更新APP状态
+     *
      * @param appkey
      * @param status
      * @return
      */
     @Override
-    public Object updateStatus(String appkey, Byte status){
+    public Object updateStatus(String appkey, Byte status) {
         App old = appMapper.selectByPrimaryKey(appkey);
-        if(old == null){
-            throw new BillException(9100,"找不到对应APP");
+        if (old == null) {
+            throw new BillException(9100, "找不到对应APP");
         }
         App updateApp = new App();
         updateApp.setAppKey(appkey);
@@ -194,6 +195,7 @@ public class AppServiceImpl implements AppService {
 
     /**
      * 更新APP
+     *
      * @param app
      * @param appAccountIds
      * @return
@@ -205,10 +207,10 @@ public class AppServiceImpl implements AppService {
         //禁用类型
         List<String> disable = new ArrayList<String>();
 
-        setAccount(disable,appAccountIds.getAlipayId(),EnumPayCategory.Alipay.getCode(),app.getAppKey());
-        setAccount(disable,appAccountIds.getWechatId(),EnumPayCategory.Wechat.getCode(),app.getAppKey());
+        setAccount(disable, appAccountIds.getAlipayId(), EnumPayCategory.Alipay.getCode(), app.getAppKey());
+        setAccount(disable, appAccountIds.getWechatId(), EnumPayCategory.Wechat.getCode(), app.getAppKey());
 
-        if(disable.size() > 0) {
+        if (disable.size() > 0) {
             //禁用关联支付帐号信息
             HashMap param = new HashMap();
             param.put("appkey", app.getAppKey());
@@ -218,7 +220,7 @@ public class AppServiceImpl implements AppService {
             appQueryMapper.updateChargeaccountStatusByType(param);
 
             List<AppChargeAccount> acs = appQueryMapper.selectChargeaccountStatusByType(param);
-            for(AppChargeAccount ac : acs){
+            for (AppChargeAccount ac : acs) {
                 chargeConfigService.addAppChargeAccount2Redis(ac);
             }
         }
@@ -237,26 +239,26 @@ public class AppServiceImpl implements AppService {
         redisTemplate.opsForHash().getOperations().expire(key, 0, TimeUnit.SECONDS);
     }
 
-    private void setAccount(List<String> disable,Integer accountId,String type,String appId){
-        if(accountId == null || "".equals(accountId)){
+    private void setAccount(List<String> disable, Integer accountId, String type, String appId) {
+        if (accountId == null || "".equals(accountId)) {
             disable.add(type);
-        }else{//启用或新增关联支付帐号信息
+        } else {//启用或新增关联支付帐号信息
             AppChargeAccountExample example = new AppChargeAccountExample();
             example.createCriteria().andAppIdEqualTo(appId)
                     .andPayTypeEqualTo(type)
                     .andAccountIdEqualTo(accountId);
             List<AppChargeAccount> chares = appChargeAccountMapper.selectByExample(example);
 
-            if(chares.size() > 0){
+            if (chares.size() > 0) {
                 setCharge(chares.get(0));
-            }else{
-                createAndSetStatus(appId,accountId,type);
+            } else {
+                createAndSetStatus(appId, accountId, type);
             }
         }
     }
 
-    private void setCharge(AppChargeAccount appChargeAccount){
-        if(appChargeAccount != null && appChargeAccount.getStatus() != EnumStatus.Enable.getCode()){
+    private void setCharge(AppChargeAccount appChargeAccount) {
+        if (appChargeAccount != null && appChargeAccount.getStatus() != EnumStatus.Enable.getCode()) {
             AppChargeAccount updateAC = new AppChargeAccount();
             updateAC.setId(appChargeAccount.getId());
             updateAC.setUpdatedAt(new Date());
@@ -266,37 +268,38 @@ public class AppServiceImpl implements AppService {
 //            redisHashHelper.set(APPCHARGKEY+updateAC.getId(),updateAC,redisExceptFieldsForApp);
 
             Map param = new HashMap<>();
-            param.put("status",EnumStatus.Disable.getCode());
-            param.put("appid",appChargeAccount.getAppId());
-            param.put("payType",appChargeAccount.getPayType());
-            param.put("accid",appChargeAccount.getAccountId());
+            param.put("status", EnumStatus.Disable.getCode());
+            param.put("appid", appChargeAccount.getAppId());
+            param.put("payType", appChargeAccount.getPayType());
+            param.put("accid", appChargeAccount.getAccountId());
             appQueryMapper.updateChargeaccountStatusById(param);
 
             List<AppChargeAccount> acs = appQueryMapper.selectChargeaccountStatusById(param);
-            for(AppChargeAccount ac : acs){
+            for (AppChargeAccount ac : acs) {
 //                redisHashHelper.set(APPCHARGKEY+ac.getId(),ac,redisExceptFieldsForApp);
                 chargeConfigService.addAppChargeAccount2Redis(ac);
             }
         }
     }
 
-    private void createAndSetStatus(String appid,Integer accid,String type){
-        created(appid,accid,type);
+    private void createAndSetStatus(String appid, Integer accid, String type) {
+        created(appid, accid, type);
 
         Map param = new HashMap<>();
-        param.put("status",EnumStatus.Disable.getCode());
-        param.put("appid",appid);
-        param.put("payType",type);
-        param.put("accid",accid);
+        param.put("status", EnumStatus.Disable.getCode());
+        param.put("appid", appid);
+        param.put("payType", type);
+        param.put("accid", accid);
         appQueryMapper.updateChargeaccountStatusById(param);
     }
 
     /**
      * 查询有效APP
+     *
      * @return
      */
     @Override
-    public List getApps(){
+    public List getApps() {
         AppExample example = new AppExample();
         example.createCriteria().andStatusEqualTo(EnumStatus.Enable.getCode());
         return appMapper.selectByExample(example);
