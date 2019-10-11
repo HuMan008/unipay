@@ -3,31 +3,38 @@ package cn.gotoil.unipay.web.services.impl;
 
 import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.tools.date.DateUtils;
+import cn.gotoil.unipay.config.consts.ConstsRabbitMQ;
 import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.ChargeAlipayModel;
 import cn.gotoil.unipay.model.ChargeWechatModel;
+import cn.gotoil.unipay.model.OrderNotifyBean;
 import cn.gotoil.unipay.model.entity.App;
 import cn.gotoil.unipay.model.entity.ChargeConfig;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.model.entity.OrderExample;
+import cn.gotoil.unipay.model.enums.EnumOrderMessageType;
 import cn.gotoil.unipay.model.enums.EnumOrderStatus;
 import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.model.enums.EnumStatus;
 import cn.gotoil.unipay.model.mapper.OrderMapper;
+import cn.gotoil.unipay.utils.UtilMySign;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.services.*;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -40,6 +47,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2019-9-20、15:11
  */
 @Service
+@Slf4j
 public class OrderServiceImpl implements OrderService {
 
     @Autowired
@@ -56,6 +64,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     ChargeConfigService chargeConfigService;
+
+    @Autowired
+    RabbitTemplate rabbitTemplate;
 
     /**
      * 校验支付请求参数
@@ -252,5 +263,84 @@ public class OrderServiceImpl implements OrderService {
             orderQueryResponse = wechatService.orderQueryFromRemote(order, chargeWechatModel);
         }
         return orderQueryResponse;
+    }
+
+
+    /**
+     * 订单状态同步
+     *
+     * @param order
+     */
+    @Override
+    public void syncOrderWithReomte(Order order) {
+        OrderQueryResponse orderQueryResponse = queryOrderStatusFromRemote(order);
+        if (orderQueryResponse != null && orderQueryResponse.getStatus() != -127) {
+            if (EnumOrderStatus.PaySuccess.getCode() == orderQueryResponse.getStatus()) {
+                //标记状态成功，并发通知
+                Order newOrder = new Order();
+                newOrder.setId(order.getId());
+                newOrder.setPayFee(orderQueryResponse.getPayFee());
+                newOrder.setStatus(EnumOrderStatus.PaySuccess.getCode());
+                newOrder.setOrderPayDatetime(orderQueryResponse.getPayDateTime());
+                newOrder.setPaymentUid(orderQueryResponse.getPaymentUid());
+                newOrder.setPaymentId(orderQueryResponse.getPaymentId());
+                int x = updateOrder(order, newOrder);
+
+                if (x == 1) {
+                    log.info("订单【{}】状态更新为支付成功并发送通知", order.getId());
+                    OrderNotifyBean orderNotifyBean =
+                            OrderNotifyBean.builder().unionOrderID(order.getId())
+                                    .method(EnumOrderMessageType.PAY.name())
+                                    .appOrderNO(order.getAppOrderNo())
+                                    .status(newOrder.getStatus())
+                                    .orderFee(order.getFee())
+                                    .refundFee(0)
+                                    .payFee(orderQueryResponse.getPayFee())
+                                    .totalRefundFee(0)
+                                    .asyncUrl(order.getAsyncUrl())
+                                    .extraParam(order.getExtraParam())
+                                    .payDate(newOrder.getOrderPayDatetime()).
+                                    timeStamp(Instant.now().getEpochSecond())
+                                    .build();
+                    String appSecret = appService.key(order.getAppId());
+                    String signStr = UtilMySign.sign(orderNotifyBean, appSecret);
+                    orderNotifyBean.setSign(signStr);
+                    rabbitTemplate.convertAndSend(ConstsRabbitMQ.orderFirstExchangeName,
+                            ConstsRabbitMQ.orderRoutingKey, JSON.toJSONString(orderNotifyBean));
+                } else {
+                    log.error("订单【{}】状态更新失败", order.getId(), orderQueryResponse);
+
+                }
+            } else if (EnumOrderStatus.PayFailed.getCode() == orderQueryResponse.getStatus()) {
+                //标记状态失败
+                Order newOrder = new Order();
+                newOrder.setId(order.getId());
+                newOrder.setStatus(EnumOrderStatus.PayFailed.getCode());
+                int x = updateOrder(order, newOrder);
+                if (x != 1) {
+                    log.error("标记订单【{}】支付失败状态出错", order.getId());
+                }
+                log.info("标记订单【{}】支付失败{}", order, orderQueryResponse.toString());
+            } else if (EnumOrderStatus.Created.getCode() == orderQueryResponse.getStatus()) {
+                //远程状态还是待支付 啥都不用干
+                if (org.apache.commons.lang3.time.DateUtils.addMinutes(order.getCreatedAt(),
+                        order.getExpiredTimeMinute() + 12).before(new Date())) {
+                    Order newOrder = new Order();
+                    newOrder.setId(order.getId());
+                    newOrder.setStatus(EnumOrderStatus.PayFailed.getCode());
+                    int x = updateOrder(order, newOrder);
+                    if (x != 1) {
+                        log.error("标记订单【{}】过期失败状态出错", order.getId());
+                    }
+                    log.info("标记订单【{}】过期", order);
+                }
+            } else {
+                log.error("订单【{}】状态查询未识别{}", order.getId(), orderQueryResponse);
+            }
+        } else {
+            log.error("订单【{}】状态查询出错", order.getId());
+        }
+
+
     }
 }

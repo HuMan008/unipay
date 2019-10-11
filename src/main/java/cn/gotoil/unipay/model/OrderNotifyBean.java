@@ -56,19 +56,59 @@ public class OrderNotifyBean implements Serializable {
      */
     @Builder.Default
     int payFee = 0;
+
+    /**
+     * 退款金额
+     */
     @Builder.Default
     int refundFee = 0;
+
+    /**
+     * 已退款总金额
+     */
     @Builder.Default
     int totalRefundFee = 0;
+
+    /**
+     * 通知地址
+     */
     String asyncUrl;
+
+    /**
+     * 扩展参数
+     */
     String extraParam;
+
+    /**
+     * 支付时间
+     */
     long payDate;
-    @Builder.Default
 
+
+    /**
+     * 签名
+     */
+    @Builder.Default
     String sign = "";
-    @Builder.Default
 
+    /**
+     * 通知时间
+     */
+    @Builder.Default
     long timeStamp = 0;
+
+    /**
+     * 通知次数
+     */
+    @Builder.Default
+    int docount = 0;
+
+    /**
+     * 通知类型
+     */
+    @Builder.Default
+    byte sendType =0;
 
 
 }
+

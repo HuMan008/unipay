@@ -17,7 +17,9 @@ import java.util.List;
 @AllArgsConstructor
 public enum EnumPayCategory {
 
-    Wechat((byte) 2, "Wechat", "微信支付"), Alipay((byte) 3, "Alipay", "支付宝支付");
+    Wechat((byte) 2, "Wechat", "微信支付"),
+    Alipay((byte) 3, "Alipay", "支付宝支付");
+
     byte codeValue;
     String code;
     String descp;

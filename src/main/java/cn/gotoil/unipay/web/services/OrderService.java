@@ -80,4 +80,12 @@ public interface OrderService {
      * @return
      */
     OrderQueryResponse queryOrderStatusFromRemote(Order order);
+
+
+    /**
+     * 订单状态同步
+     *
+     * @param order
+     */
+    void syncOrderWithReomte(Order order);
 }
