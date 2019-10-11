@@ -100,6 +100,7 @@ public class WebPayContoller {
                 ChargeWechatModel chargeWechatModel =
                         JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
                                 ChargeWechatModel.class);
+                orderService.saveOrder(order);
                 return wechatService.pagePay(payRequest, order, chargeWechatModel, httpServletRequest,
                         httpServletResponse);
             }
@@ -121,6 +122,7 @@ public class WebPayContoller {
                         return new ModelAndView(UtilString.makeErrorPage(CommonError.SystemError));
                     }
                 }
+                orderService.saveOrder(order);
                 return wechatService.pagePay(payRequest, order, chargeWechatModel, httpServletRequest,
                         httpServletResponse);
             }
@@ -128,6 +130,7 @@ public class WebPayContoller {
                 ChargeAlipayModel chargeAlipayModel =
                         JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
                                 ChargeAlipayModel.class);
+                orderService.saveOrder(order);
                 return alipayService.pagePay(payRequest, order, chargeAlipayModel, httpServletRequest,
                         httpServletResponse);
             default:

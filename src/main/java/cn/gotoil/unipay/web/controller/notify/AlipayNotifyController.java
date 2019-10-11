@@ -67,11 +67,11 @@ public class AlipayNotifyController {
         log.debug("支付宝异步通知{}", params);
         try {
             //判断是否正在处理这个订单
-            if (redisLockHelper.hasLock(orderId)) {
+            if (redisLockHelper.hasLock(RedisLockHelper.Key.Notify + orderId)) {
                 log.error("支付宝订单【{}】异步通知处理冲突，忽略本次通知", orderId);
                 return "error";
             }
-            redisLockHelper.addLock(orderId, false, 0, null);
+            redisLockHelper.addLock(RedisLockHelper.Key.Notify + orderId, false, 0, null);
             //订单查询
             Order order = orderService.loadByOrderID(orderId);
             if (order == null) {
@@ -158,7 +158,7 @@ public class AlipayNotifyController {
             log.error("支付宝订单【{}】异步通知处理失败", orderId);
             return "error";
         } finally {
-            redisLockHelper.releaseLock(orderId);
+            redisLockHelper.releaseLock(RedisLockHelper.Key.Notify + orderId);
         }
 
     }

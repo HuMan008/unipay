@@ -213,4 +213,12 @@ public class OrderServiceImpl implements OrderService {
         orderExample.createCriteria().andDataVersionEqualTo(dbOrder.getDataVersion()).andIdEqualTo(dbOrder.getId());
         return orderMapper.updateByExampleSelective(newOrder, orderExample);
     }
+
+    /**
+     * 保存订单
+     */
+    @Override
+    public int saveOrder(Order order) {
+        return orderMapper.insert(order);
+    }
 }

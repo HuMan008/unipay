@@ -16,10 +16,7 @@ import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.domain.*;
 import com.alipay.api.request.*;
-import com.alipay.api.response.AlipayTradeAppPayResponse;
-import com.alipay.api.response.AlipayTradeCloseResponse;
-import com.alipay.api.response.AlipayTradeCreateResponse;
-import com.alipay.api.response.AlipayTradeQueryResponse;
+import com.alipay.api.response.*;
 import com.google.common.base.Charsets;
 import com.google.common.net.UrlEscapers;
 import org.apache.commons.lang3.StringUtils;
@@ -64,9 +61,27 @@ public class AlipayServiceImpl implements AlipayService {
     @Override
     public ModelAndView pagePay(PayRequest payRequest, Order order, ChargeAccount chargeConfig,
                                 HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+
         ChargeAlipayModel chargeModel = (ChargeAlipayModel) chargeConfig;
+
         AlipayClient alipayClient = new DefaultAlipayClient(GateWayURL, chargeModel.getAppID(),
                 chargeModel.getPriKey(), Format, Charsets.UTF_8.name(), chargeModel.getPubKey(), SignType);
+        //下单
+        AlipayTradeCreateRequest tradeCreateRequest = new AlipayTradeCreateRequest();
+        AlipayTradeCreateModel tradeCreateModel = new AlipayTradeCreateModel();
+        tradeCreateModel.setOutTradeNo(order.getId());
+        //单位元
+        tradeCreateModel.setTotalAmount(UtilMoney.fenToYuan(order.getFee(), false));
+        tradeCreateModel.setSubject(order.getSubjects());
+        tradeCreateModel.setBody(order.getDescp());
+        if (StringUtils.isNotEmpty(payRequest.getPaymentUserID())) {
+            tradeCreateModel.setBuyerId(payRequest.getPaymentUserID());
+        }
+        tradeCreateModel.setTimeoutExpress(payRequest.getExpireOutTime() + "m");
+        tradeCreateRequest.setBizModel(tradeCreateModel);
+        tradeCreateRequest.setNotifyUrl(order.getAsyncUrl());
+        tradeCreateRequest.setReturnUrl(order.getSyncUrl());
+
         AlipayTradeWapPayRequest alipayTradeWapPayRequest = new AlipayTradeWapPayRequest();
         AlipayTradeWapPayModel alipayTradeWapPayModel = new AlipayTradeWapPayModel();
         alipayTradeWapPayModel.setOutTradeNo(order.getId());
@@ -84,10 +99,25 @@ public class AlipayServiceImpl implements AlipayService {
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName("/alipay/submit");
         try {
-            String form = alipayClient.pageExecute(alipayTradeWapPayRequest).getBody();
-            modelAndView.addObject("from", form);
+            AlipayTradeCreateResponse alipayTradeCreateResponse = alipayClient.sdkExecute(tradeCreateRequest);
+            if (alipayTradeCreateResponse.isSuccess()) {
+                AlipayTradeWapPayResponse alipayTradeWapPayResponse =
+                        alipayClient.pageExecute(alipayTradeWapPayRequest);
+                if (alipayTradeCreateResponse.isSuccess()) {
+                    modelAndView.addObject("from", alipayTradeWapPayResponse.getBody());
+                } else {
+                    modelAndView.addObject("errorCode", 5000);
+                    modelAndView.addObject("errorMsg", "下单失败");
+                }
+            } else {
+                modelAndView.addObject("errorCode", 5000);
+                modelAndView.addObject("errorMsg", "支付宝订单创建出错");
+            }
+
+
+
         } catch (AlipayApiException e) {
-            e.printStackTrace();
+            logger.error("{}", e);
             modelAndView.addObject("errorCode", e.getErrCode());
             modelAndView.addObject("errorMsg", e.getErrMsg());
         }
@@ -194,14 +224,7 @@ public class AlipayServiceImpl implements AlipayService {
             if (alipayTradeQueryResponse.isSuccess()) {
                 String tradeStatus = alipayTradeQueryResponse.getTradeStatus();
 
-                OrderQueryResponse orderQueryResponse = OrderQueryResponse.builder()
-                        .unionOrderID(orderId)
-                        .paymentOrderID(alipayTradeQueryResponse.getOutTradeNo())
-                        .orderFee(UtilMoney.yuanToFen(alipayTradeQueryResponse.getTotalAmount()))
-                        .payFee(UtilMoney.yuanToFen(alipayTradeQueryResponse.getBuyerPayAmount()))
-                        .thirdStatus(alipayTradeQueryResponse.getTradeStatus())
-                        .thirdCode(alipayTradeQueryResponse.getCode())
-                        .thirdMsg(alipayTradeQueryResponse.getMsg()).build();
+                OrderQueryResponse orderQueryResponse = OrderQueryResponse.builder().unionOrderID(orderId).paymentOrderID(alipayTradeQueryResponse.getOutTradeNo()).orderFee(UtilMoney.yuanToFen(alipayTradeQueryResponse.getTotalAmount())).payFee(UtilMoney.yuanToFen(alipayTradeQueryResponse.getBuyerPayAmount())).thirdStatus(alipayTradeQueryResponse.getTradeStatus()).thirdCode(alipayTradeQueryResponse.getCode()).thirdMsg(alipayTradeQueryResponse.getMsg()).build();
                 //                交易状态：WAIT_BUYER_PAY（交易创建，等待买家付款）、TRADE_CLOSED（未付款交易超时关闭，或支付完成后全额退款）、TRADE_SUCCESS
 // （交易支付成功）、TRADE_FINISHED（交易结束，不可退款）
                 if ("WAIT_BUYER_PAY".equalsIgnoreCase(tradeStatus)) {
@@ -213,6 +236,8 @@ public class AlipayServiceImpl implements AlipayService {
                 }
                 return orderQueryResponse;
 
+            } else if ("40004".equals(alipayTradeQueryResponse.getCode()) && "ACQ.TRADE_NOT_EXIST".equals(alipayTradeQueryResponse.getSubCode())) {
+                return OrderQueryResponse.builder().unionOrderID(orderId).paymentOrderID(alipayTradeQueryResponse.getOutTradeNo()).orderFee(0).payFee(0).thirdStatus(alipayTradeQueryResponse.getTradeStatus()).thirdCode(alipayTradeQueryResponse.getCode()).status(EnumOrderStatus.Created.getCode()).thirdMsg(alipayTradeQueryResponse.getMsg()).build();
             } else {
                 logger.error("执行【{}】支付宝订单状态查询失败{}", orderId, JSONObject.toJSONString(alipayTradeQueryResponse));
                 return OrderQueryResponse.builder().

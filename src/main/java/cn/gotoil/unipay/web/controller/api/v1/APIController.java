@@ -14,6 +14,7 @@ import cn.gotoil.unipay.model.entity.ChargeConfig;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.web.message.request.PayRequest;
+import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.services.AlipayService;
 import cn.gotoil.unipay.web.services.ChargeConfigService;
 import cn.gotoil.unipay.web.services.OrderService;
@@ -24,10 +25,7 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -95,11 +93,36 @@ public class APIController {
         if (StringUtils.isEmpty(payInfoStr)) {
             throw new BillException(CommonError.SystemError);
         }
-        //保存订单; todo
+        orderService.saveOrder(order);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("payData", payInfoStr);
         jsonObject.put("extraParam", order.getExtraParam());
         jsonObject.put("sign", Hash.md5(HashCompareAuthenticationKeyProvider.key(payRequest.getAppId()) + payInfoStr));
         return new BillApiResponse(jsonObject);
+    }
+
+
+    @RequestMapping(value = "query/{oid}", method = RequestMethod.POST)
+    @ApiOperation(value = "订单支付状态 远程", position = 10)
+    public BillApiResponse queryOrderFromRemote(@PathVariable String oid) {
+        Order o = orderService.loadByOrderID(oid);
+        if (o == null) {
+            throw new BillException(UnipayError.OrderNotExists);
+        }
+        ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(o.getAppId(), o.getPayType());
+
+        OrderQueryResponse orderQueryResponse = null;
+        if (EnumPayType.AlipayH5.getCode().equals(o.getPayType()) || EnumPayType.AlipaySDK.getCode().equals(o.getPayType())) {
+            ChargeAlipayModel chargeAlipayModel =
+                    JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()), ChargeAlipayModel.class);
+            orderQueryResponse = alipayService.orderQueryFromRemote(oid, chargeAlipayModel);
+        } else if (EnumPayType.WechatH5.getCode().equals(o.getPayType()) || EnumPayType.WechatJSAPI.getCode().equals(o.getPayType()) || EnumPayType.WechatNAtive.getCode().equals(o.getPayType()) || EnumPayType.WechatSDK.getCode().equals(o.getPayType())) {
+            ChargeWechatModel chargeWechatModel =
+                    JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()), ChargeWechatModel.class);
+            orderQueryResponse = wechatService.orderQueryFromRemote(oid, chargeWechatModel);
+        } else {
+            throw new BillException(UnipayError.PayTypeNotImpl);
+        }
+        return new BillApiResponse(orderQueryResponse);
     }
 }

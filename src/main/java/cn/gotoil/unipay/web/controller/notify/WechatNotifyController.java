@@ -65,12 +65,12 @@ public class WechatNotifyController {
         Map<String, String> mm = new HashMap<>();
         try {
             //判断是否正在处理这个订单
-            if (redisLockHelper.hasLock(orderId)) {
+            if (redisLockHelper.hasLock(RedisLockHelper.Key.Notify + orderId)) {
                 mm.put(WechatService.RETURN_CODE, "FAIL");
                 mm.put("return_msg", "订单号错误");
                 return UtilWechat.mapToXml(mm);
             }
-            redisLockHelper.addLock(orderId, false, 0, null);
+            redisLockHelper.addLock(RedisLockHelper.Key.Notify + orderId, false, 0, null);
             requestBodyXml = CharStreams.toString(httpServletRequest.getReader());
             //响应XML转成Map
             Map<String, String> reMap = UtilWechat.xmlToMap(requestBodyXml);
@@ -163,7 +163,7 @@ public class WechatNotifyController {
             return UtilWechat.mapToXml(mm);
 
         } finally {
-            redisLockHelper.releaseLock(orderId);
+            redisLockHelper.releaseLock(RedisLockHelper.Key.Notify + orderId);
         }
     }
 

@@ -15,7 +15,13 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class RedisLockHelper {
-    public static final String LockPrefix = "Unipay:Lock:Notify:";
+    public static final String LockPrefix = "Unipay:Lock:";
+
+
+    public static class Key {
+        public static final String Notify = "Notify:";
+        public static final String OrderStatusSync = "OrderStatusSync";
+    }
 
     public static final String LockedFlag = "LOCKED";
     public static final String UnLockedFlag = "UnLockedFlag";

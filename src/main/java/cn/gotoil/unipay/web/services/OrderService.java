@@ -66,4 +66,9 @@ public interface OrderService {
      * 更新订单
      */
     int updateOrder(Order dbOrder, Order newOrder);
+
+    /**
+     * 保存订单
+     */
+    int saveOrder(Order order);
 }
