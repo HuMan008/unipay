@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.gotoil.unipay.model.mapper.ext.ExtOrderQueryMapper">
+
+    <sql id="queryOrder_sql_where">
+        <if test=" status != null and status != '' ">
+            and o.status  = ${status}
+        </if>
+        <if test=" appkey != null and appkey != '' ">
+            and o.app_id  = ${appkey}
+        </if>
+        <if test=" orderId != null and orderId != '' ">
+            and o.id  = ${orderId}
+        </if>
+        <if test=" paymentId != null and paymentId != '' ">
+            and o.payment_id  = ${paymentId}
+        </if>
+        <if test=" payType != null and payType != '' ">
+            and o.pay_type  = ${payType}
+        </if>
+        <if test="beginTime != null and beginTime != ''">
+            and DATE_FORMAT(o.created_at,'%Y-%m-%d') >= #{beginTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            and DATE_FORMAT(o.created_at,'%Y-%m-%d') <![CDATA[ <= ]]> #{endTime}
+        </if>
+    </sql>
+
+    <select id="queryOrder" parameterType="map" resultType="cn.gotoil.unipay.model.view.OrderView">
+        SELECT
+            o.*,
+            a.app_key,
+            a.app_name
+        FROM
+          dp_order o
+        LEFT JOIN dp_app a
+        ON o.app_id = a.app_key
+        <where>
+          <include refid="queryOrder_sql_where" />
+        </where>
+        ORDER BY o.created_at desc limit #{offset}, #{pageSize}
+    </select>
+
+    <select id="queryOrderCounts" parameterType="map" resultType="int">
+        SELECT
+          count(o.id)
+        FROM
+          dp_order o
+        <where>
+            <include refid="queryOrder_sql_where" />
+        </where>
+    </select>
+
+
+
+
+    <select id="queryOrderByIn10" resultType="cn.gotoil.unipay.model.entity.Order">
+        SELECT * FROM
+          dp_order
+        <where>
+            data_version=0 AND pay_fee=0
+            AND DATE_ADD(created_at ,INTERVAL (expired_time_minute+10) MINUTE) >=NOW()
+            AND NOW()>=DATE_ADD(created_at ,INTERVAL (1) MINUTE)
+            AND STATUS=1
+        </where>
+    </select>
+
+    <select id="queryOrderByOut10" resultType="cn.gotoil.unipay.model.entity.Order">
+        SELECT * FROM
+        dp_order
+        <where>
+            data_version=0 AND pay_fee=0
+            AND NOW()>=DATE_ADD(created_at ,INTERVAL (expired_time_minute+10) MINUTE)
+            AND STATUS=1
+        </where>
+    </select>
+</mapper>
