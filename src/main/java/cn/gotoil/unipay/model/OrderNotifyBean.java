@@ -101,7 +101,7 @@ public class OrderNotifyBean implements Serializable {
      * 通知次数
      */
     @Builder.Default
-    int docount = 0;
+    int doCount = 0;
 
     /**
      * 通知类型
