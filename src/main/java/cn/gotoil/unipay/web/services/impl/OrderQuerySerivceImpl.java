@@ -1,5 +1,6 @@
 package cn.gotoil.unipay.web.services.impl;
 
+import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.model.enums.EnumOrderStatus;
 import cn.gotoil.unipay.model.mapper.ext.ExtOrderQueryMapper;
 import cn.gotoil.unipay.web.message.BasePageResponse;
@@ -11,6 +12,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -51,5 +53,25 @@ public class OrderQuerySerivceImpl implements OrderQueryService {
         pageResponse.setTotal(total);
         pageResponse.setRows(extOrderQueryMapper.queryOrder(params));
         return pageResponse;
+    }
+
+    /**
+     * 支付中的订单 特定
+     *
+     * @return
+     */
+    @Override
+    public List<Order> queryOrderByIn10() {
+        return extOrderQueryMapper.queryOrderByIn10();
+    }
+
+    /**
+     * 过期订单
+     *
+     * @return
+     */
+    @Override
+    public List<Order> queryOrderByOut10() {
+        return extOrderQueryMapper.queryOrderByOut10();
     }
 }

@@ -70,7 +70,7 @@
         dp_order
         <where>
             data_version=0 AND pay_fee=0
-            AND NOW()>=DATE_ADD(created_at ,INTERVAL (expired_time_minute+10) MINUTE)
+            AND NOW()>DATE_ADD(created_at ,INTERVAL (expired_time_minute+10) MINUTE)
             AND STATUS=1
         </where>
     </select>

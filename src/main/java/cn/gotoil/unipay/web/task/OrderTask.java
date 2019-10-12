@@ -4,6 +4,7 @@ import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.model.enums.EnumPayCategory;
 import cn.gotoil.unipay.web.helper.RedisLockHelper;
 import cn.gotoil.unipay.web.services.AppService;
+import cn.gotoil.unipay.web.services.OrderQueryService;
 import cn.gotoil.unipay.web.services.OrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -35,6 +36,9 @@ public class OrderTask {
     RedisLockHelper redisLockHelper;
     @Autowired
     OrderService orderService;
+
+    @Autowired
+    OrderQueryService orderQueryService;
     @Autowired
     AppService appService;
     @Autowired
@@ -49,7 +53,7 @@ public class OrderTask {
         }
         redisLockHelper.addLock(RedisLockHelper.Key.OrderStatusSync, true, 30, TimeUnit.MINUTES);
         try {
-            List<Order> orderList = new ArrayList<Order>();
+            List<Order> orderList = orderQueryService.queryOrderByIn10();
             if (orderList != null && orderList.size() == 0) {
                 //无数据
                 return;
