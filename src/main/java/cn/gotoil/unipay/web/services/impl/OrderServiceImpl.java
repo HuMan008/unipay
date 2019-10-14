@@ -323,7 +323,7 @@ public class OrderServiceImpl implements OrderService {
                 log.info("标记订单【{}】支付失败{}", order, orderQueryResponse.toString());
             } else if (EnumOrderStatus.Created.getCode() == orderQueryResponse.getStatus()) {
                 //远程状态还是待支付 啥都不用干
-                if (org.apache.commons.lang3.time.DateUtils.addMinutes(order.getCreatedAt(),
+               /* if (org.apache.commons.lang3.time.DateUtils.addMinutes(order.getCreatedAt(),
                         order.getExpiredTimeMinute() + 12).before(new Date())) {
                     Order newOrder = new Order();
                     newOrder.setId(order.getId());
@@ -333,7 +333,7 @@ public class OrderServiceImpl implements OrderService {
                         log.error("标记订单【{}】过期失败状态出错", order.getId());
                     }
                     log.info("标记订单【{}】过期", order);
-                }
+                }*/
             } else {
                 log.error("订单【{}】状态查询未识别{}", order.getId(), orderQueryResponse);
             }
