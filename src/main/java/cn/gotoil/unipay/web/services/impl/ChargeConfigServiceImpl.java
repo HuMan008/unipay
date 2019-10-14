@@ -54,18 +54,6 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
     @Resource
     StringRedisTemplate stringRedisTemplate;
 
-    /**
-     * config对象 payCode_id
-     *
-     * @param id
-     * @param payCode
-     * @return
-     */
-
-    public String chargeConfigKey(int id, String payCode) {
-        return APPCHARGKEY + payCode + "_" + id;
-    }
-
 
     /**
      * config对象
@@ -273,7 +261,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
         chargeConfig.setUpdatedAt(now);
         int result = chargeConfigMapper.updateByPrimaryKey(chargeConfig);
         if (result == 1) {
-            String key = chargeConfigKey(chargeConfig.getId(), chargeConfig.getPayType());
+            String key = appChargAccountKey(chargeConfig.getId());
             redisHashHelper.set(key, chargeConfig, Sets.newHashSet("config"));
         }
         return result;
@@ -335,7 +323,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
             ChargeConfigExample example = new ChargeConfigExample();
             List<ChargeConfig> list = chargeConfigMapper.selectByExample(example);
             for (ChargeConfig config : list) {
-                String key = chargeConfigKey(config.getId(), config.getPayType());
+                String key = appChargAccountKey(config.getId());
                 redisHashHelper.set(key, config, Sets.newHashSet("config"));
             }
             return 1;
