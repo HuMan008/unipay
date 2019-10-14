@@ -72,7 +72,9 @@ public class OpLogAspect {
     public void beforeMethod(JoinPoint joinPoint) {
         String methodName = joinPoint.getSignature().getName();
         List<Object> args = Arrays.asList(joinPoint.getArgs());
-        if (isDebug) logger.info("【BEFORE:】\n[Method]-->{}\n[args]-->{}", methodName, args);
+        if (isDebug) {
+            logger.info("【BEFORE:】\n[Method]-->{}\n[args]-->{}", methodName, args);
+        }
     }
 
     /*@AfterReturning(value="oplogAspect()",returning="result")
@@ -91,7 +93,9 @@ public class OpLogAspect {
     public void afterMethod(JoinPoint joinPoint) {
         String methodName = joinPoint.getSignature().getName();
         List<Object> args = Arrays.asList(joinPoint.getArgs());
-        if (isDebug) logger.info("【AFTER:】\n[Method]-->{}\n[args]-->{}", methodName, args);
+        if (isDebug) {
+            logger.info("【AFTER:】\n[Method]-->{}\n[args]-->{}", methodName, args);
+        }
     }
 
     /*
@@ -104,8 +108,9 @@ public class OpLogAspect {
     public void afterThrowing(JoinPoint joinPoint, Exception ex) {
         String methodName = joinPoint.getSignature().getName();
         List<Object> args = Arrays.asList(joinPoint.getArgs());
-        if (isDebug)
+        if (isDebug) {
             logger.info("【AfterThrowing:】\n[Method]-->{}\n[args]-->{}\n[Exception]--->{}", methodName, args, ex);
+        }
     }
 
     @AfterReturning(value = "oplogAspect()", returning = "result")
@@ -159,8 +164,9 @@ public class OpLogAspect {
 
 
             //返回通知
-            if (isDebug)
+            if (isDebug) {
                 logger.info("【AfterReturning:CostTime->{}毫秒】\n[Method]-->{}\n[args]-->{}", begin - System.currentTimeMillis(), methodName, args);
+            }
 
         } catch (Throwable e) {
             logger.error("className：{}；methodName：{};args:{},{}", className, methodName, args, e);

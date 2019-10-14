@@ -98,7 +98,7 @@ public class PayRequest {
      */
     @NotNull(message = "支付金额不得为空！")
     @Min(value = 1, message = "支付金额不得少于1分！")
-    @ApiModelProperty(required = true, example = "", value = "支付金额", position = 60)
+    @ApiModelProperty(required = true, example = "1", value = "支付金额", position = 60)
     private int fee;
 
 

@@ -6,16 +6,15 @@ import cn.gotoil.unipay.config.consts.ConstsRabbitMQ;
 import cn.gotoil.unipay.model.ChargeWechatModel;
 import cn.gotoil.unipay.model.OrderNotifyBean;
 import cn.gotoil.unipay.model.entity.ChargeConfig;
+import cn.gotoil.unipay.model.entity.NotifyAccept;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.model.enums.EnumOrderMessageType;
 import cn.gotoil.unipay.model.enums.EnumOrderStatus;
 import cn.gotoil.unipay.utils.UtilMySign;
+import cn.gotoil.unipay.utils.UtilString;
 import cn.gotoil.unipay.utils.UtilWechat;
 import cn.gotoil.unipay.web.helper.RedisLockHelper;
-import cn.gotoil.unipay.web.services.AppService;
-import cn.gotoil.unipay.web.services.ChargeConfigService;
-import cn.gotoil.unipay.web.services.OrderService;
-import cn.gotoil.unipay.web.services.WechatService;
+import cn.gotoil.unipay.web.services.*;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.io.CharStreams;
@@ -54,6 +53,8 @@ public class WechatNotifyController {
     AppService appService;
     @Autowired
     RabbitTemplate rabbitTemplate;
+    @Autowired
+    NotifyAcceptService notifyAcceptService;
 
     @RequestMapping(value = {"{orderId:^\\d{21}$}"})
     @NeedLogin(value = false)
@@ -63,11 +64,15 @@ public class WechatNotifyController {
 
         String requestBodyXml = "";//响应xml
         Map<String, String> mm = new HashMap<>();
+        NotifyAccept notifyAccept = NotifyAcceptService.createDefault(httpServletRequest, EnumOrderMessageType.PAY,
+                orderId);
+        notifyAccept.setOrderId(orderId);
         try {
             //判断是否正在处理这个订单
             if (redisLockHelper.hasLock(RedisLockHelper.Key.Notify + orderId)) {
                 mm.put(WechatService.RETURN_CODE, "FAIL");
-                mm.put("return_msg", "订单号错误");
+                mm.put("return_msg", "订单处理中");
+                notifyAccept.setResponstr("FAIL:订单处理中");
                 return UtilWechat.mapToXml(mm);
             }
             redisLockHelper.addLock(RedisLockHelper.Key.Notify + orderId, false, 0, null);
@@ -79,6 +84,7 @@ public class WechatNotifyController {
                 if (!orderId.equals(reMap.get("out_trade_no"))) {
                     mm.put(WechatService.RETURN_CODE, WechatService.FAIL);
                     mm.put("return_msg", "订单号错误");
+                    notifyAccept.setResponstr("FAIL:订单号错误");
                     return UtilWechat.mapToXml(mm);
                 }
                 //订单查询
@@ -86,12 +92,15 @@ public class WechatNotifyController {
                 if (order == null) {
                     mm.put(WechatService.RETURN_CODE, WechatService.FAIL);
                     mm.put("return_msg", "订单不存在");
+                    notifyAccept.setResponstr("FAIL:订单不存在");
                     return UtilWechat.mapToXml(mm);
                 }
+                notifyAccept.setAppOrderNo(order.getAppOrderNo());
                 //订单不是支付中状态
                 if (EnumOrderStatus.Created.getCode() != order.getStatus().byteValue()) {
                     mm.put(WechatService.RETURN_CODE, WechatService.FAIL);
                     mm.put("return_msg", "本地订单状态不正确");
+                    notifyAccept.setResponstr("FAIL:本地订单状态不正确");
                     return UtilWechat.mapToXml(mm);
                 }
                 //支付方式 APP NATIVATE JSAPI
@@ -120,10 +129,12 @@ public class WechatNotifyController {
                         }
                         newOrder.setPaymentUid(reMap.get("openid"));
                         newOrder.setPaymentId(reMap.get("transaction_id"));
+                        notifyAccept.setPaymentId(newOrder.getPaymentId());
                         int x = orderService.updateOrder(order, newOrder);
                         if (x != 1) {
                             mm.put(WechatService.RETURN_CODE, WechatService.FAIL);
-                            mm.put("return_msg", "本地订单状态不正确");
+                            mm.put("return_msg", "本地订单状态更新失败");
+                            notifyAccept.setResponstr("FAIL:本地订单状态更新失败");
                             return UtilWechat.mapToXml(mm);
                         } else {
                             OrderNotifyBean orderNotifyBean =
@@ -148,34 +159,39 @@ public class WechatNotifyController {
 
                             mm.put(WechatService.RETURN_CODE, WechatService.SUCCESS);
                             mm.put("return_msg", "OK");
+                            notifyAccept.setResponstr("OK:并发送通知");
+
                             return UtilWechat.mapToXml(mm);
                         }
                     } else {
                         //  不是成功状态
                         mm.put(WechatService.RETURN_CODE, WechatService.SUCCESS);
                         mm.put("return_msg", "不是成功状态，不处理");
+                        notifyAccept.setResponstr("OK:不是成功状态，不处理");
                         return UtilWechat.mapToXml(mm);
                     }
                 } else {
                     mm.put(WechatService.RETURN_CODE, WechatService.FAIL);
                     mm.put("return_msg", "签名验证失败");
+                    notifyAccept.setResponstr("FAIL:签名验证失败");
                     return UtilWechat.mapToXml(mm);
                 }
             } else {
                 mm.put(WechatService.RETURN_CODE, WechatService.FAIL);
                 mm.put("return_msg", "消息为不正常消息");
+                notifyAccept.setResponstr("FAIL:消息为不正常消息");
                 return UtilWechat.mapToXml(mm);
             }
-
-
         } catch (Exception e) {
             log.error("微信支付异步通知处理异常{}", e);
             mm.put(WechatService.RETURN_CODE, WechatService.FAIL);
             mm.put("return_msg", e.getMessage());
+            notifyAccept.setResponstr(UtilString.getLongString("FAIL:" + e.getMessage(), 4000));
             return UtilWechat.mapToXml(mm);
 
         } finally {
             redisLockHelper.releaseLock(RedisLockHelper.Key.Notify + orderId);
+            notifyAcceptService.add(notifyAccept);
         }
     }
 
