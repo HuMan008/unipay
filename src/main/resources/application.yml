@@ -39,6 +39,8 @@ logging:
     org.springframework.web: DEBUG
   path: logs
 
+isDebug: true
+
 #本机域名或者IP 必须能外网访问的
 domain: "http://unipay.pgt"
 #微信授权域名 勇哥那的地址 第一个占位符是wxappid 第二个占位符是跳转的地址

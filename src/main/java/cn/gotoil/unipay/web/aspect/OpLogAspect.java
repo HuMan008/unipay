@@ -32,7 +32,7 @@ public class OpLogAspect {
     private static final Logger logger = LoggerFactory.getLogger(OpLogAspect.class);
     @Autowired
     private OpLogService opLogService;
-    @Value("${enableDebug}")
+    @Value("${isDebug}")
     private boolean isDebug;
 
     public static String getMthodDescp(JoinPoint joinPoint)
