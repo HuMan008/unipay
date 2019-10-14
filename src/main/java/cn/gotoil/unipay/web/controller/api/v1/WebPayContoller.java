@@ -3,6 +3,7 @@ package cn.gotoil.unipay.web.controller.api.v1;
 import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.exception.CommonError;
 import cn.gotoil.bill.tools.ObjectHelper;
+import cn.gotoil.bill.tools.encoder.Hash;
 import cn.gotoil.bill.web.annotation.NeedLogin;
 import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.ChargeAlipayModel;
@@ -66,9 +67,10 @@ public class WebPayContoller {
 
     @Value("${domain}")
     String domain;
-
     @Value("${wechat_open_id_grant_url}")
     String wechat_open_id_grant_url;
+    @Value("${isDebug}")
+    private boolean isDebug;
 
     @NeedLogin(value = false)
     @RequestMapping(value = "dopay", method = RequestMethod.GET)
@@ -80,12 +82,14 @@ public class WebPayContoller {
                                     HttpServletResponse httpServletResponse) {
         //校验SIGN
 //        appId+appOrderNo+payType+fee+appKey
-        String signStr =
-                payRequest.getAppId() + payRequest.getAppOrderNo() + payRequest.getPayType() + payRequest.getFee() + appService.key(payRequest.getAppId());
-      /*  if (StringUtils.isEmpty(payRequest.getSign()) || !payRequest.getSign().equals(Hash.md5(signStr).toUpperCase
-      ())) {
-            return new ModelAndView(UtilString.makeErrorPage(UnipayError.IllegalRequest));
-        }*/
+        if (!isDebug) {
+            String signStr =
+                    payRequest.getAppId() + payRequest.getAppOrderNo() + payRequest.getPayType() + payRequest.getFee() + appService.key(payRequest.getAppId());
+            if (StringUtils.isEmpty(payRequest.getSign()) || !payRequest.getSign().equals(Hash.md5(signStr).toUpperCase
+                    ())) {
+                return new ModelAndView(UtilString.makeErrorPage(UnipayError.IllegalRequest));
+            }
+        }
 
 
         //校验请求
