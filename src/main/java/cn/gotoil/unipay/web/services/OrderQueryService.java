@@ -5,8 +5,6 @@ import cn.gotoil.unipay.web.message.BasePageResponse;
 import cn.gotoil.unipay.web.message.request.admin.OrderQueryListRequest;
 import cn.gotoil.unipay.web.message.request.admin.OrderQueryPayingListRequest;
 
-import java.util.List;
-
 public interface OrderQueryService {
     /**
      * 查询
@@ -23,16 +21,10 @@ public interface OrderQueryService {
     BasePageResponse queryPayingOrder(OrderQueryPayingListRequest orderQueryPayingListRequest);
 
     /**
-     * 支付中的订单 特定
-     *
+     * 根据APPKEY,ORDERID获取订单
+     * @param appkey
+     * @param orderId
      * @return
      */
-    List<Order> queryOrderByIn10();
-
-    /**
-     * 过期订单
-     *
-     * @return
-     */
-    List<Order> queryOrderByOut10();
+    Order getOrderByAppKeyAndId(String appkey, String orderId);
 }
