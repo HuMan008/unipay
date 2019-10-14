@@ -121,16 +121,28 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
 
     @Override
     public void addAppChargeAccount2Redis(AppChargeAccount appChargeAccount) {
-        String key1 = appChargAccountKey(appChargeAccount.getId());
+//        String key1 = appChargAccountKey(appChargeAccount.getId());
         String key2 = appChargAccountKey4AppidAndPayType(appChargeAccount.getAppId(), appChargeAccount.getPayType());
-        redisHashHelper.set(key1, appChargeAccount, IGNORESET);
+//        redisHashHelper.set(key1, appChargeAccount, IGNORESET);
         redisHashHelper.set(key2, appChargeAccount, IGNORESET);
     }
 
+    /**
+     * config对象
+     *
+     * @param appChargeAccountId
+     * @return
+     */
     public String appChargAccountKey(int appChargeAccountId) {
         return APPCHARGKEY + appChargeAccountId;
     }
 
+    /**
+     * 关系
+     * @param appId
+     * @param payTypeCode
+     * @return
+     */
     public String appChargAccountKey4AppidAndPayType(String appId, String payTypeCode) {
         return APPCHARGKEY + payTypeCode + "_" + appId;
     }
@@ -144,15 +156,25 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
      */
     @Override
     public ChargeConfig loadByAppIdPayType(String appId, String payType) {
-        AppChargeAccountExample appChargeAccountExample = new AppChargeAccountExample();
-        appChargeAccountExample.createCriteria().andPayTypeEqualTo(payType).andAppIdEqualTo(appId);
-        List<AppChargeAccount> appChargeAccountList = appChargeAccountMapper.selectByExample(appChargeAccountExample);
-        if (1 != appChargeAccountList.size()) {
-            return null;
+        String key = appChargAccountKey4AppidAndPayType(appId, payType);
+        AppChargeAccount appChargeAccount = redisHashHelper.get(key, AppChargeAccount.class);
+        if (appChargeAccount != null) {
+            return loadByChargeId(appChargeAccount.getAccountId());
+        } else {
+            AppChargeAccountExample appChargeAccountExample = new AppChargeAccountExample();
+            appChargeAccountExample.createCriteria().andPayTypeEqualTo(payType).andAppIdEqualTo(appId);
+            List<AppChargeAccount> appChargeAccountList =
+                    appChargeAccountMapper.selectByExample(appChargeAccountExample);
+            if (1 != appChargeAccountList.size()) {
+                return null;
+            }
+            appChargeAccount = appChargeAccountList.get(0);
+            int accountId = appChargeAccount.getAccountId();
+            return loadByChargeId(accountId);
         }
-        AppChargeAccount appChargeAccount = appChargeAccountList.get(0);
-        int accountId = appChargeAccount.getAccountId();
-        return chargeConfigMapper.selectByPrimaryKey(accountId);
+
+
+
     }
 
     /**
@@ -163,7 +185,18 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
      */
     @Override
     public ChargeConfig loadByChargeId(int configId) {
-        return chargeConfigMapper.selectByPrimaryKey(configId);
+        String key = appChargAccountKey(configId);
+        ChargeConfig chargeConfig = redisHashHelper.get(key, ChargeConfig.class);
+        if (chargeConfig == null) {
+            chargeConfig = chargeConfigMapper.selectByPrimaryKey(configId);
+            if (chargeConfig != null) {
+                redisHashHelper.set(key, chargeConfig, IGNORESET);
+                ;
+            }
+            return chargeConfig;
+        } else {
+            return chargeConfig;
+        }
     }
 
     private boolean checkConfig(ChargeConfig chargeConfig) {
@@ -205,7 +238,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
         chargeConfig.setUpdatedAt(new Date());
         int result = extChargeConfigMapper.insertChargeConfig(chargeConfig);
         if (result == 1) {
-            String key = chargeConfigKey(chargeConfig.getId(), chargeConfig.getPayType());
+            String key = appChargAccountKey(chargeConfig.getId());
             redisHashHelper.set(key, chargeConfig, Sets.newHashSet("config"));
         }
         return result;
