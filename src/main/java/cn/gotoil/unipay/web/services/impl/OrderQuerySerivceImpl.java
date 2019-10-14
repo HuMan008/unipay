@@ -9,12 +9,12 @@ import cn.gotoil.unipay.web.message.BasePageResponse;
 import cn.gotoil.unipay.web.message.request.admin.OrderQueryListRequest;
 import cn.gotoil.unipay.web.message.request.admin.OrderQueryPayingListRequest;
 import cn.gotoil.unipay.web.services.OrderQueryService;
-import cn.gotoil.unipay.web.services.OrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -75,5 +75,22 @@ public class OrderQuerySerivceImpl implements OrderQueryService {
             return list.get(0);
         }
         return null;
+    }
+
+    /**
+     * 支付中，10分钟内的订单
+     * @return
+     */
+    @Override
+    public List<Order> queryOrderByIn10(){
+        return extOrderQueryMapper.queryOrderByIn10();
+    }
+
+    /**
+     * 支付中，10分钟后的订单
+     */
+    @Override
+    public List<Order> queryOrderByOut10(){
+        return extOrderQueryMapper.queryOrderByOut10();
     }
 }

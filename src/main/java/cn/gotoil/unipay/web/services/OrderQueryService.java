@@ -27,4 +27,16 @@ public interface OrderQueryService {
      * @return
      */
     Order getOrderByAppKeyAndId(String appkey, String orderId);
+
+    /**
+     * 支付中，10分钟内的订单
+     * @return
+     */
+    java.util.List<Order> queryOrderByIn10();
+
+    /**
+     * 支付中，10分钟后的订单
+     * @return
+     */
+    java.util.List<Order> queryOrderByOut10();
 }
