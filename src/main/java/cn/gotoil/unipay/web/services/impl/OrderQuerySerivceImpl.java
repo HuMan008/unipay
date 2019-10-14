@@ -76,4 +76,22 @@ public class OrderQuerySerivceImpl implements OrderQueryService {
         }
         return null;
     }
+
+    /**
+     * 支付中，10分钟内的订单
+     * @return
+     */
+    @Override
+    public java.util.List<Order> queryOrderByIn10(){
+        return extOrderQueryMapper.queryOrderByIn10();
+    }
+
+    /**
+     * 支付中，10分钟后的订单
+     * @return
+     */
+    @Override
+    public java.util.List<Order> queryOrderByOut10(){
+        return extOrderQueryMapper.queryOrderByOut10();
+    }
 }
