@@ -1,11 +1,15 @@
 package cn.gotoil.unipay.web.services.impl;
 
+import cn.gotoil.unipay.model.entity.Order;
+import cn.gotoil.unipay.model.entity.OrderExample;
 import cn.gotoil.unipay.model.enums.EnumOrderStatus;
+import cn.gotoil.unipay.model.mapper.OrderMapper;
 import cn.gotoil.unipay.model.mapper.ext.ExtOrderQueryMapper;
 import cn.gotoil.unipay.web.message.BasePageResponse;
 import cn.gotoil.unipay.web.message.request.admin.OrderQueryListRequest;
 import cn.gotoil.unipay.web.message.request.admin.OrderQueryPayingListRequest;
 import cn.gotoil.unipay.web.services.OrderQueryService;
+import cn.gotoil.unipay.web.services.OrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -19,6 +23,9 @@ public class OrderQuerySerivceImpl implements OrderQueryService {
 
     @Resource
     ExtOrderQueryMapper extOrderQueryMapper;
+
+    @Resource
+    OrderMapper orderMapper;
 
     /**
      * 查询
@@ -51,5 +58,22 @@ public class OrderQuerySerivceImpl implements OrderQueryService {
         pageResponse.setTotal(total);
         pageResponse.setRows(extOrderQueryMapper.queryOrder(params));
         return pageResponse;
+    }
+
+    /**
+     * 根据APPKEY,ORDERID获取订单
+     * @param appkey
+     * @param orderId
+     * @return
+     */
+    @Override
+    public Order getOrderByAppKeyAndId(String appkey,String orderId){
+        OrderExample example = new OrderExample();
+        example.createCriteria().andAppIdEqualTo(appkey).andIdEqualTo(orderId);
+        java.util.List<Order> list = orderMapper.selectByExample(example);
+        if(list != null && list.size() > 0){
+            return list.get(0);
+        }
+        return null;
     }
 }

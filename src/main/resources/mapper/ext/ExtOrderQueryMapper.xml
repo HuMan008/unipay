@@ -63,6 +63,8 @@
             AND NOW()>=DATE_ADD(created_at ,INTERVAL (1) MINUTE)
             AND STATUS=1
         </where>
+        order by created_at
+        limit 200
     </select>
 
     <select id="queryOrderByOut10" resultType="cn.gotoil.unipay.model.entity.Order">
@@ -73,5 +75,7 @@
             AND NOW()>=DATE_ADD(created_at ,INTERVAL (expired_time_minute+10) MINUTE)
             AND STATUS=1
         </where>
+        order by created_at
+        limit 200
     </select>
 </mapper>

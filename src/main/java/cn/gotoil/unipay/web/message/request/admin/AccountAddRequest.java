@@ -31,7 +31,7 @@ public class AccountAddRequest {
 
     @NotNull
     @Size(max = 1)
-    @ApiModelProperty(required = true, example = "", value = "状态", position = 7,
+    @ApiModelProperty(required = true, example = "0", value = "状态", position = 7,
             dataType = "cn.gotoil.unipay.model.enums.EnumStatus")
     Integer status;
 }

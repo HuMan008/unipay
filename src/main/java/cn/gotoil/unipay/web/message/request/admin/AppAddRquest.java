@@ -45,6 +45,6 @@ public class AppAddRquest {
 
     @NotNull
     @Size(max = 11)
-    @ApiModelProperty(required = true, example = "", value = "默认订单有效时间(单位分钟)", position = 15)
+    @ApiModelProperty(required = true, example = "0", value = "默认订单有效时间(单位分钟)", position = 15)
     Integer defaultOrderExpiredTime;
 }
