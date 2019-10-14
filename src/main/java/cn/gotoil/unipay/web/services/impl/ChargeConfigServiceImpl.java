@@ -54,9 +54,38 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
     @Resource
     StringRedisTemplate stringRedisTemplate;
 
+    /**
+     * config对象 payCode_id
+     *
+     * @param id
+     * @param payCode
+     * @return
+     */
 
     public String chargeConfigKey(int id, String payCode) {
         return APPCHARGKEY + payCode + "_" + id;
+    }
+
+
+    /**
+     * config对象
+     *
+     * @param appChargeAccountId
+     * @return
+     */
+    public String appChargAccountKey(int appChargeAccountId) {
+        return APPCHARGKEY + appChargeAccountId;
+    }
+
+    /**
+     * 关系
+     *
+     * @param appId
+     * @param payTypeCode
+     * @return
+     */
+    public String appChargAccountKey4AppidAndPayType(String appId, String payTypeCode) {
+        return APPCHARGKEY + payTypeCode + "_" + appId;
     }
 
     /**
@@ -127,25 +156,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
         redisHashHelper.set(key2, appChargeAccount, IGNORESET);
     }
 
-    /**
-     * config对象
-     *
-     * @param appChargeAccountId
-     * @return
-     */
-    public String appChargAccountKey(int appChargeAccountId) {
-        return APPCHARGKEY + appChargeAccountId;
-    }
 
-    /**
-     * 关系
-     * @param appId
-     * @param payTypeCode
-     * @return
-     */
-    public String appChargAccountKey4AppidAndPayType(String appId, String payTypeCode) {
-        return APPCHARGKEY + payTypeCode + "_" + appId;
-    }
 
     /**
      * 根据appid,收款类型，找具体的收款账号对象
