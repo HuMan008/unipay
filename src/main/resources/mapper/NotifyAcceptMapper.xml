@@ -5,6 +5,7 @@
         <id column="id" jdbcType="INTEGER" property="id"/>
         <result column="method" jdbcType="TINYINT" property="method"/>
         <result column="order_id" jdbcType="CHAR" property="orderId"/>
+        <result column="ip" jdbcType="VARCHAR" property="ip"/>
         <result column="app_order_no" jdbcType="VARCHAR" property="appOrderNo"/>
         <result column="payment_id" jdbcType="VARCHAR" property="paymentId"/>
         <result column="responstr" jdbcType="VARCHAR" property="responstr"/>
@@ -74,7 +75,7 @@
         </where>
     </sql>
     <sql id="Base_Column_List">
-    id, method, order_id, app_order_no, payment_id, responstr, created_at
+    id, method, order_id, ip, app_order_no, payment_id, responstr, created_at
   </sql>
     <sql id="Blob_Column_List">
     params
@@ -139,11 +140,13 @@
     </delete>
     <insert id="insert" parameterType="cn.gotoil.unipay.model.entity.NotifyAccept">
     insert into dp_notify_accept (id, method, order_id, 
-      app_order_no, payment_id, responstr, 
-      created_at, params)
+      ip, app_order_no, payment_id, 
+      responstr, created_at, params
+      )
     values (#{id,jdbcType=INTEGER}, #{method,jdbcType=TINYINT}, #{orderId,jdbcType=CHAR}, 
-      #{appOrderNo,jdbcType=VARCHAR}, #{paymentId,jdbcType=VARCHAR}, #{responstr,jdbcType=VARCHAR}, 
-      #{createdAt,jdbcType=TIMESTAMP}, #{params,jdbcType=LONGVARCHAR})
+      #{ip,jdbcType=VARCHAR}, #{appOrderNo,jdbcType=VARCHAR}, #{paymentId,jdbcType=VARCHAR}, 
+      #{responstr,jdbcType=VARCHAR}, #{createdAt,jdbcType=TIMESTAMP}, #{params,jdbcType=LONGVARCHAR}
+      )
   </insert>
     <insert id="insertSelective" parameterType="cn.gotoil.unipay.model.entity.NotifyAccept">
         insert into dp_notify_accept
@@ -156,6 +159,9 @@
             </if>
             <if test="orderId != null">
                 order_id,
+            </if>
+            <if test="ip != null">
+                ip,
             </if>
             <if test="appOrderNo != null">
                 app_order_no,
@@ -182,6 +188,9 @@
             </if>
             <if test="orderId != null">
                 #{orderId,jdbcType=CHAR},
+            </if>
+            <if test="ip != null">
+                #{ip,jdbcType=VARCHAR},
             </if>
             <if test="appOrderNo != null">
                 #{appOrderNo,jdbcType=VARCHAR},
@@ -219,6 +228,9 @@
             <if test="record.orderId != null">
                 order_id = #{record.orderId,jdbcType=CHAR},
             </if>
+            <if test="record.ip != null">
+                ip = #{record.ip,jdbcType=VARCHAR},
+            </if>
             <if test="record.appOrderNo != null">
                 app_order_no = #{record.appOrderNo,jdbcType=VARCHAR},
             </if>
@@ -244,6 +256,7 @@
         set id = #{record.id,jdbcType=INTEGER},
         method = #{record.method,jdbcType=TINYINT},
         order_id = #{record.orderId,jdbcType=CHAR},
+        ip = #{record.ip,jdbcType=VARCHAR},
         app_order_no = #{record.appOrderNo,jdbcType=VARCHAR},
         payment_id = #{record.paymentId,jdbcType=VARCHAR},
         responstr = #{record.responstr,jdbcType=VARCHAR},
@@ -258,6 +271,7 @@
         set id = #{record.id,jdbcType=INTEGER},
         method = #{record.method,jdbcType=TINYINT},
         order_id = #{record.orderId,jdbcType=CHAR},
+        ip = #{record.ip,jdbcType=VARCHAR},
         app_order_no = #{record.appOrderNo,jdbcType=VARCHAR},
         payment_id = #{record.paymentId,jdbcType=VARCHAR},
         responstr = #{record.responstr,jdbcType=VARCHAR},
@@ -274,6 +288,9 @@
             </if>
             <if test="orderId != null">
                 order_id = #{orderId,jdbcType=CHAR},
+            </if>
+            <if test="ip != null">
+                ip = #{ip,jdbcType=VARCHAR},
             </if>
             <if test="appOrderNo != null">
                 app_order_no = #{appOrderNo,jdbcType=VARCHAR},
@@ -297,6 +314,7 @@
     update dp_notify_accept
     set method = #{method,jdbcType=TINYINT},
       order_id = #{orderId,jdbcType=CHAR},
+      ip = #{ip,jdbcType=VARCHAR},
       app_order_no = #{appOrderNo,jdbcType=VARCHAR},
       payment_id = #{paymentId,jdbcType=VARCHAR},
       responstr = #{responstr,jdbcType=VARCHAR},
@@ -308,6 +326,7 @@
     update dp_notify_accept
     set method = #{method,jdbcType=TINYINT},
       order_id = #{orderId,jdbcType=CHAR},
+      ip = #{ip,jdbcType=VARCHAR},
       app_order_no = #{appOrderNo,jdbcType=VARCHAR},
       payment_id = #{paymentId,jdbcType=VARCHAR},
       responstr = #{responstr,jdbcType=VARCHAR},

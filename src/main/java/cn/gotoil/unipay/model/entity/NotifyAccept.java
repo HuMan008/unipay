@@ -9,6 +9,8 @@ public class NotifyAccept {
 
     private String orderId;
 
+    private String ip;
+
     private String appOrderNo;
 
     private String paymentId;
@@ -41,6 +43,14 @@ public class NotifyAccept {
 
     public void setOrderId(String orderId) {
         this.orderId = orderId == null ? null : orderId.trim();
+    }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip == null ? null : ip.trim();
     }
 
     public String getAppOrderNo() {
@@ -92,6 +102,7 @@ public class NotifyAccept {
         sb.append(", id=").append(id);
         sb.append(", method=").append(method);
         sb.append(", orderId=").append(orderId);
+        sb.append(", ip=").append(ip);
         sb.append(", appOrderNo=").append(appOrderNo);
         sb.append(", paymentId=").append(paymentId);
         sb.append(", responstr=").append(responstr);

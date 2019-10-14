@@ -51,16 +51,26 @@ public class UtilHttpClient {
 
     static final int MAXTOTAL = 200;//总最大连接数
     static final int DEFAULTMAXPERROUTE = 100;
+    static final int TIMEOUTGOLAB = 50000;
     private static CloseableHttpClient httpclient = null;
-    private static RequestConfig requestConfig =
-            RequestConfig.custom().setConnectTimeout(50000).setConnectionRequestTimeout(50000).setSocketTimeout(50000).build();
+
+    //通知专用
+    private static CloseableHttpClient notifyHttpClient = null;
+
+
+    private static RequestConfig requestConfig(int connectTimeOut, int connectRequestTimeOut, int socketTimeOut) {
+        return RequestConfig.custom().setConnectTimeout(connectTimeOut).setConnectionRequestTimeout(connectRequestTimeOut).setSocketTimeout(socketTimeOut).build();
+
+    }
+
+
 
     public static CloseableHttpClient getHttpClient() {
 
         if (null == httpclient) {
             synchronized (UtilHttpClient.class) {
                 if (null == httpclient) {
-                    httpclient = getNewHttpClient();
+                    httpclient = getNewHttpClient(TIMEOUTGOLAB, TIMEOUTGOLAB, TIMEOUTGOLAB);
                 }
             }
         }
@@ -68,7 +78,20 @@ public class UtilHttpClient {
         return httpclient;
     }
 
-    private static CloseableHttpClient getNewHttpClient() {
+
+    public static CloseableHttpClient getNotifyHttpClient() {
+
+        if (null == notifyHttpClient) {
+            synchronized (UtilHttpClient.class) {
+                if (null == notifyHttpClient) {
+                    notifyHttpClient = getNewHttpClient(3000, 3000, 3000);
+                }
+            }
+        }
+        return notifyHttpClient;
+    }
+
+    private static CloseableHttpClient getNewHttpClient(int connectTimeOut, int connectRequestTimeOut, int socketTimeOut) {
 
 
         // 设置连接池
@@ -150,7 +173,9 @@ public class UtilHttpClient {
 
         CloseableHttpClient newHttpclient = null;
 
-        newHttpclient = HttpClients.custom().setConnectionManager(cm).setDefaultRequestConfig(requestConfig)
+        newHttpclient =
+                HttpClients.custom().setConnectionManager(cm).setDefaultRequestConfig(requestConfig(connectTimeOut,
+                        connectRequestTimeOut, socketTimeOut))
                 //                .setKeepAliveStrategy(myStrategy)
                 //                .setRetryHandler(httpRequestRetryHandler)
                 .build();
@@ -291,5 +316,47 @@ public class UtilHttpClient {
         }
         return "";
     }
+
+
+    public static String notifyPost(String url, Map<String, Object> map) {
+        CloseableHttpClient client = UtilHttpClient.getNotifyHttpClient();
+        CloseableHttpResponse response = null;
+        try {
+            HttpPost httpPost = new HttpPost(url);
+            if (map != null) {
+                List<NameValuePair> params = new ArrayList<NameValuePair>();
+                for (Map.Entry<String, Object> entry : map.entrySet()) {
+                    params.add(new BasicNameValuePair(entry.getKey(), entry.getValue().toString()));
+                }
+                UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(params, Charsets.UTF_8);
+                httpPost.setEntity(formEntity);
+            }
+            response = client.execute(httpPost);
+
+            if (response.getEntity() != null) {
+                return EntityUtils.toString(response.getEntity(), Charsets.UTF_8);
+            } else {
+                return "";
+            }
+        } catch (Exception e) {
+            log.error("https|Https请求出错{}", e.getMessage());
+        } finally {
+            try {
+                client.close();
+            } catch (IOException e) {
+                log.error("client关闭出错{}", e.getMessage());
+            }
+            if (response != null) {
+                try {
+                    response.close();
+                } catch (IOException e) {
+                    log.error("response关闭出错{}", e.getMessage());
+                }
+            }
+
+        }
+        return "";
+    }
+
 
 }

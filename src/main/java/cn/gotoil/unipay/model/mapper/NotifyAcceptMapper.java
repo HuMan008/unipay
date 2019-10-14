@@ -1,6 +1,5 @@
 package cn.gotoil.unipay.model.mapper;
 
-
 import cn.gotoil.unipay.model.entity.NotifyAccept;
 import cn.gotoil.unipay.model.entity.NotifyAcceptExample;
 import org.apache.ibatis.annotations.Mapper;

@@ -75,7 +75,7 @@ public class OrderDeadMessageListener {
 
 
             //把参数post提交到异步通知地址里去
-            String responStr = UtilHttpClient.doPost(notifyBean.getAsyncUrl(), ObjectHelper.introspect(notifyBean));
+            String responStr = UtilHttpClient.notifyPost(notifyBean.getAsyncUrl(), ObjectHelper.introspect(notifyBean));
             noticeLog.setResponseContent(responStr);
             noticeLog.setNoticeDatetime(new Date());
             noticeLog.setRepeatCount(notifyBean.getDoCount());
