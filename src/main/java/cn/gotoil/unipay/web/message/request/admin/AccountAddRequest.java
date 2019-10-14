@@ -18,7 +18,7 @@ public class AccountAddRequest {
     String name;
 
     @Size(max = 11)
-    @ApiModelProperty(required = true, example = "", value = "id", position = 2)
+    @ApiModelProperty(required = true, example = "0", value = "id", position = 2)
     Integer id;
 
     @NotNull
