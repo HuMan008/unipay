@@ -176,12 +176,14 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
             appChargeAccountExample.createCriteria().andPayTypeEqualTo(payType).andAppIdEqualTo(appId);
             List<AppChargeAccount> appChargeAccountList =
                     appChargeAccountMapper.selectByExample(appChargeAccountExample);
-            if (1 != appChargeAccountList.size()) {
+            if (1 == appChargeAccountList.size()) {
+                appChargeAccount = appChargeAccountList.get(0);
+                redisHashHelper.set(key, appChargeAccount, IGNORESET);
+                int accountId = appChargeAccount.getAccountId();
+                return loadByChargeId(accountId);
+            } else {
                 return null;
             }
-            appChargeAccount = appChargeAccountList.get(0);
-            int accountId = appChargeAccount.getAccountId();
-            return loadByChargeId(accountId);
         }
 
 
