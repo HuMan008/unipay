@@ -10,6 +10,7 @@ import cn.gotoil.unipay.model.mapper.AppChargeAccountMapper;
 import cn.gotoil.unipay.model.mapper.AppMapper;
 import cn.gotoil.unipay.model.mapper.ChargeConfigMapper;
 import cn.gotoil.unipay.model.mapper.ext.AppQueryMapper;
+import cn.gotoil.unipay.web.annotation.OpLog;
 import cn.gotoil.unipay.web.message.BasePageResponse;
 import cn.gotoil.unipay.web.message.request.admin.AppListRequest;
 import cn.gotoil.unipay.web.services.AppService;
@@ -63,6 +64,7 @@ public class AppServiceImpl implements AppService {
      * @return
      */
     @Override
+    @OpLog(desc = "新增应用")
     public int createApp(App app, AppAccountIds appAccountIds) {
         app.setAppSecret(RandomStringUtils.random(32, true, true));
         app.setAppKey(RandomStringUtils.random(40, true, true));
@@ -180,6 +182,7 @@ public class AppServiceImpl implements AppService {
      * @return
      */
     @Override
+    @OpLog(desc = "更新应用状态")
     public Object updateStatus(String appkey, Byte status) {
         App old = appMapper.selectByPrimaryKey(appkey);
         if (old == null) {
@@ -201,6 +204,7 @@ public class AppServiceImpl implements AppService {
      * @return
      */
     @Override
+    @OpLog(desc = "更新应用")
     public int updateApp(App app, AppAccountIds appAccountIds) {
         int result = appMapper.updateByPrimaryKeySelective(app);
 

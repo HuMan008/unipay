@@ -2,10 +2,14 @@ package cn.gotoil.unipay.web.message.request.admin;
 
 import cn.gotoil.unipay.web.message.BasePageRequest;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Data
+@EqualsAndHashCode(callSuper = false)
 public class OrderQueryListRequest extends BasePageRequest {
     // 查询参数
     @ApiModelProperty(required = false, example = "{\"appkey\":\"AQhPkDihNxljLFpsBUdelgIP\",\"orderId\":\"201910110950394386590\",\"paymentId\":\"\""+
