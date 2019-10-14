@@ -69,10 +69,12 @@ public interface BasePayService<T extends ChargeAccount> {
         OrderQueryResponse orderQueryResponse =
                 OrderQueryResponse.builder()
                         .unionOrderID(order.getId())
-//                        .appOrderNO(order.getAppOrderNo())
-                        .paymentOrderID(order.getPaymentId())
+//                        .appOrder(order.getAppOrderNo())
+                        .paymentId(order.getPaymentId())
+                        .paymentUid(order.getPaymentUid())
                         .status(order.getStatus())
                         .orderFee(order.getFee())
+                        .payDateTime(order.getOrderPayDatetime())
                         .payFee(order.getPayFee()).build();
         return orderQueryResponse;
     }

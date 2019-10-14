@@ -1,8 +1,10 @@
 package cn.gotoil.unipay.web.task;
 
 import cn.gotoil.unipay.model.entity.Order;
+import cn.gotoil.unipay.model.enums.EnumOrderStatus;
 import cn.gotoil.unipay.model.enums.EnumPayCategory;
 import cn.gotoil.unipay.web.helper.RedisLockHelper;
+import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.services.AppService;
 import cn.gotoil.unipay.web.services.OrderQueryService;
 import cn.gotoil.unipay.web.services.OrderService;
@@ -21,6 +23,9 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+
+import static cn.gotoil.unipay.web.helper.RedisLockHelper.Key.OrderExpiredSync;
+import static cn.gotoil.unipay.web.helper.RedisLockHelper.Key.OrderStatusSync;
 
 /**
  * 订单定时任务
@@ -45,13 +50,46 @@ public class OrderTask {
     RabbitTemplate rabbitTemplate;
     private ExecutorService executorService;
 
-    @Scheduled(initialDelay = 90000, fixedDelay = 1000 * 60 * 3)
-    @Async
-    public void getOrderStatus() {
-        if (redisLockHelper.hasLock(RedisLockHelper.Key.OrderStatusSync)) {
+
+    @Scheduled(initialDelay = 8000, fixedDelay = 1000 * 60 * 5)
+    public void expiredOrder() {
+        if (redisLockHelper.hasLock(OrderExpiredSync)) {
             return;
         }
-        redisLockHelper.addLock(RedisLockHelper.Key.OrderStatusSync, true, 30, TimeUnit.MINUTES);
+        redisLockHelper.addLock(OrderExpiredSync, true, 30, TimeUnit.MINUTES);
+        try {
+            //已经过期了10分钟，但是本地状态还是待支付的订单 单批次取200条
+            List<Order> orderList = orderQueryService.queryOrderByOut10();
+            for (Order order : orderList) {
+                OrderQueryResponse orderQueryResponse = orderService.queryOrderStatusFromRemote(order);
+                if (orderQueryResponse != null && (EnumOrderStatus.Created.getCode() == orderQueryResponse.getStatus() || EnumOrderStatus.PayFailed.getCode() == orderQueryResponse.getStatus())) {
+                    Order newOrder = new Order();
+                    newOrder.setId(order.getId());
+                    newOrder.setStatus(EnumOrderStatus.PayFailed.getCode());
+                    int x = orderService.updateOrder(order, newOrder);
+                    if (x != 1) {
+                        log.error("标记订单【{}】过期失败状态出错", order.getId());
+                    }
+                    log.info("标记订单【{}】过期", order);
+                } else if (orderQueryResponse != null && EnumOrderStatus.PaySuccess.getCode() == orderQueryResponse.getStatus()) {
+                    orderService.syncOrderWithReomte(order);
+                }
+            }
+        } catch (Exception e) {
+            log.error("关闭订单任务出错{}", e);
+        } finally {
+            redisLockHelper.releaseLock(OrderExpiredSync);
+        }
+    }
+
+
+    @Scheduled(initialDelay = 5000, fixedDelay = 1000 * 60 * 3)
+    @Async
+    public void getOrderStatus() {
+        if (redisLockHelper.hasLock(OrderStatusSync)) {
+            return;
+        }
+        redisLockHelper.addLock(OrderStatusSync, true, 10, TimeUnit.MINUTES);
         try {
             List<Order> orderList = orderQueryService.queryOrderByIn10();
             if (orderList != null && orderList.size() == 0) {
