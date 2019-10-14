@@ -326,7 +326,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
             List<ChargeConfig> list = chargeConfigMapper.selectByExample(example);
             for (ChargeConfig config : list) {
                 String key = appChargAccountKey(config.getId());
-                redisHashHelper.set(key, config, Sets.newHashSet("config"));
+                redisHashHelper.set(key, config, IGNORESET);
             }
             return 1;
         } catch (Exception e) {
