@@ -3,6 +3,7 @@ package cn.gotoil.unipay.web.services.impl;
 
 import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.tools.date.DateUtils;
+import cn.gotoil.bill.tools.encoder.Hash;
 import cn.gotoil.unipay.config.consts.ConstsRabbitMQ;
 import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.ChargeAlipayModel;
@@ -17,7 +18,9 @@ import cn.gotoil.unipay.model.enums.EnumOrderStatus;
 import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.model.enums.EnumStatus;
 import cn.gotoil.unipay.model.mapper.OrderMapper;
+import cn.gotoil.unipay.utils.UtilBase64;
 import cn.gotoil.unipay.utils.UtilMySign;
+import cn.gotoil.unipay.utils.UtilString;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.services.*;
@@ -32,8 +35,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
@@ -342,5 +348,46 @@ public class OrderServiceImpl implements OrderService {
         }
 
 
+    }
+
+
+    /**
+     * 异步通知处理
+     *
+     * @param orderId
+     * @param httpServletRequest
+     * @param httpServletResponse
+     * @return
+     */
+    @Override
+    public ModelAndView syncUrl(String orderId, HttpServletRequest httpServletRequest,
+                                HttpServletResponse httpServletResponse) throws Exception {
+
+        Order order = loadByOrderID(orderId);
+        if (order == null) {
+            return new ModelAndView(UtilString.makeErrorPage(UnipayError.OrderNotExists));
+        } else {
+            OrderNotifyBean orderNotifyBean = OrderNotifyBean.builder()
+                    .appId(order.getAppId())
+                    .unionOrderID(order.getId())
+                    .method(EnumOrderMessageType.PAY.name())
+                    .appOrderNO(order.getAppOrderNo())
+                    .paymentOrderID(order.getPaymentId())
+                    .status(order.getStatus())
+                    .orderFee(order.getFee())
+                    .payFee(order.getPayFee())
+                    .refundFee(0)
+                    .totalRefundFee(0)
+                    .asyncUrl(order.getAsyncUrl())
+                    .extraParam(order.getExtraParam())
+                    .payDate(order.getOrderPayDatetime())
+                    .timeStamp(Instant.now().getEpochSecond())
+                    .build();
+            String param = UtilBase64.encode(JSONObject.toJSONString(orderNotifyBean).getBytes()).replaceAll("\\+",
+                    "GT680");
+            String sign = Hash.md5(param + appService.key(order.getAppId()));
+            httpServletResponse.sendRedirect(order.getSyncUrl() + "?param=" + param + "&sign=" + sign);
+            return null;
+        }
     }
 }

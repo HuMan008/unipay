@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -196,10 +197,16 @@ public class WechatNotifyController {
     }
 
     @NeedLogin(value = false)
-    @RequestMapping("return")
-    public void syncNotify(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
-                           @PathVariable String orderId) {
+    @RequestMapping("return/{orderId:^\\d{21}$}}")
+    public ModelAndView syncNotify(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
+                                   @PathVariable String orderId) throws Exception {
         log.info("微信同步通知");
-
+        //稍微等一下异步通知
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return orderService.syncUrl(orderId, httpServletRequest, httpServletResponse);
     }
 }
