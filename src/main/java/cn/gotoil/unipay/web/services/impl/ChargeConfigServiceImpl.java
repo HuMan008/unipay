@@ -17,6 +17,7 @@ import cn.gotoil.unipay.model.mapper.ext.ExtChargeConfigMapper;
 import cn.gotoil.unipay.model.view.AccountView;
 import cn.gotoil.unipay.utils.DateUtil;
 import cn.gotoil.unipay.utils.UtilString;
+import cn.gotoil.unipay.web.annotation.OpLog;
 import cn.gotoil.unipay.web.services.ChargeConfigService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -228,6 +229,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
      * @return
      */
     @Override
+    @OpLog(desc = "新增收款账号")
     public int addChargeConfig(ChargeConfig chargeConfig) {
 
         boolean flag = checkConfig(chargeConfig);
@@ -252,6 +254,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
      * @return
      */
     @Override
+    @OpLog(desc = "修改收款账号")
     public int updateAccount(ChargeConfig chargeConfig) {
         boolean flag = checkConfig(chargeConfig);
 
@@ -301,6 +304,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
      * @return
      */
     @Override
+    @OpLog(desc = "更新收款账号状态")
     public boolean updateStatus(Integer id, Byte status) {
         ChargeConfig old = loadByChargeId(id);
         if (old == null) {

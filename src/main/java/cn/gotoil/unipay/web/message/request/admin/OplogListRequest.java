@@ -10,9 +10,9 @@ import java.util.Map;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class AppListRequest extends BasePageRequest {
+public class OplogListRequest extends BasePageRequest {
     // 查询参数
-    @ApiModelProperty(required = false, example = "{\"status\":\"0\"}", value = "查询条件Key为[appName:应用名称," +
-            "status:状态", position = 1)
+    @ApiModelProperty(required = false, example = "{\"name\":\"超级\"}",
+            value = "查询条件Key为[name:操作人,descp:描述]", position = 1)
     private Map params = new HashMap();
 }
