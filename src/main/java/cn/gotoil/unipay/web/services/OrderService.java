@@ -4,6 +4,10 @@ package cn.gotoil.unipay.web.services;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * 订单服务
@@ -88,4 +92,15 @@ public interface OrderService {
      * @param order
      */
     void syncOrderWithReomte(Order order);
+
+    /**
+     * 异步通知处理
+     *
+     * @param orderId
+     * @param httpServletRequest
+     * @param httpServletResponse
+     * @return
+     */
+    ModelAndView syncUrl(String orderId, HttpServletRequest httpServletRequest,
+                         HttpServletResponse httpServletResponse) throws Exception;
 }

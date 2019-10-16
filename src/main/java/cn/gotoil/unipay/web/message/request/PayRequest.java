@@ -70,6 +70,7 @@ public class PayRequest {
     /**
      * 取消支付 返回的路径  支付宝页面支付必填
      */
+    @Size(max = 300)
     @ApiModelProperty(required = false, example = "", value = "H5支付中点取消返回的路径,支付宝H5的时候必传", position = 40)
     private String cancelUrl;
 
@@ -107,6 +108,7 @@ public class PayRequest {
     /**
      * 支付方式对应用户ID
      */
+    @Size(max = 50)
     @ApiModelProperty(required = false, example = "", value = "支付方式用户ID", position = 65)
     private String paymentUserID;
 
