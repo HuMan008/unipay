@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("web/user")
-@Api(description = "用户管理api")
+@Api(description = "用户管理")
 public class unipayController {
 
     @Autowired

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("web/log")
-@Api(description = "日志管理api")
+@Api(description = "日志管理")
 public class OplogController {
 
     @Autowired

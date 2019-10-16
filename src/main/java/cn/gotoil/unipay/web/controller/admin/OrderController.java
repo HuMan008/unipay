@@ -5,19 +5,17 @@ import cn.gotoil.bill.web.annotation.NeedLogin;
 import cn.gotoil.bill.web.message.BillApiResponse;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.web.message.request.admin.OrderQueryListRequest;
-import cn.gotoil.unipay.web.message.request.admin.OrderQueryPayingListRequest;
 import cn.gotoil.unipay.web.services.OrderQueryService;
 import cn.gotoil.unipay.web.services.OrderService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("web/order")
-@Api(description = "订单管理api")
+@Api(description = "订单管理")
 public class OrderController {
 
     @Autowired
@@ -33,12 +31,12 @@ public class OrderController {
         return orderQueryService.queryOrder(orderQueryListRequest);
     }
 
-    @ApiOperation(value = "支付中订单查询", position = 3, tags = "订单管理")
+   /* @ApiOperation(value = "支付中订单查询", position = 3, tags = "订单管理")
     @RequestMapping(value = "queryPayingOrder", method = RequestMethod.GET)
     @NeedLogin
     public Object queryPayingOrder(@RequestBody OrderQueryPayingListRequest orderQueryPayingListRequest){
         return orderQueryService.queryPayingOrder(orderQueryPayingListRequest);
-    }
+    }*/
 
     @ApiOperation(value = "查询订单状态，退款状态", position = 5, tags = "订单管理")
     @RequestMapping(value = "queryOrderStatus", method = RequestMethod.GET)

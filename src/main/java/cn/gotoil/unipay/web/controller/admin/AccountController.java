@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("web/account")
-@Api(description = "账号管理api")
+@Api(description = "账号管理")
 public class AccountController {
 
     @Autowired
