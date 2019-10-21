@@ -30,6 +30,6 @@ public class ChargeWechatModel extends ChargeAccount {
     /**
      * 商户Key
      */
-    String merchKey;
+    String apiKey;
 
 }

@@ -111,7 +111,7 @@ public class WechatNotifyController {
                 ChargeWechatModel model = JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
                         ChargeWechatModel.class);
 
-                String merchanKey = model == null ? "" : model.getMerchKey();
+                String merchanKey = model == null ? "" : model.getApiKey();
                 if (UtilWechat.isSignatureValid(reMap, merchanKey) && model.getAppID().equalsIgnoreCase(reMap.get(
                         "appid"))) {
                     //支付成功

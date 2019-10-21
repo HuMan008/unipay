@@ -77,7 +77,7 @@ public class WechatServiceImpl implements WechatService {
         }
         String sign = "";
         try {
-            sign = UtilWechat.generateSignature(data, chargeModel.getMerchKey());
+            sign = UtilWechat.generateSignature(data, chargeModel.getApiKey());
         } catch (Exception e) {
             log.error("微信加签错误", e.getMessage());
             return new ModelAndView(UtilString.makeErrorPage(5000, "微信加签错误"));
@@ -85,7 +85,7 @@ public class WechatServiceImpl implements WechatService {
         data.put("sign", sign);
         try {
             String repStr = UtilHttpClient.doPostStr(WechatService.CreateOrderUrl, UtilWechat.mapToXml(data));
-            Map<String, String> reMap = processResponseXml(repStr, chargeModel.getMerchKey());
+            Map<String, String> reMap = processResponseXml(repStr, chargeModel.getApiKey());
             if (reMap.containsKey(RETURN_CODE) && reMap.containsKey(RESULT_CODE) && SUCCESS.equals(reMap.get(RETURN_CODE)) && SUCCESS.equals(reMap.get(RESULT_CODE))) {
                 //保存订单 todo
 
@@ -145,7 +145,7 @@ public class WechatServiceImpl implements WechatService {
         }
         String sign = "";
         try {
-            sign = UtilWechat.generateSignature(data, chargeModel.getMerchKey());
+            sign = UtilWechat.generateSignature(data, chargeModel.getApiKey());
         } catch (Exception e) {
             log.error("微信加签错误", e.getMessage());
             return "";
@@ -153,7 +153,7 @@ public class WechatServiceImpl implements WechatService {
         data.put(UtilWechat.FIELD_SIGN, sign);
         try {
             String repStr = UtilHttpClient.doPostStr(WechatService.CreateOrderUrl, UtilWechat.mapToXml(data));
-            Map<String, String> reMap = processResponseXml(repStr, chargeModel.getMerchKey());
+            Map<String, String> reMap = processResponseXml(repStr, chargeModel.getApiKey());
             return ObjectHelper.jsonString(reMap);
         } catch (Exception e) {
             log.error("微信APP支付订单创建出错{}", e.getMessage());
@@ -179,10 +179,10 @@ public class WechatServiceImpl implements WechatService {
             map.put("mch_id", chargeWechatModel.getMerchID());
             map.put("out_trade_no", order.getId());
             map.put("nonce_str", UtilWechat.generateNonceStr());
-            String sign = UtilWechat.generateSignature(map, chargeWechatModel.getMerchKey());
+            String sign = UtilWechat.generateSignature(map, chargeWechatModel.getApiKey());
             map.put(UtilWechat.FIELD_SIGN, sign); //加签
             String repStr = UtilHttpClient.doPostStr(WechatService.CreateOrderUrl, UtilWechat.mapToXml(map));
-            reMap = processResponseXml(repStr, chargeWechatModel.getMerchKey());
+            reMap = processResponseXml(repStr, chargeWechatModel.getApiKey());
 
 
             if (reMap != null && reMap.containsKey(RETURN_CODE)) {
