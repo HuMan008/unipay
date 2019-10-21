@@ -372,7 +372,7 @@ public class OrderServiceImpl implements OrderService {
                     .unionOrderID(order.getId())
                     .method(EnumOrderMessageType.PAY.name())
                     .appOrderNO(order.getAppOrderNo())
-                    .paymentOrderID(order.getPaymentId())
+                    .paymentId(order.getPaymentId())
                     .status(order.getStatus())
                     .orderFee(order.getFee())
                     .payFee(order.getPayFee())

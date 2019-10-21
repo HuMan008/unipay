@@ -130,6 +130,7 @@ public class APIPayController {
         OrderQueryResponse orderQueryResponse =
                 OrderQueryResponse.builder()
                         .unionOrderID(order.getId())
+                        .appOrderNO(order.getAppOrderNo())
                         .paymentId(order.getPaymentId())
                         .paymentUid(order.getPaymentUid())
                         .payDateTime(order.getOrderPayDatetime() == null ? 0 : order.getOrderPayDatetime())

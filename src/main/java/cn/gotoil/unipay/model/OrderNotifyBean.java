@@ -38,7 +38,7 @@ public class OrderNotifyBean implements Serializable {
     /**
      * 支付方订单号
      */
-    String paymentOrderID;
+    String paymentId;
 
     /**
      * 状态
