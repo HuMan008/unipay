@@ -35,7 +35,7 @@ import java.util.*;
  */
 @Slf4j
 @Service
-@RabbitListener(queues = RabbitMQConfigure.DeadQueueName4Order)
+@RabbitListener(queues = RabbitMQConfigure.DEADQUEUENAME4ORDER)
 public class OrderDeadMessageListener {
 
     @Autowired
@@ -92,8 +92,8 @@ public class OrderDeadMessageListener {
                 List<Object> list = (ArrayList) headers.get("x-death");
                 Map<String, Object> pp = (HashMap) list.get(0);
                 log.debug("本次消息是通过这个{}发送的", pp.get("exchange"));
-                int index = ConstsRabbitMQ.orderQueueIndex.get(pp.get("exchange")) == null ? -1 :
-                        ConstsRabbitMQ.orderQueueIndex.get(pp.get("exchange"));
+                int index = ConstsRabbitMQ.ORDERQUEUEINDEX.get(pp.get("exchange")) == null ? -1 :
+                        ConstsRabbitMQ.ORDERQUEUEINDEX.get(pp.get("exchange"));
                 if (index != -1 && index <= orderMessageConfig.getMessageQueues().size() - 2) {
                     notifyBean.setTimeStamp(Instant.now().getEpochSecond());
                     notifyBean.setDoCount(notifyBean.getDoCount() + 1);
@@ -102,7 +102,7 @@ public class OrderDeadMessageListener {
                     notifyBean.setSign(signStr);
                     //用下一个队列发送消息
                     rabbitTemplate.convertAndSend(orderMessageConfig.getMessageQueues().get(index + 1).getExchangeName(),
-                            ConstsRabbitMQ.orderRoutingKey, JSON.toJSONString(notifyBean));
+                            ConstsRabbitMQ.ORDERROUTINGKEY, JSON.toJSONString(notifyBean));
                 }
             }
         } catch (Exception e) {

@@ -70,8 +70,8 @@ public class AlipayServiceImpl implements AlipayService {
 
         ChargeAlipayModel chargeModel = (ChargeAlipayModel) chargeConfig;
 
-        AlipayClient alipayClient = new DefaultAlipayClient(GateWayURL, chargeModel.getAppID(),
-                chargeModel.getPriKey(), Format, Charsets.UTF_8.name(), chargeModel.getPubKey(), SignType);
+        AlipayClient alipayClient = new DefaultAlipayClient(GATEWAYURL, chargeModel.getAppID(),
+                chargeModel.getPriKey(), FORMAT, Charsets.UTF_8.name(), chargeModel.getPubKey(), SIGNTYPE);
 
 
         AlipayTradeWapPayRequest alipayTradeWapPayRequest = new AlipayTradeWapPayRequest();
@@ -121,8 +121,8 @@ public class AlipayServiceImpl implements AlipayService {
     public String sdkPay(PayRequest payRequest, Order order, ChargeAccount chargeConfig) {
         ChargeAlipayModel chargeModel = (ChargeAlipayModel) chargeConfig;
         //实例化客户端
-        AlipayClient alipayClient = new DefaultAlipayClient(GateWayURL, chargeModel.getAppID(),
-                chargeModel.getPriKey(), Format, Charsets.UTF_8.name(), chargeModel.getPubKey(), SignType);
+        AlipayClient alipayClient = new DefaultAlipayClient(GATEWAYURL, chargeModel.getAppID(),
+                chargeModel.getPriKey(), FORMAT, Charsets.UTF_8.name(), chargeModel.getPubKey(), SIGNTYPE);
         try {
             //去支付
             AlipayTradeAppPayRequest alipayTradeAppPayRequest = new AlipayTradeAppPayRequest();
@@ -163,8 +163,8 @@ public class AlipayServiceImpl implements AlipayService {
         AlipayTradeQueryModel model = new AlipayTradeQueryModel();
         model.setOutTradeNo(order.getId());
         alipay_request.setBizModel(model);
-        AlipayClient client = new DefaultAlipayClient(GateWayURL, chargeModel.getAppID(), chargeModel.getPriKey(),
-                Format, Charsets.UTF_8.name(), chargeModel.getPubKey(), SignType);
+        AlipayClient client = new DefaultAlipayClient(GATEWAYURL, chargeModel.getAppID(), chargeModel.getPriKey(),
+                FORMAT, Charsets.UTF_8.name(), chargeModel.getPubKey(), SIGNTYPE);
         try {
             AlipayTradeQueryResponse alipayTradeQueryResponse = client.execute(alipay_request);
             if (alipayTradeQueryResponse.isSuccess()) {

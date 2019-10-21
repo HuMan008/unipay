@@ -28,15 +28,15 @@ import java.util.Map;
 public class RabbitMQConfigure {
 
 
-    public static final String DeaExchangeName4Order = "unipay.order.exchange.dead";
-    public static final String DeadQueueName4Order = "unipay.order.queue.dead";
+    public static final String DEAEXCHANGENAME4ORDER = "unipay.order.exchange.dead";
+    public static final String DEADQUEUENAME4ORDER = "unipay.order.queue.dead";
     public static Map<String, Object> args = new HashMap<>();
 
     static {
         //以下参数配置具体查看官方文档或者到rabbit管理后台添加queue中查看
 
         //配置死信队列的路由routingKey
-        args.put("x-dead-letter-routing-key", ConstsRabbitMQ.orderRoutingKey);
+        args.put("x-dead-letter-routing-key", ConstsRabbitMQ.ORDERROUTINGKEY);
     }
 
     @Autowired
@@ -54,21 +54,21 @@ public class RabbitMQConfigure {
     @PostConstruct
     public void initoOrderConfig() {
         //配置死信队列的交换机
-        args.put("x-dead-letter-exchange", DeaExchangeName4Order);
+        args.put("x-dead-letter-exchange", DEAEXCHANGENAME4ORDER);
 
-        DirectExchange deadExchange = new DirectExchange(DeaExchangeName4Order, true, false);
+        DirectExchange deadExchange = new DirectExchange(DEAEXCHANGENAME4ORDER, true, false);
         rabbitAdmin(connectionFactory).declareExchange(deadExchange);
-        Queue deadQueue = new Queue(DeadQueueName4Order);
+        Queue deadQueue = new Queue(DEADQUEUENAME4ORDER);
         rabbitAdmin(connectionFactory).declareQueue(deadQueue);
-        rabbitAdmin(connectionFactory).declareBinding(BindingBuilder.bind(deadQueue).to(deadExchange).with(ConstsRabbitMQ.orderRoutingKey));
+        rabbitAdmin(connectionFactory).declareBinding(BindingBuilder.bind(deadQueue).to(deadExchange).with(ConstsRabbitMQ.ORDERROUTINGKEY));
         for (int i = 0; i < payNotifyConfig.getMessageQueues().size(); i++) {
             MessageQueueDefine define = payNotifyConfig.getMessageQueues().get(i);
             if (i == 0) {
                 //设置第一个发送队列的名称
-                ConstsRabbitMQ.orderFirstExchangeName = define.getExchangeName();
+                ConstsRabbitMQ.ORDERFIRSTEXCHANGENAME = define.getExchangeName();
             }
             //保存名称及对应序号
-            ConstsRabbitMQ.orderQueueIndex.put(define.getExchangeName(), i);
+            ConstsRabbitMQ.ORDERQUEUEINDEX.put(define.getExchangeName(), i);
             DirectExchange e1 = new DirectExchange(define.getExchangeName(), true, false);
             rabbitAdmin(connectionFactory).declareExchange(e1);
             //设置过期时间

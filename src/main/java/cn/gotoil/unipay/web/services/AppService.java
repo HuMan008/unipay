@@ -15,7 +15,7 @@ import java.util.List;
  */
 public interface AppService {
 
-    String AppKey = "Unipay:App:";
+    String APPKEY = "Unipay:App:";
 
     /**
      * 创建APP

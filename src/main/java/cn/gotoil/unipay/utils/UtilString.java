@@ -41,7 +41,7 @@ public class UtilString {
             boolean flag = false;
             for (Field f : obj.getClass().getDeclaredFields()) {
                 f.setAccessible(true);
-                if (f.get(obj) == null || f.get(obj).equals("")) {
+                if (f.get(obj) == null || "".equals(f.get(obj))) {
                     flag = true;
                     return flag;
                 }

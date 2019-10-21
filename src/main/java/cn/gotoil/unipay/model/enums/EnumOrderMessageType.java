@@ -1,5 +1,16 @@
 package cn.gotoil.unipay.model.enums;
 
+/**
+ * 订单通知类型
+ */
 public enum EnumOrderMessageType {
-    PAY, REFUND
+    /**
+     * 支付
+     */
+    PAY,
+    /**
+     * 退款
+     */
+
+    REFUND
 }

@@ -5,12 +5,12 @@ userconfig:
     code1:
       code: code1
       pwd: pwd1
-      roleStr: "Admin,Order,Finance"
+      roleStr: "ADMIN,ORDER,FINANCE"
       permissionStr: aaaa
     code2:
       code: code2
       pwd: pwd1
-      roleStr: "admin,ademi3"
+      roleStr: "ADMIN,FINANCE"
 #tt: ab
 #users:
 #  code1:

@@ -16,20 +16,20 @@ import java.util.GregorianCalendar;
 public class DateUtil {
     static Logger logger = LoggerFactory.getLogger(DateUtil.class);
 
-    public static final String nyr = "yyyy-MM-dd";
-    public static final String nyrsfm = "yyyy-MM-dd HH:mm:ss";
-    public static final String nyrsfm1 = "yyyyMMddHHmmss";
+    public static final String NYR = "yyyy-MM-dd";
+    public static final String NYRSFM = "yyyy-MM-dd HH:mm:ss";
+    public static final String NYRSFM1 = "yyyyMMddHHmmss";
 
     public static String formatByNyr(Date date) {
-        return formatByCustom(date, nyr);
+        return formatByCustom(date, NYR);
     }
 
     public static String formatByNyrsfm(Date date) {
-        return formatByCustom(date, nyrsfm);
+        return formatByCustom(date, NYRSFM);
     }
 
     public static String formatByNyrsfm1(Date date) {
-        return formatByCustom(date, nyrsfm1);
+        return formatByCustom(date, NYRSFM1);
     }
 
     public static String formatByCustom(Date date, String format) {
@@ -41,15 +41,15 @@ public class DateUtil {
     }
 
     public static Date stringtoDateByNyr(String time) {
-        return stringtoDate(time, nyr);
+        return stringtoDate(time, NYR);
     }
 
     public static Date stringtoDateByNyrsfm(String time) {
-        return stringtoDate(time, nyrsfm);
+        return stringtoDate(time, NYRSFM);
     }
 
     public static Date stringtoDateByNyrsfm1(String time) {
-        return stringtoDate(time, nyrsfm1);
+        return stringtoDate(time, NYRSFM1);
     }
 
     public static Date stringtoDate(String time, String format) {
@@ -72,7 +72,7 @@ public class DateUtil {
         cal.set(Calendar.DATE, 1);
         cal.roll(Calendar.DATE, -1);
         Date endTime = cal.getTime();
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(nyr);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(NYR);
         return simpleDateFormat.format(endTime);
     }
 
@@ -85,7 +85,7 @@ public class DateUtil {
         Calendar cal = Calendar.getInstance();
         cal.set(GregorianCalendar.DAY_OF_MONTH, 1);
         Date endTime = cal.getTime();
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(nyr);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(NYR);
         return simpleDateFormat.format(endTime);
     }
 
@@ -114,7 +114,7 @@ public class DateUtil {
     public static String getByDay(int day) {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DATE, day);
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(nyr);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(NYR);
         Date endTime = cal.getTime();
         return simpleDateFormat.format(endTime);
     }

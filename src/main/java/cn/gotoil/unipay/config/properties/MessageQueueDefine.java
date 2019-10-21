@@ -17,7 +17,7 @@ public class MessageQueueDefine {
 
     String queueName;
     String exchangeName;
-    String routeKey = ConstsRabbitMQ.orderRoutingKey;
+    String routeKey = ConstsRabbitMQ.ORDERROUTINGKEY;
     long ttl = 0;
 
 }

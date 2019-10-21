@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class RedisLockHelper {
-    public static final String LockPrefix = "Unipay:Lock:";
+    public static final String LOCKPREFIX = "Unipay:Lock:";
 
 
     public static class Key {
@@ -72,10 +72,10 @@ public class RedisLockHelper {
 
 
     private String getKey(String key) {
-        if (key.startsWith(LockPrefix)) {
+        if (key.startsWith(LOCKPREFIX)) {
             return key;
         } else {
-            return LockPrefix + key;
+            return LOCKPREFIX + key;
         }
     }
 }

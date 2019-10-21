@@ -2,6 +2,7 @@ package cn.gotoil.unipay.exceptions;
 
 import cn.gotoil.bill.exception.BillError;
 
+@SuppressWarnings("all")
 public enum UnipayError implements BillError {
     AppNotExists(4001, "应用不存在"),
 

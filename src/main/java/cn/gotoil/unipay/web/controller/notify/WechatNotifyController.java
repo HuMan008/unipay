@@ -155,8 +155,8 @@ public class WechatNotifyController {
                             String appSecret = appService.key(order.getAppId());
                             String signStr = UtilMySign.sign(orderNotifyBean, appSecret);
                             orderNotifyBean.setSign(signStr);
-                            rabbitTemplate.convertAndSend(ConstsRabbitMQ.orderFirstExchangeName,
-                                    ConstsRabbitMQ.orderRoutingKey, JSON.toJSONString(orderNotifyBean));
+                            rabbitTemplate.convertAndSend(ConstsRabbitMQ.ORDERFIRSTEXCHANGENAME,
+                                    ConstsRabbitMQ.ORDERROUTINGKEY, JSON.toJSONString(orderNotifyBean));
 
                             mm.put(WechatService.RETURN_CODE, WechatService.SUCCESS);
                             mm.put("return_msg", "OK");

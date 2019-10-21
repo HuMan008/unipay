@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
  */
 @Getter
 @AllArgsConstructor
+@SuppressWarnings("all")
 public enum EnumPayType {
 
     WechatH5("WechatH5", "微信H5支付", EnumPayCategory.Wechat),
