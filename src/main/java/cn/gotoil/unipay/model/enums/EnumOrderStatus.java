@@ -9,7 +9,11 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum EnumOrderStatus {
-    Created((byte) 1, "待支付"), PayFailed((byte) 2, "失败"), PaySuccess((byte) 0, "成功"),
+    Created((byte) 1, "待支付"),
+
+    PayFailed((byte) 2, "失败"),
+
+    PaySuccess((byte) 0, "成功"),
     ;
     byte code;
     String descp;

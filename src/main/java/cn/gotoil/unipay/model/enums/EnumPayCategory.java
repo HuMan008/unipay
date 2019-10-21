@@ -18,6 +18,7 @@ import java.util.List;
 public enum EnumPayCategory {
 
     Wechat((byte) 2, "Wechat", "微信支付"),
+
     Alipay((byte) 3, "Alipay", "支付宝支付");
 
     byte codeValue;
