@@ -40,16 +40,16 @@ public class AccountController {
     @ApiOperation(value = "检查账号名称是否重复", position = 3, tags = "账号管理")
     @RequestMapping(value = "/checkAccountName", method = {RequestMethod.GET})
     @NeedLogin
-    public Object checkAccountName(@ApiParam(value = "名称") @PathVariable String appName,
-                                   @ApiParam(value = "id") @PathVariable Integer id) {
+    public Object checkAccountName(@ApiParam(value = "名称") @RequestParam String appName,
+                                   @ApiParam(value = "id") @RequestParam Integer id) {
         return configService.checkName(appName, id);
     }
 
     @ApiOperation(value = "修改状态", position = 5, tags = "账号管理")
     @RequestMapping(value = "/updateAccountStatus", method = {RequestMethod.POST})
     @NeedLogin
-    public Object updateAccountStatus(@ApiParam(value = "id") @PathVariable Integer id, @ApiParam(value = "新状态 0启用 " +
-            "1禁用", allowableValues = "0,1", example = "0") @PathVariable Integer status) {
+    public Object updateAccountStatus(@ApiParam(value = "id") @RequestParam Integer id, @ApiParam(value = "新状态 0启用 " +
+            "1禁用", allowableValues = "0,1", example = "0") @RequestParam Integer status) {
         return configService.updateStatus(id, status.byteValue());
     }
 
@@ -78,9 +78,9 @@ public class AccountController {
     @ApiOperation(value = "账号列表", position = 13, tags = "账号管理")
     @RequestMapping(value = "/queryAccounts", method = {RequestMethod.GET})
     @NeedLogin
-    public Object queryAccounts(@ApiParam(value = "name") @PathVariable String name,
-                                @ApiParam(value = "payType") @PathVariable String payType,
-                                @ApiParam(value = "status") @PathVariable String status) {
+    public Object queryAccounts(@ApiParam(value = "name") @RequestParam String name,
+                                @ApiParam(value = "payType") @RequestParam String payType,
+                                @ApiParam(value = "status") @RequestParam String status) {
 
         return new BillApiResponse(configService.queryAccounts(name, payType, status));
     }

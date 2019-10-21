@@ -82,16 +82,16 @@ public class AppController {
     @ApiOperation(value = "修改APP状态", position = 9, tags = "应用管理")
     @RequestMapping(value = "/updateStatus", method = {RequestMethod.GET})
     @NeedLogin
-    public Object updateStatus(@ApiParam(value = "APPKEY") @PathVariable String appkey, @ApiParam(value = "新状态 0启用 " +
-            "1禁用", allowableValues = "0,1", example = "0") @PathVariable Integer status) {
+    public Object updateStatus(@ApiParam(value = "APPKEY") @RequestParam String appkey, @ApiParam(value = "新状态 0启用 " +
+            "1禁用", allowableValues = "0,1", example = "0") @RequestParam Integer status) {
         return appService.updateStatus(appkey, status.byteValue());
     }
 
     @ApiOperation(value = "检查APP名称是否重复", position = 11, tags = "应用管理")
     @RequestMapping(value = "/checkAppName", method = {RequestMethod.GET})
     @NeedLogin
-    public Object checkAppName(@ApiParam(value = "名称") @PathVariable String appName,
-                               @ApiParam(value = "APPKEY") @PathVariable String appKey) {
+    public Object checkAppName(@ApiParam(value = "名称") @RequestParam String appName,
+                               @ApiParam(value = "APPKEY") @RequestParam String appKey) {
         return appService.nameHasExist(appName, appKey);
     }
 
