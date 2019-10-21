@@ -66,8 +66,8 @@ public class AppServiceImpl implements AppService {
     @Override
     @OpLog(desc = "新增应用")
     public int createApp(App app, AppAccountIds appAccountIds) {
-        app.setAppSecret(RandomStringUtils.random(32, true, true));
-        app.setAppKey(RandomStringUtils.random(40, true, true));
+        app.setAppSecret(RandomStringUtils.random(40, true, true));
+        app.setAppKey(RandomStringUtils.random(32, true, true));
         app.setStatus(EnumStatus.Enable.getCode());
         Date d = new Date();
         app.setCreatedAt(d);

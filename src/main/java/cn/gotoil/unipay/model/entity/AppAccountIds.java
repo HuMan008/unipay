@@ -1,25 +1,30 @@
 package cn.gotoil.unipay.model.entity;
 
-import lombok.ToString;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.*;
 
+@Getter
+@Setter
 @ToString
+@Data
+@EqualsAndHashCode(callSuper = false)
 public class AppAccountIds {
-    private Integer alipayId;
-    private Integer wechatId;
 
-    public Integer getAlipayId() {
-        return alipayId;
-    }
+     @ApiModelProperty(required = true, example = "", value = "微信H5", position = 1)
+     private Integer wechatH5Id;
 
-    public void setAlipayId(Integer alipayId) {
-        this.alipayId = alipayId;
-    }
+     @ApiModelProperty(required = true, example = "", value = "微信JSAPI", position = 3)
+     private Integer wechatJSAPIId;
 
-    public Integer getWechatId() {
-        return wechatId;
-    }
+     @ApiModelProperty(required = true, example = "", value = "微信SDK", position = 5)
+     private Integer wechatSDKId;
 
-    public void setWechatId(Integer wechatId) {
-        this.wechatId = wechatId;
-    }
+     @ApiModelProperty(required = true, example = "", value = "微信NATIVE", position = 7)
+     private Integer wechatNAtiveId;
+
+     @ApiModelProperty(required = true, example = "", value = "支付宝H5", position = 9)
+     private Integer alipayH5Id;
+
+     @ApiModelProperty(required = true, example = "", value = "支付宝SDK", position = 11)
+     private Integer alipaySDKId;
 }

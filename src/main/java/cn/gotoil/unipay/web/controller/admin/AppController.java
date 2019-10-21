@@ -58,13 +58,15 @@ public class AppController {
     @ApiOperation(value = "新增APP", position = 5, tags = "应用管理")
     @RequestMapping(value = "/addApp", method = {RequestMethod.POST})
     @NeedLogin
-    public Object addAccount(@RequestBody AppAddRquest appAddRquest, @RequestBody AppAccountIds appAccountIds) {
+    public Object addAccount(@RequestBody AppAddRquest appAddRquest) {
         if (appService.nameHasExist(appAddRquest.getAppName(), null)) {
             throw new BillException(5000, "应用名称重复");
         }
 
         App app = new App();
         BeanUtils.copyProperties(appAddRquest, app);
+        AppAccountIds appAccountIds = new AppAccountIds();
+        BeanUtils.copyProperties(appAddRquest, appAccountIds);
         if (appService.createApp(app, appAccountIds) != 1) {
             throw new BillException(5000, "新增应用失败");
         }
@@ -105,14 +107,15 @@ public class AppController {
     @ApiOperation(value = "修改APP", position = 15, tags = "应用管理")
     @RequestMapping(value = "/updateApp", method = {RequestMethod.POST})
     @NeedLogin
-    public Object updateApp(@RequestBody AppAddRquest appAddRquest, @RequestBody AppAccountIds appAccountIds,
-                            HttpServletRequest request) {
+    public Object updateApp(@RequestBody AppAddRquest appAddRquest, HttpServletRequest request) {
         if (appService.nameHasExist(appAddRquest.getAppName(), appAddRquest.getAppKey())) {
             throw new BillException(5000, "应用名称重复");
         }
 
         App app = new App();
         BeanUtils.copyProperties(appAddRquest, app);
+        AppAccountIds appAccountIds = new AppAccountIds();
+        BeanUtils.copyProperties(appAddRquest, appAccountIds);
         if (appService.updateApp(app, appAccountIds) != 1) {
             throw new BillException(5000, "修改应用失败");
         }

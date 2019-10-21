@@ -95,9 +95,8 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
             AccountView av = new AccountView();
 
             String name = String.valueOf(mm.get("name"));
-            String type = strkey.split(":")[1];
-            type = type.split("_")[0];
-            String state = String.valueOf(mm.get("state"));
+            String type = String.valueOf(mm.get("payType"));
+            String state = String.valueOf(mm.get("status"));
 
             if (StringUtils.isNotEmpty(accountName)
                     && !accountName.equals(name)) {
@@ -264,7 +263,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
 
         Date now = new Date();
         chargeConfig.setUpdatedAt(now);
-        int result = chargeConfigMapper.updateByPrimaryKey(chargeConfig);
+        int result = chargeConfigMapper.updateByPrimaryKeyWithBLOBs(chargeConfig);
         if (result == 1) {
             String key = appChargAccountKey(chargeConfig.getId());
             redisHashHelper.set(key, chargeConfig, Sets.newHashSet("config"));
@@ -315,7 +314,13 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
         updateConfig.setId(id);
         updateConfig.setStatus(status);
         updateConfig.setUpdatedAt(new Date());
-        return chargeConfigMapper.updateByPrimaryKeySelective(updateConfig) == 1 ? true : false;
+        int result = chargeConfigMapper.updateByPrimaryKeySelective(updateConfig);
+        if (result == 1) {
+            ChargeConfig c1 = chargeConfigMapper.selectByPrimaryKey(id);
+            String key = appChargAccountKey(c1.getId());
+            redisHashHelper.set(key, c1, Sets.newHashSet("config"));
+        }
+        return result == 1 ? true : false;
     }
 
     /**

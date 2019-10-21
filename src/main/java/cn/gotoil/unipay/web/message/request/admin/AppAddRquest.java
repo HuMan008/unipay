@@ -1,5 +1,6 @@
 package cn.gotoil.unipay.web.message.request.admin;
 
+import cn.gotoil.unipay.model.entity.AppAccountIds;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,7 +10,7 @@ import javax.validation.constraints.Size;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class AppAddRquest {
+public class AppAddRquest extends AppAccountIds {
 
     @NotNull
     @Size(max = 50)

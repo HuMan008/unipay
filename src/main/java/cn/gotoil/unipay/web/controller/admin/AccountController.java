@@ -41,7 +41,7 @@ public class AccountController {
     @RequestMapping(value = "/checkAccountName", method = {RequestMethod.GET})
     @NeedLogin
     public Object checkAccountName(@ApiParam(value = "名称") @RequestParam String appName,
-                                   @ApiParam(value = "id") @RequestParam Integer id) {
+                                   @ApiParam(value = "id") @RequestParam(required = false) Integer id) {
         return configService.checkName(appName, id);
     }
 
@@ -56,12 +56,12 @@ public class AccountController {
     @ApiOperation(value = "获取账号", position = 7, tags = "账号管理")
     @RequestMapping(value = "/getAccountById", method = {RequestMethod.GET})
     @NeedLogin
-    public Object getAccountById(@ApiParam(value = "id") @PathVariable Integer id) {
+    public Object getAccountById(@ApiParam(value = "id") @RequestParam Integer id) {
         return new BillApiResponse(configService.loadByChargeId(id));
     }
 
     @ApiOperation(value = "修改账号", position = 11, tags = "账号管理")
-    @RequestMapping(value = "/updateAccount", method = {RequestMethod.GET})
+    @RequestMapping(value = "/updateAccount", method = {RequestMethod.POST})
     @NeedLogin
     public Object updateAccount(@RequestBody AccountAddRequest accountAddRequest) {
         if (!configService.checkName(accountAddRequest.getName(), accountAddRequest.getId())) {
@@ -78,9 +78,9 @@ public class AccountController {
     @ApiOperation(value = "账号列表", position = 13, tags = "账号管理")
     @RequestMapping(value = "/queryAccounts", method = {RequestMethod.GET})
     @NeedLogin
-    public Object queryAccounts(@ApiParam(value = "name") @RequestParam String name,
-                                @ApiParam(value = "payType") @RequestParam String payType,
-                                @ApiParam(value = "status") @RequestParam String status) {
+    public Object queryAccounts(@ApiParam(value = "name") @RequestParam(required = false) String name,
+                                @ApiParam(value = "payType") @RequestParam(required = false) String payType,
+                                @ApiParam(value = "status") @RequestParam(required = false) String status) {
 
         return new BillApiResponse(configService.queryAccounts(name, payType, status));
     }
