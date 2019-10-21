@@ -80,7 +80,7 @@ sign的内容为md5(xxxx+appSecret(统一分配))
 | unionOrderID | 统一订单号 |
 | method | 通知类型 PAY:支付通知;REFUND退款通知 |
 | appOrderNO | 创建订单提交的订单编号 |
-| paymentOrderID | 支付方订单号(如：支付宝微信订单号) |
+| paymentId | 支付方订单号(如：支付宝微信订单号) |
 | status | <a href="#payStatus">支付状态</a> |
 | orderFee | 订单金额，单位分 |
 | payFee | 支付金额，单位分。实际用户支付金额，不包含优惠券等。 |
