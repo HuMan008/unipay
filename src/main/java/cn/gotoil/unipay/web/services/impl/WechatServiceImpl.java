@@ -189,7 +189,7 @@ public class WechatServiceImpl implements WechatService {
 
                 if (SUCCESS.equalsIgnoreCase(reMap.get(RETURN_CODE))) {
                     if (SUCCESS.equalsIgnoreCase(reMap.get("result_code"))) {
-                        OrderQueryResponse orderQueryResponse = orderQueryResponse = OrderQueryResponse.builder()
+                        OrderQueryResponse orderQueryResponse = OrderQueryResponse.builder()
 //                                    .unionOrderID(orderId)
                                 .unionOrderID(reMap.get("out_trade_no"))
                                 .paymentId(reMap.get("transaction_id"))
