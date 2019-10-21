@@ -135,7 +135,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public boolean checkOrderNo(String appOrderNo, String appId) {
         SetOperations<String, String> setOperations = redisTemplate.opsForSet();
-        boolean bb = setOperations.isMember(APPORDERNOKEY, appOrderNo);
+        boolean bb = setOperations.isMember(APPORDERNOKEY + appId, appOrderNo);
         //缓存里没有
         if (!bb) {
             Order order = loadByAppOrderNo(appOrderNo, appId);
@@ -207,8 +207,8 @@ public class OrderServiceImpl implements OrderService {
 
         //appOrderNo存一下 防止重复请求
         SetOperations<String, String> setOperations = redisTemplate.opsForSet();
-        setOperations.add(APPORDERNOKEY, payRequest.getAppOrderNo());
-        setOperations.getOperations().expire(APPORDERNOKEY, 5, TimeUnit.MINUTES);
+        setOperations.add(APPORDERNOKEY + payRequest.getAppId(), payRequest.getAppOrderNo());
+        setOperations.getOperations().expire(APPORDERNOKEY + payRequest.getAppId(), 5, TimeUnit.MINUTES);
         return order;
     }
 

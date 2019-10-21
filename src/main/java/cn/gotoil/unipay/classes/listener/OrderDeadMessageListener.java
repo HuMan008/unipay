@@ -15,6 +15,7 @@ import com.alibaba.fastjson.JSON;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.ClientProtocolException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -24,6 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.*;
 
@@ -105,6 +108,15 @@ public class OrderDeadMessageListener {
                             ConstsRabbitMQ.ORDERROUTINGKEY, JSON.toJSONString(notifyBean));
                 }
             }
+        } catch (UnknownHostException uhe) {
+            noticeLog.setResponseContent("通知地址不可到达");
+            log.error("通知地址不可到达【】..{},\t异常：{}", message.getBody(), uhe);
+        } catch (ClientProtocolException cpe) {
+            noticeLog.setResponseContent("通知地址协议错误");
+            log.error("通知地址协议错误【】..{},\t异常：{}", message.getBody(), cpe);
+        } catch (IOException io) {
+            noticeLog.setResponseContent(io.getMessage());
+            log.error("{}", io);
         } catch (Exception e) {
             noticeLog.setResponseContent(e.getMessage());
             log.error("{}", e);

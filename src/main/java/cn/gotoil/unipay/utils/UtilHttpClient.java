@@ -3,6 +3,7 @@ package cn.gotoil.unipay.utils;
 import com.google.common.base.Charsets;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.*;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -318,44 +319,29 @@ public class UtilHttpClient {
     }
 
 
-    public static String notifyPost(String url, Map<String, Object> map) {
+    public static String notifyPost(String url, Map<String, Object> map) throws IOException, UnknownHostException,
+            ClientProtocolException {
         CloseableHttpClient client = UtilHttpClient.getNotifyHttpClient();
         CloseableHttpResponse response = null;
-        try {
-            HttpPost httpPost = new HttpPost(url);
-            if (map != null) {
-                List<NameValuePair> params = new ArrayList<NameValuePair>();
-                for (Map.Entry<String, Object> entry : map.entrySet()) {
-                    params.add(new BasicNameValuePair(entry.getKey(), entry.getValue().toString()));
-                }
-                UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(params, Charsets.UTF_8);
-                httpPost.setEntity(formEntity);
-            }
-            response = client.execute(httpPost);
 
-            if (response.getEntity() != null) {
-                return EntityUtils.toString(response.getEntity(), Charsets.UTF_8);
-            } else {
-                return "";
+        HttpPost httpPost = new HttpPost(url);
+        if (map != null) {
+            List<NameValuePair> params = new ArrayList<NameValuePair>();
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                params.add(new BasicNameValuePair(entry.getKey(), entry.getValue().toString()));
             }
-        } catch (Exception e) {
-            log.error("https|Https请求出错{}", e.getMessage());
-        } finally {
-            try {
-                client.close();
-            } catch (IOException e) {
-                log.error("client关闭出错{}", e.getMessage());
-            }
-            if (response != null) {
-                try {
-                    response.close();
-                } catch (IOException e) {
-                    log.error("response关闭出错{}", e.getMessage());
-                }
-            }
-
+            UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(params, Charsets.UTF_8);
+            httpPost.setEntity(formEntity);
         }
-        return "";
+        response = client.execute(httpPost);
+
+        String reStr = new String();
+        if (response.getEntity() != null) {
+            reStr = EntityUtils.toString(response.getEntity(), Charsets.UTF_8);
+        }
+        client.close();
+        response.close();
+        return reStr;
     }
 
 
