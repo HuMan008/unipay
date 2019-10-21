@@ -17,7 +17,14 @@ import java.util.List;
 @AllArgsConstructor
 public enum EnumPayCategory {
 
+    /**
+     * 微信支付
+     */
     Wechat((byte) 2, "Wechat", "微信支付"),
+
+    /**
+     * 支付宝支付
+     */
     Alipay((byte) 3, "Alipay", "支付宝支付");
 
     byte codeValue;
@@ -25,7 +32,9 @@ public enum EnumPayCategory {
     String descp;
 
     public static String getDescByCode(String code) {
-        if (StringUtils.isEmpty(code)) return "";
+        if (StringUtils.isEmpty(code)) {
+            return "";
+        }
         List<EnumPayCategory> types = Arrays.asList(EnumPayCategory.values());
         for (EnumPayCategory e : types) {
             if (e.getCode().equals(code)) {

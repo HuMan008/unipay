@@ -135,7 +135,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public boolean checkOrderNo(String appOrderNo, String appId) {
         SetOperations<String, String> setOperations = redisTemplate.opsForSet();
-        boolean bb = setOperations.isMember(AppOrderNoKey, appOrderNo);
+        boolean bb = setOperations.isMember(APPORDERNOKEY + appId, appOrderNo);
         //缓存里没有
         if (!bb) {
             Order order = loadByAppOrderNo(appOrderNo, appId);
@@ -207,8 +207,8 @@ public class OrderServiceImpl implements OrderService {
 
         //appOrderNo存一下 防止重复请求
         SetOperations<String, String> setOperations = redisTemplate.opsForSet();
-        setOperations.add(AppOrderNoKey, payRequest.getAppOrderNo());
-        setOperations.getOperations().expire(AppOrderNoKey, 5, TimeUnit.MINUTES);
+        setOperations.add(APPORDERNOKEY + payRequest.getAppId(), payRequest.getAppOrderNo());
+        setOperations.getOperations().expire(APPORDERNOKEY + payRequest.getAppId(), 5, TimeUnit.MINUTES);
         return order;
     }
 
@@ -311,8 +311,8 @@ public class OrderServiceImpl implements OrderService {
                     String appSecret = appService.key(order.getAppId());
                     String signStr = UtilMySign.sign(orderNotifyBean, appSecret);
                     orderNotifyBean.setSign(signStr);
-                    rabbitTemplate.convertAndSend(ConstsRabbitMQ.orderFirstExchangeName,
-                            ConstsRabbitMQ.orderRoutingKey, JSON.toJSONString(orderNotifyBean));
+                    rabbitTemplate.convertAndSend(ConstsRabbitMQ.ORDERFIRSTEXCHANGENAME,
+                            ConstsRabbitMQ.ORDERROUTINGKEY, JSON.toJSONString(orderNotifyBean));
                 } else {
                     log.error("订单【{}】状态更新失败", order.getId(), orderQueryResponse);
 
@@ -372,7 +372,7 @@ public class OrderServiceImpl implements OrderService {
                     .unionOrderID(order.getId())
                     .method(EnumOrderMessageType.PAY.name())
                     .appOrderNO(order.getAppOrderNo())
-                    .paymentOrderID(order.getPaymentId())
+                    .paymentId(order.getPaymentId())
                     .status(order.getStatus())
                     .orderFee(order.getFee())
                     .payFee(order.getPayFee())

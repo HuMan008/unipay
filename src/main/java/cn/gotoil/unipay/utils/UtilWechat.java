@@ -200,8 +200,10 @@ public class UtilWechat {
             if (k.equals(FIELD_SIGN)) {
                 continue;
             }
-            if (data.get(k).trim().length() > 0) // 参数值为空，则不参与签名
+            // 参数值为空，则不参与签名
+            if (data.get(k).trim().length() > 0) {
                 sb.append(k).append("=").append(data.get(k).trim()).append("&");
+            }
         }
         sb.append("key=").append(key);
         if (SignType.MD5.equals(signType)) {
@@ -258,6 +260,7 @@ public class UtilWechat {
         return sb.toString().toUpperCase();
     }
 
+    @SuppressWarnings("all")
     public enum SignType {
         MD5, HMACSHA256
     }

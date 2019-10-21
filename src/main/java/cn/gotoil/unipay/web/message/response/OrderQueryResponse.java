@@ -20,6 +20,11 @@ public class OrderQueryResponse {
     String unionOrderID;
 
     /**
+     * 应用订单号
+     */
+    String appOrderNO;
+
+    /**
      * 支付方订单号
      */
     String paymentId;

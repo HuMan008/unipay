@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public interface OrderService {
 
-    String AppOrderNoKey = "Unipay:AppOrderNo";
+    String APPORDERNOKEY = "Unipay:AppOrderNo:";
 
     /**
      * 校验支付请求参数

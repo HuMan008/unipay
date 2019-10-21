@@ -52,7 +52,9 @@ public class OrderController {
         if("localStatus".equals(type)){
             OrderQueryResponse orderQueryResponse =
                     OrderQueryResponse.builder()
+                            .appOrderNO(order.getAppOrderNo())
                             .unionOrderID(order.getId())
+                            .appOrderNO(order.getAppOrderNo())
                             .paymentId(order.getPaymentId())
                             .paymentUid(order.getPaymentUid())
                             .payDateTime(order.getOrderPayDatetime() == null ? 0 : order.getOrderPayDatetime())

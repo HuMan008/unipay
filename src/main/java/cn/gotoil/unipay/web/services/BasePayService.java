@@ -69,7 +69,7 @@ public interface BasePayService<T extends ChargeAccount> {
         OrderQueryResponse orderQueryResponse =
                 OrderQueryResponse.builder()
                         .unionOrderID(order.getId())
-//                        .appOrder(order.getAppOrderNo())
+                        .appOrderNO(order.getAppOrderNo())
                         .paymentId(order.getPaymentId())
                         .paymentUid(order.getPaymentUid())
                         .status(order.getStatus())

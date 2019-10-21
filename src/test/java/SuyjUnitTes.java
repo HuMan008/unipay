@@ -1,3 +1,4 @@
+import cn.gotoil.unipay.utils.UtilHttpClient;
 import org.junit.Test;
 
 /**
@@ -14,5 +15,11 @@ public class SuyjUnitTes {
                 "?redirect=%s";
         String redirectUrlP = String.format(wechat_open_id_grant_url, "wxcwefwefewefw", "https://www.baidu.com");
         System.out.println(redirectUrlP);
+    }
+
+    @Test
+    public void t2() {
+        UtilHttpClient.doPost("http://www.gio2yfwe.com", null);
+        UtilHttpClient.doPost("www.gio2yfwe.com", null);
     }
 }

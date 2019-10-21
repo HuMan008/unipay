@@ -15,6 +15,7 @@ import com.alibaba.fastjson.JSON;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.ClientProtocolException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -24,6 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.*;
 
@@ -35,7 +38,7 @@ import java.util.*;
  */
 @Slf4j
 @Service
-@RabbitListener(queues = RabbitMQConfigure.DeadQueueName4Order)
+@RabbitListener(queues = RabbitMQConfigure.DEADQUEUENAME4ORDER)
 public class OrderDeadMessageListener {
 
     @Autowired
@@ -92,8 +95,8 @@ public class OrderDeadMessageListener {
                 List<Object> list = (ArrayList) headers.get("x-death");
                 Map<String, Object> pp = (HashMap) list.get(0);
                 log.debug("本次消息是通过这个{}发送的", pp.get("exchange"));
-                int index = ConstsRabbitMQ.orderQueueIndex.get(pp.get("exchange")) == null ? -1 :
-                        ConstsRabbitMQ.orderQueueIndex.get(pp.get("exchange"));
+                int index = ConstsRabbitMQ.ORDERQUEUEINDEX.get(pp.get("exchange")) == null ? -1 :
+                        ConstsRabbitMQ.ORDERQUEUEINDEX.get(pp.get("exchange"));
                 if (index != -1 && index <= orderMessageConfig.getMessageQueues().size() - 2) {
                     notifyBean.setTimeStamp(Instant.now().getEpochSecond());
                     notifyBean.setDoCount(notifyBean.getDoCount() + 1);
@@ -102,9 +105,18 @@ public class OrderDeadMessageListener {
                     notifyBean.setSign(signStr);
                     //用下一个队列发送消息
                     rabbitTemplate.convertAndSend(orderMessageConfig.getMessageQueues().get(index + 1).getExchangeName(),
-                            ConstsRabbitMQ.orderRoutingKey, JSON.toJSONString(notifyBean));
+                            ConstsRabbitMQ.ORDERROUTINGKEY, JSON.toJSONString(notifyBean));
                 }
             }
+        } catch (UnknownHostException uhe) {
+            noticeLog.setResponseContent("通知地址不可到达");
+            log.error("通知地址不可到达【】..{},\t异常：{}", message.getBody(), uhe);
+        } catch (ClientProtocolException cpe) {
+            noticeLog.setResponseContent("通知地址协议错误");
+            log.error("通知地址协议错误【】..{},\t异常：{}", message.getBody(), cpe);
+        } catch (IOException io) {
+            noticeLog.setResponseContent(io.getMessage());
+            log.error("{}", io);
         } catch (Exception e) {
             noticeLog.setResponseContent(e.getMessage());
             log.error("{}", e);

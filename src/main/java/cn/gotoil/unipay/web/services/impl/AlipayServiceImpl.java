@@ -70,8 +70,8 @@ public class AlipayServiceImpl implements AlipayService {
 
         ChargeAlipayModel chargeModel = (ChargeAlipayModel) chargeConfig;
 
-        AlipayClient alipayClient = new DefaultAlipayClient(GateWayURL, chargeModel.getAppID(),
-                chargeModel.getPriKey(), Format, Charsets.UTF_8.name(), chargeModel.getPubKey(), SignType);
+        AlipayClient alipayClient = new DefaultAlipayClient(GATEWAYURL, chargeModel.getAppID(),
+                chargeModel.getPriKey(), FORMAT, Charsets.UTF_8.name(), chargeModel.getPubKey(), SIGNTYPE);
 
 
         AlipayTradeWapPayRequest alipayTradeWapPayRequest = new AlipayTradeWapPayRequest();
@@ -121,8 +121,8 @@ public class AlipayServiceImpl implements AlipayService {
     public String sdkPay(PayRequest payRequest, Order order, ChargeAccount chargeConfig) {
         ChargeAlipayModel chargeModel = (ChargeAlipayModel) chargeConfig;
         //实例化客户端
-        AlipayClient alipayClient = new DefaultAlipayClient(GateWayURL, chargeModel.getAppID(),
-                chargeModel.getPriKey(), Format, Charsets.UTF_8.name(), chargeModel.getPubKey(), SignType);
+        AlipayClient alipayClient = new DefaultAlipayClient(GATEWAYURL, chargeModel.getAppID(),
+                chargeModel.getPriKey(), FORMAT, Charsets.UTF_8.name(), chargeModel.getPubKey(), SIGNTYPE);
         try {
             //去支付
             AlipayTradeAppPayRequest alipayTradeAppPayRequest = new AlipayTradeAppPayRequest();
@@ -163,15 +163,15 @@ public class AlipayServiceImpl implements AlipayService {
         AlipayTradeQueryModel model = new AlipayTradeQueryModel();
         model.setOutTradeNo(order.getId());
         alipay_request.setBizModel(model);
-        AlipayClient client = new DefaultAlipayClient(GateWayURL, chargeModel.getAppID(), chargeModel.getPriKey(),
-                Format, Charsets.UTF_8.name(), chargeModel.getPubKey(), SignType);
+        AlipayClient client = new DefaultAlipayClient(GATEWAYURL, chargeModel.getAppID(), chargeModel.getPriKey(),
+                FORMAT, Charsets.UTF_8.name(), chargeModel.getPubKey(), SIGNTYPE);
         try {
             AlipayTradeQueryResponse alipayTradeQueryResponse = client.execute(alipay_request);
             if (alipayTradeQueryResponse.isSuccess()) {
                 String tradeStatus = alipayTradeQueryResponse.getTradeStatus();
 
                 OrderQueryResponse orderQueryResponse =
-                        OrderQueryResponse.builder().unionOrderID(order.getId()).paymentId(alipayTradeQueryResponse.getOutTradeNo()).orderFee(UtilMoney.yuanToFen(alipayTradeQueryResponse.getTotalAmount())).payFee(UtilMoney.yuanToFen(alipayTradeQueryResponse.getBuyerPayAmount())).thirdStatus(alipayTradeQueryResponse.getTradeStatus()).thirdCode(alipayTradeQueryResponse.getCode()).thirdMsg(alipayTradeQueryResponse.getMsg()).build();
+                        OrderQueryResponse.builder().unionOrderID(order.getId()).appOrderNO(order.getAppOrderNo()).paymentId(alipayTradeQueryResponse.getOutTradeNo()).orderFee(UtilMoney.yuanToFen(alipayTradeQueryResponse.getTotalAmount())).payFee(UtilMoney.yuanToFen(alipayTradeQueryResponse.getBuyerPayAmount())).thirdStatus(alipayTradeQueryResponse.getTradeStatus()).thirdCode(alipayTradeQueryResponse.getCode()).thirdMsg(alipayTradeQueryResponse.getMsg()).build();
                 //                交易状态：WAIT_BUYER_PAY（交易创建，等待买家付款）、TRADE_CLOSED（未付款交易超时关闭，或支付完成后全额退款）、TRADE_SUCCESS
                 // （交易支付成功）、TRADE_FINISHED（交易结束，不可退款）
                 if ("WAIT_BUYER_PAY".equalsIgnoreCase(tradeStatus)) {
@@ -192,16 +192,16 @@ public class AlipayServiceImpl implements AlipayService {
                 return orderQueryResponse;
 
             } else if ("40004".equals(alipayTradeQueryResponse.getCode()) && "ACQ.TRADE_NOT_EXIST".equals(alipayTradeQueryResponse.getSubCode())) {
-                return OrderQueryResponse.builder().unionOrderID(order.getId()).paymentId(alipayTradeQueryResponse.getOutTradeNo()).orderFee(0).payFee(0).thirdStatus(alipayTradeQueryResponse.getTradeStatus()).thirdCode(alipayTradeQueryResponse.getCode()).status(EnumOrderStatus.Created.getCode()).thirdMsg(alipayTradeQueryResponse.getMsg()).build();
+                return OrderQueryResponse.builder().unionOrderID(order.getId()).appOrderNO(order.getAppOrderNo()).paymentId(alipayTradeQueryResponse.getOutTradeNo()).orderFee(0).payFee(0).thirdStatus(alipayTradeQueryResponse.getTradeStatus()).thirdCode(alipayTradeQueryResponse.getCode()).status(EnumOrderStatus.Created.getCode()).thirdMsg(alipayTradeQueryResponse.getMsg()).build();
             } else {
                 logger.error("执行【{}】支付宝订单状态查询失败{}", order.getId(), JSONObject.toJSONString(alipayTradeQueryResponse));
-                return OrderQueryResponse.builder().
+                return OrderQueryResponse.builder().appOrderNO(order.getAppOrderNo()).
                         thirdCode(alipayTradeQueryResponse.getCode() + "#" + alipayTradeQueryResponse.getSubCode()).thirdMsg(alipayTradeQueryResponse.getMsg() + "#" + alipayTradeQueryResponse.getSubMsg()).build();
 
             }
         } catch (Exception e) {
             logger.error("执行【{}】支付宝订单状态查询出错{}", order.getId(), e);
-            return OrderQueryResponse.builder().thirdCode("5000").thirdMsg(e.getMessage()).build();
+            return OrderQueryResponse.builder().appOrderNO(order.getAppOrderNo()).thirdCode("5000").thirdMsg(e.getMessage()).build();
         }
     }
 

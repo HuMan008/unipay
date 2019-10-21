@@ -11,7 +11,7 @@ import java.util.Map;
  */
 public class ConstsRabbitMQ {
 
-    public static final String orderRoutingKey = "dead";
-    public static String orderFirstExchangeName = "";
-    public static Map<String, Integer> orderQueueIndex = new HashMap();
+    public static final String ORDERROUTINGKEY = "dead";
+    public static String ORDERFIRSTEXCHANGENAME = "";
+    public static Map<String, Integer> ORDERQUEUEINDEX = new HashMap();
 }

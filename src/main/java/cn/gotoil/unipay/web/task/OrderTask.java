@@ -18,10 +18,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 import static cn.gotoil.unipay.web.helper.RedisLockHelper.Key.OrderExpiredSync;
@@ -147,9 +144,10 @@ public class OrderTask {
     }
 
     private void initExecutoreServe() {
-        executorService = new ThreadPoolExecutor(12, 12,
-                15L, TimeUnit.SECONDS,
-                new SynchronousQueue<Runnable>());
+        executorService =
+                new ThreadPoolExecutor(12, 12,
+                        15L, TimeUnit.SECONDS,
+                        new SynchronousQueue<Runnable>(), Executors.defaultThreadFactory());
     }
 
 

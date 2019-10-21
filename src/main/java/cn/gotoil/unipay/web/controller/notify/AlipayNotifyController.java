@@ -145,8 +145,8 @@ public class AlipayNotifyController {
                         String appSecret = appService.key(order.getAppId());
                         String signStr = UtilMySign.sign(orderNotifyBean, appSecret);
                         orderNotifyBean.setSign(signStr);
-                        rabbitTemplate.convertAndSend(ConstsRabbitMQ.orderFirstExchangeName,
-                                ConstsRabbitMQ.orderRoutingKey, JSON.toJSONString(orderNotifyBean));
+                        rabbitTemplate.convertAndSend(ConstsRabbitMQ.ORDERFIRSTEXCHANGENAME,
+                                ConstsRabbitMQ.ORDERROUTINGKEY, JSON.toJSONString(orderNotifyBean));
                         notifyAccept.setResponstr("success:发通知");
                         return "success";
                     } else if ("TRADE_CLOSED".equals(params.get("trade_status"))) {

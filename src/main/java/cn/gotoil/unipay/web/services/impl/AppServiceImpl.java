@@ -72,7 +72,7 @@ public class AppServiceImpl implements AppService {
         Date d = new Date();
         app.setCreatedAt(d);
         app.setUpdatedAt(d);
-        redisHashHelper.set(AppKey + app.getAppKey(), app, IGNORESET);
+        redisHashHelper.set(APPKEY + app.getAppKey(), app, IGNORESET);
         appChargeAccountMapper(app.getAppKey(), appAccountIds);
         return appMapper.insert(app);
     }
@@ -108,7 +108,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public App load(String appKey) {
-        App app = redisHashHelper.get(AppKey + appKey, App.class);
+        App app = redisHashHelper.get(APPKEY + appKey, App.class);
         if (app != null) {
             return app;
         }
@@ -239,7 +239,7 @@ public class AppServiceImpl implements AppService {
         }
         if (result == 1) {
             App appNew = appMapper.selectByPrimaryKey(app.getAppKey());
-            redisHashHelper.set(AppKey + app.getAppKey(), appNew, IGNORESET);
+            redisHashHelper.set(APPKEY + app.getAppKey(), appNew, IGNORESET);
             for (String t : disable) {
                 removeAppChargeAccountFromRedis(t, app.getAppKey());
             }

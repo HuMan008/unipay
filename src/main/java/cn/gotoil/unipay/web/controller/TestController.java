@@ -57,7 +57,7 @@ public class TestController {
 
     @RequestMapping("t2")
     public Object t3() {
-        rabbitTemplate.convertAndSend(ConstsRabbitMQ.orderFirstExchangeName, ConstsRabbitMQ.orderRoutingKey,
+        rabbitTemplate.convertAndSend(ConstsRabbitMQ.ORDERFIRSTEXCHANGENAME, ConstsRabbitMQ.ORDERROUTINGKEY,
                 "我是一条消息哈哈哈哈哈");
         return "ssss";
     }
