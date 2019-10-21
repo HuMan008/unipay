@@ -37,7 +37,7 @@ import javax.validation.Valid;
  */
 @RestController
 @RequestMapping("api/v1")
-public class APIController {
+public class APIPayController {
 
     @Autowired
     OrderService orderService;
@@ -52,7 +52,7 @@ public class APIController {
 
     @RequestMapping(value = "dopay", method = RequestMethod.POST)
     @ApiOperation(value = "API订单创建", position = 5)
-    public BillApiResponse createOrder(@Valid @RequestBody PayRequest payRequest) {
+    public BillApiResponse createOrderAction(@Valid @RequestBody PayRequest payRequest) {
         if (!payRequest.getAppId().equals(ServletRequestHelper.XU())) {
             throw new BillException(UnipayError.CreatOrderError);
         }
@@ -102,17 +102,43 @@ public class APIController {
     }
 
 
-    @RequestMapping(value = "query/{oid}", method = RequestMethod.POST)
+    @RequestMapping(value = "remoteQuery/{oid:^\\d{21}$}", method = RequestMethod.POST)
     @ApiOperation(value = "订单支付状态 远程", position = 10)
     public BillApiResponse queryOrderFromRemote(@PathVariable String oid) {
         Order o = orderService.loadByOrderID(oid);
         if (o == null) {
             throw new BillException(UnipayError.OrderNotExists);
         }
+        if (!o.getAppId().equals(ServletRequestHelper.XU())) {
+            throw new BillException(UnipayError.OrderAppMatchError);
+        }
         OrderQueryResponse orderQueryResponse = orderService.queryOrderStatusFromRemote(o);
         if (orderQueryResponse == null || orderQueryResponse.getStatus() == -127) {
             throw new BillException(UnipayError.PayTypeNotImpl);
         }
+        return new BillApiResponse(orderQueryResponse);
+    }
+
+
+    @RequestMapping(value = "query/{appOrderNo}", method = RequestMethod.POST)
+    @ApiOperation(value = "订单支付状态 本地", position = 10)
+    public BillApiResponse queryOrder(@PathVariable String appOrderNo) {
+        Order order = orderService.loadByAppOrderNo(appOrderNo, ServletRequestHelper.XU());
+        if (order == null) {
+            throw new BillException(UnipayError.OrderNotExists);
+        }
+        OrderQueryResponse orderQueryResponse =
+                OrderQueryResponse.builder()
+                        .unionOrderID(order.getId())
+                        .paymentId(order.getPaymentId())
+                        .paymentUid(order.getPaymentUid())
+                        .payDateTime(order.getOrderPayDatetime())
+                        .orderFee(order.getFee())
+                        .payFee(order.getPayFee())
+                        .thirdStatus("-")
+                        .thirdCode("-")
+                        .thirdMsg("本地查询").build();
+
         return new BillApiResponse(orderQueryResponse);
     }
 }

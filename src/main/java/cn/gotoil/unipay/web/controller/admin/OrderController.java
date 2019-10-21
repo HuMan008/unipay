@@ -5,6 +5,7 @@ import cn.gotoil.bill.web.annotation.NeedLogin;
 import cn.gotoil.bill.web.message.BillApiResponse;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.web.message.request.admin.OrderQueryListRequest;
+import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.services.OrderQueryService;
 import cn.gotoil.unipay.web.services.OrderService;
 import io.swagger.annotations.Api;
@@ -49,7 +50,18 @@ public class OrderController {
             throw new BillException(5100,"没有对应订单");
         }
         if("localStatus".equals(type)){
-            return new BillApiResponse(order);
+            OrderQueryResponse orderQueryResponse =
+                    OrderQueryResponse.builder()
+                            .unionOrderID(order.getId())
+                            .paymentId(order.getPaymentId())
+                            .paymentUid(order.getPaymentUid())
+                            .payDateTime(order.getOrderPayDatetime())
+                            .orderFee(order.getFee())
+                            .payFee(order.getPayFee())
+                            .thirdStatus("-")
+                            .thirdCode("-")
+                            .thirdMsg("本地查询").build();
+            return new BillApiResponse(orderQueryResponse);
         }else if("remoteStatus".equals(type)){
             return new BillApiResponse(orderService.queryOrderStatusFromRemote(order));
         }else{
