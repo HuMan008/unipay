@@ -4,7 +4,7 @@ package cn.gotoil.unipay.web.services.impl;
 import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.web.helper.RedisHashHelper;
 import cn.gotoil.unipay.model.entity.*;
-import cn.gotoil.unipay.model.enums.EnumPayCategory;
+import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.model.enums.EnumStatus;
 import cn.gotoil.unipay.model.mapper.AppChargeAccountMapper;
 import cn.gotoil.unipay.model.mapper.AppMapper;
@@ -79,8 +79,12 @@ public class AppServiceImpl implements AppService {
 
     private void appChargeAccountMapper(String appId, AppAccountIds appAccountIds) {
         if (appAccountIds != null) {
-            created(appId, appAccountIds.getAlipayId(), EnumPayCategory.Alipay.getCode());
-            created(appId, appAccountIds.getWechatId(), EnumPayCategory.Wechat.getCode());
+            created(appId, appAccountIds.getAlipaySDKId(), EnumPayType.AlipaySDK.getCode());
+            created(appId, appAccountIds.getAlipayH5Id(), EnumPayType.AlipayH5.getCode());
+            created(appId, appAccountIds.getWechatJSAPIId(), EnumPayType.WechatJSAPI.getCode());
+            created(appId, appAccountIds.getWechatSDKId(), EnumPayType.WechatSDK.getCode());
+            created(appId, appAccountIds.getWechatNAtiveId(), EnumPayType.WechatNAtive.getCode());
+            created(appId, appAccountIds.getWechatH5Id(), EnumPayType.WechatH5.getCode());
         }
     }
 
@@ -211,8 +215,13 @@ public class AppServiceImpl implements AppService {
         //禁用类型
         List<String> disable = new ArrayList<String>();
 
-        setAccount(disable, appAccountIds.getAlipayId(), EnumPayCategory.Alipay.getCode(), app.getAppKey());
-        setAccount(disable, appAccountIds.getWechatId(), EnumPayCategory.Wechat.getCode(), app.getAppKey());
+        setAccount(disable, appAccountIds.getAlipaySDKId(), EnumPayType.AlipaySDK.getCode(), app.getAppKey());
+        setAccount(disable, appAccountIds.getAlipayH5Id(), EnumPayType.AlipayH5.getCode(), app.getAppKey());
+        setAccount(disable, appAccountIds.getWechatJSAPIId(), EnumPayType.WechatJSAPI.getCode(), app.getAppKey());
+        setAccount(disable, appAccountIds.getWechatSDKId(), EnumPayType.WechatSDK.getCode(), app.getAppKey());
+        setAccount(disable, appAccountIds.getWechatH5Id(), EnumPayType.WechatH5.getCode(), app.getAppKey());
+        setAccount(disable, appAccountIds.getWechatNAtiveId(), EnumPayType.WechatNAtive.getCode(), app.getAppKey());
+
 
         if (disable.size() > 0) {
             //禁用关联支付帐号信息
