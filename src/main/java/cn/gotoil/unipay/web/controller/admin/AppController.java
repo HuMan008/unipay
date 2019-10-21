@@ -24,7 +24,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("web/app")
-@Api(description = "应用管理api")
+@Api(description = "应用管理")
 public class AppController {
 
     @Autowired
