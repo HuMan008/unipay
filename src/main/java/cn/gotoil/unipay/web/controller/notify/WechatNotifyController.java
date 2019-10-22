@@ -141,6 +141,7 @@ public class WechatNotifyController {
                             OrderNotifyBean orderNotifyBean =
                                     OrderNotifyBean.builder()
                                             .unionOrderID(order.getId())
+                                            .appId(order.getAppId())
                                             .method(EnumOrderMessageType.PAY.name())
                                             .appOrderNO(newOrder.getPaymentId())
                                             .status(newOrder.getStatus())
@@ -197,7 +198,7 @@ public class WechatNotifyController {
     }
 
     @NeedLogin(value = false)
-    @RequestMapping("return/{orderId:^\\d{21}$}}")
+    @RequestMapping("return/{orderId:^\\d{21}$}")
     public ModelAndView syncNotify(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
                                    @PathVariable String orderId) throws Exception {
         log.info("微信同步通知");

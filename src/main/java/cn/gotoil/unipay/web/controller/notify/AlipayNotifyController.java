@@ -15,10 +15,7 @@ import cn.gotoil.unipay.utils.UtilMySign;
 import cn.gotoil.unipay.utils.UtilRequest;
 import cn.gotoil.unipay.utils.UtilString;
 import cn.gotoil.unipay.web.helper.RedisLockHelper;
-import cn.gotoil.unipay.web.services.AppService;
-import cn.gotoil.unipay.web.services.ChargeConfigService;
-import cn.gotoil.unipay.web.services.NotifyAcceptService;
-import cn.gotoil.unipay.web.services.OrderService;
+import cn.gotoil.unipay.web.services.*;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
@@ -32,6 +29,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -66,7 +64,7 @@ public class AlipayNotifyController {
     @Autowired
     NotifyAcceptService notifyAcceptService;
 
-    @RequestMapping(value = {"{orderId:^\\d{21}$}"})
+    @RequestMapping(value = {"{orderId:^\\d{21}$}"}, method = RequestMethod.POST)
     @NeedLogin(value = false)
     public String asyncNotify(Model model, HttpServletRequest request, HttpServletResponse httpServletResponse,
                               @PathVariable String orderId) throws UnsupportedEncodingException, AlipayApiException {
@@ -100,7 +98,7 @@ public class AlipayNotifyController {
                     JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()), ChargeAlipayModel.class);
             //开始验签
             boolean signVerified = AlipaySignature.rsaCheckV1(params, chargeAlipayModel.getPubKey(),
-                    Charsets.UTF_8.name());
+                    Charsets.UTF_8.name(), AlipayService.SIGNTYPE);
             //调用SDK验证签名 并且判断通知里的APPID是不是等于订单收款账户的APPID
             if (signVerified && chargeAlipayModel.getAppID().equalsIgnoreCase(params.get("app_id")) && orderId.equalsIgnoreCase(params.get("out_trade_no"))) {
                 //支付异步通知
@@ -119,7 +117,7 @@ public class AlipayNotifyController {
                         } else {
                             newOrder.setOrderPayDatetime(0L);
                         }
-                        newOrder.setPaymentUid(params.get("buyer_id"));
+                        newOrder.setPaymentUid(UtilString.getLongString(params.get("buyer_logon_id"), 50));
                         newOrder.setPaymentId(params.get("trade_no"));
                         notifyAccept.setPaymentId(newOrder.getPaymentId());
                         int x = orderService.updateOrder(order, newOrder);
@@ -131,6 +129,8 @@ public class AlipayNotifyController {
                         OrderNotifyBean orderNotifyBean =
                                 OrderNotifyBean.builder().unionOrderID(order.getId())
                                         .method(EnumOrderMessageType.PAY.name())
+                                        .appId(order.getAppId())
+                                        .paymentId(newOrder.getPaymentId())
                                         .appOrderNO(newOrder.getPaymentId())
                                         .status(newOrder.getStatus())
                                         .orderFee(order.getFee())
@@ -186,7 +186,7 @@ public class AlipayNotifyController {
     }
 
     @NeedLogin(value = false)
-    @RequestMapping("return/{orderId:^\\d{21}$}}")
+    @RequestMapping(value = "/return/{orderId:^\\d{21}$}", method = RequestMethod.GET)
     public ModelAndView syncNotify(@PathVariable String orderId, HttpServletRequest httpServletRequest,
                                    HttpServletResponse httpServletResponse) throws Exception {
         log.info("支付宝同步通知");
