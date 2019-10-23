@@ -127,20 +127,6 @@ public class APIPayController {
         if (order == null) {
             throw new BillException(UnipayError.OrderNotExists);
         }
-        OrderQueryResponse orderQueryResponse =
-                OrderQueryResponse.builder()
-                        .unionOrderID(order.getId())
-                        .appOrderNO(order.getAppOrderNo())
-                        .paymentId(order.getPaymentId())
-                        .paymentUid(order.getPaymentUid())
-                        .payDateTime(order.getOrderPayDatetime() == null ? 0 : order.getOrderPayDatetime())
-                        .status(order.getStatus())
-                        .orderFee(order.getFee() == null ? 0 : order.getPayFee())
-                        .payFee(order.getPayFee())
-                        .thirdStatus("-")
-                        .thirdCode("-")
-                        .thirdMsg("本地查询").build();
-
-        return new BillApiResponse(orderQueryResponse);
+        return new BillApiResponse(OrderQueryResponse.warpOrderToOrderQuyerResponse(order));
     }
 }

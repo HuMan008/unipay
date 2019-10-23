@@ -27,12 +27,9 @@ public class NoticeLogServiceImpl implements cn.gotoil.unipay.web.services.Notic
      */
     @Override
     public int addNoticeLog(NoticeLog noticeLog) {
-        if (noticeLog.getParams().length() > 3999) {
-            noticeLog.setParams(UtilString.getLongString(noticeLog.getParams(), 3999));
-        }
-        if (noticeLog.getResponseContent().length() > 50) {
-            noticeLog.setResponseContent(UtilString.getLongString(noticeLog.getResponseContent(), 50));
-        }
+
+        noticeLog.setParams(UtilString.getLongString(noticeLog.getParams(), 3999));
+        noticeLog.setResponseContent(UtilString.getLongString(noticeLog.getResponseContent(), 50));
         return noticeLogMapper.insert(noticeLog);
     }
 }

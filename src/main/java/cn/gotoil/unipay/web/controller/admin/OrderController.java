@@ -50,21 +50,8 @@ public class OrderController {
             throw new BillException(5100,"没有对应订单");
         }
         if("localStatus".equals(type)){
-            OrderQueryResponse orderQueryResponse =
-                    OrderQueryResponse.builder()
-                            .appOrderNO(order.getAppOrderNo())
-                            .unionOrderID(order.getId())
-                            .appOrderNO(order.getAppOrderNo())
-                            .paymentId(order.getPaymentId())
-                            .paymentUid(order.getPaymentUid())
-                            .payDateTime(order.getOrderPayDatetime() == null ? 0 : order.getOrderPayDatetime())
-                            .orderFee(order.getFee())
-                            .payFee(order.getPayFee() == null ? 0 : order.getPayFee())
-                            .thirdStatus("-")
-                            .thirdCode("-")
-                            .status(order.getStatus())
-                            .thirdMsg("本地查询").build();
-            return new BillApiResponse(orderQueryResponse);
+
+            return new BillApiResponse(OrderQueryResponse.warpOrderToOrderQuyerResponse(order));
         }else if("remoteStatus".equals(type)){
             return new BillApiResponse(orderService.queryOrderStatusFromRemote(order));
         }else{

@@ -1,6 +1,8 @@
 package cn.gotoil.unipay.web.message.response;
 
+import cn.gotoil.unipay.model.entity.Order;
 import lombok.*;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * 订单状态查询响应
@@ -59,6 +61,21 @@ public class OrderQueryResponse {
 
     String thirdCode;
     String thirdMsg;
+
+    public static OrderQueryResponse warpOrderToOrderQuyerResponse(Order order) {
+        return OrderQueryResponse.builder()
+                .unionOrderID(order.getId())
+                .appOrderNO(order.getAppOrderNo())
+                .paymentId(StringUtils.isEmpty(order.getPaymentId()) ? "" : order.getPaymentId())
+                .payDateTime(order.getOrderPayDatetime() == null ? 0 : order.getOrderPayDatetime())
+                .status(order.getStatus())
+                .orderFee(order.getFee() == null ? 0 : order.getFee())
+                .payFee(order.getPayFee() == null ? 0 : order.getPayFee())
+                .thirdStatus("-")
+                .thirdCode("-")
+                .thirdMsg("本地查询").build();
+    }
+
 
 
 }
