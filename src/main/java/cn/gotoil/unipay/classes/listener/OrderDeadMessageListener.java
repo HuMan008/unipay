@@ -76,6 +76,15 @@ public class OrderDeadMessageListener {
             noticeLog.setNotifyUrl(notifyBean.getAsyncUrl());
             noticeLog.setParams(JSON.toJSONString(notifyBean));
 
+            /**
+             * 创建订单的时候无通知地址，并且应用未设置。
+             */
+            if (StringUtils.isEmpty(notifyBean.getAsyncUrl())) {
+                log.error("订单【{}】异步通知地址为空...请通知应用【{}】补充", notifyBean.getUnionOrderID(), notifyBean.getAppId());
+                noticeLog.setResponseContent("通知地址为空");
+                channel.basicAck(tag, true);
+                return;
+            }
 
             //把参数post提交到异步通知地址里去
             String responStr = UtilHttpClient.notifyPost(notifyBean.getAsyncUrl(), ObjectHelper.introspect(notifyBean));

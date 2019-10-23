@@ -22,6 +22,7 @@ import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.google.common.base.Charsets;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -192,7 +193,7 @@ public class AlipayNotifyController {
         log.info("支付宝同步通知");
         //稍微等一下异步通知
         try {
-            Thread.sleep(1000);
+            Thread.sleep(RandomUtils.nextInt(500, 1200));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

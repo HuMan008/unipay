@@ -180,7 +180,7 @@ public class AlipayServiceImpl implements AlipayService {
                     orderQueryResponse.setStatus(EnumOrderStatus.PayFailed.getCode());
                 } else if ("TRADE_SUCCESS".equalsIgnoreCase(tradeStatus) || "TRADE_FINISHED".equalsIgnoreCase(tradeStatus)) {
                     orderQueryResponse.setPaymentId(alipayTradeQueryResponse.getTradeNo());
-                    orderQueryResponse.setPaymentUid(alipayTradeQueryResponse.getBuyerUserId());
+                    orderQueryResponse.setPaymentUid(alipayTradeQueryResponse.getBuyerLogonId());
                     orderQueryResponse.setPayFee(StringUtils.isEmpty(alipayTradeQueryResponse.getBuyerPayAmount()) ?
                             UtilMoney.yuanToFen(alipayTradeQueryResponse.getTotalAmount()) :
                             UtilMoney.yuanToFen(alipayTradeQueryResponse.getBuyerPayAmount()));

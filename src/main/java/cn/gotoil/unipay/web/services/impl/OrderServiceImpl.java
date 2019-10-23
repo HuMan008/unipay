@@ -19,6 +19,7 @@ import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.model.enums.EnumStatus;
 import cn.gotoil.unipay.model.mapper.OrderMapper;
 import cn.gotoil.unipay.utils.UtilBase64;
+import cn.gotoil.unipay.utils.UtilMoney;
 import cn.gotoil.unipay.utils.UtilMySign;
 import cn.gotoil.unipay.utils.UtilString;
 import cn.gotoil.unipay.web.message.request.PayRequest;
@@ -366,6 +367,16 @@ public class OrderServiceImpl implements OrderService {
         Order order = loadByOrderID(orderId);
         if (order == null) {
             return new ModelAndView(UtilString.makeErrorPage(UnipayError.OrderNotExists));
+        } else if (StringUtils.isEmpty(order.getSyncUrl())) {
+            //未设置同步地址
+            ModelAndView modelAndView = new ModelAndView("payresult");
+            modelAndView.addObject("status", order.getStatus());
+            modelAndView.addObject("orderId", order.getId());
+            modelAndView.addObject("paymentId", order.getPaymentId());
+            modelAndView.addObject("subjects", order.getSubjects());
+            modelAndView.addObject("feeY", UtilMoney.fenToYuan(order.getFee(), true));
+            modelAndView.addObject("payFeeY", UtilMoney.fenToYuan(order.getPayFee(), true));
+            return modelAndView;
         } else {
             OrderNotifyBean orderNotifyBean = OrderNotifyBean.builder()
                     .appId(order.getAppId())
