@@ -189,7 +189,8 @@ public class WechatServiceImpl implements WechatService {
                                 .paymentUid(reMap.get("openid"))
                                 .payDateTime(DateUtils.simpleDateTimeNoSymbolFormatter().parse(reMap.get("time_end")).getTime() / 1000)
                                 .orderFee(Integer.parseInt(reMap.get("total_fee")))
-                                .payFee(Integer.parseInt(reMap.get("total_fee")))
+                                .payFee(Integer.parseInt(reMap.get("cash_fee")))
+                                .arrFee(Integer.parseInt(reMap.get("total_fee")))
                                 .thirdStatus(reMap.get("trade_state"))
                                 .thirdCode(reMap.get("result_code"))
                                 .thirdMsg(reMap.get("err_code") + "#" + reMap.get("err_code_des")).build();

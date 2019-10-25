@@ -186,6 +186,7 @@ public class OrderServiceImpl implements OrderService {
         order.setExpiredTimeMinute(payRequest.getExpireOutTime());
         order.setFee(payRequest.getFee());
         order.setPayFee(0);
+        order.setArrFee(0);
         order.setSubjects(payRequest.getSubject());
         order.setDescp(payRequest.getReMark());
         order.setExtraParam(payRequest.getExtraParam());
@@ -287,6 +288,7 @@ public class OrderServiceImpl implements OrderService {
                 Order newOrder = new Order();
                 newOrder.setId(order.getId());
                 newOrder.setPayFee(orderQueryResponse.getPayFee());
+                newOrder.setArrFee(orderQueryResponse.getArrFee());
                 newOrder.setStatus(EnumOrderStatus.PaySuccess.getCode());
                 newOrder.setOrderPayDatetime(orderQueryResponse.getPayDateTime());
                 newOrder.setPaymentUid(orderQueryResponse.getPaymentUid());
@@ -303,6 +305,7 @@ public class OrderServiceImpl implements OrderService {
                                     .orderFee(order.getFee())
                                     .refundFee(0)
                                     .payFee(orderQueryResponse.getPayFee())
+                                    .arrFee(orderQueryResponse.getPayFee())
                                     .totalRefundFee(0)
                                     .asyncUrl(order.getAsyncUrl())
                                     .extraParam(order.getExtraParam())
@@ -387,6 +390,7 @@ public class OrderServiceImpl implements OrderService {
                     .status(order.getStatus())
                     .orderFee(order.getFee())
                     .payFee(order.getPayFee())
+                    .arrFee(order.getArrFee())
                     .refundFee(0)
                     .totalRefundFee(0)
                     .asyncUrl(order.getAsyncUrl())

@@ -1,6 +1,5 @@
 package cn.gotoil.unipay.model.mapper;
 
-
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.model.entity.OrderExample;
 import org.apache.ibatis.annotations.Mapper;

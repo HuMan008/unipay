@@ -18,6 +18,7 @@
         <result column="status" jdbcType="TINYINT" property="status"/>
         <result column="order_pay_datetime" jdbcType="BIGINT" property="orderPayDatetime"/>
         <result column="pay_fee" jdbcType="INTEGER" property="payFee"/>
+        <result column="arr_fee" jdbcType="INTEGER" property="arrFee"/>
         <result column="pay_type" jdbcType="VARCHAR" property="payType"/>
         <result column="pay_type_category" jdbcType="TINYINT" property="payTypeCategory"/>
         <result column="charge_account_id" jdbcType="INTEGER" property="chargeAccountId"/>
@@ -89,7 +90,7 @@
     <sql id="Base_Column_List">
     id, app_id, app_order_no, app_user_id, payment_id, payment_uid, expired_time_minute, 
     fee, subjects, descp, extra_param, sync_url, async_url, status, order_pay_datetime, 
-    pay_fee, pay_type, pay_type_category, charge_account_id, api_version, data_version, 
+    pay_fee, arr_fee, pay_type, pay_type_category, charge_account_id, api_version, data_version, 
     created_at, updated_at
   </sql>
     <select id="selectByExample" parameterType="cn.gotoil.unipay.model.entity.OrderExample" resultMap="BaseResultMap">
@@ -136,17 +137,19 @@
       expired_time_minute, fee, subjects, 
       descp, extra_param, sync_url, 
       async_url, status, order_pay_datetime, 
-      pay_fee, pay_type, pay_type_category, 
-      charge_account_id, api_version, data_version, 
-      created_at, updated_at)
+      pay_fee, arr_fee, pay_type, 
+      pay_type_category, charge_account_id, api_version, 
+      data_version, created_at, updated_at
+      )
     values (#{id,jdbcType=CHAR}, #{appId,jdbcType=CHAR}, #{appOrderNo,jdbcType=VARCHAR}, 
       #{appUserId,jdbcType=VARCHAR}, #{paymentId,jdbcType=VARCHAR}, #{paymentUid,jdbcType=VARCHAR}, 
       #{expiredTimeMinute,jdbcType=INTEGER}, #{fee,jdbcType=INTEGER}, #{subjects,jdbcType=VARCHAR}, 
       #{descp,jdbcType=VARCHAR}, #{extraParam,jdbcType=VARCHAR}, #{syncUrl,jdbcType=VARCHAR}, 
       #{asyncUrl,jdbcType=VARCHAR}, #{status,jdbcType=TINYINT}, #{orderPayDatetime,jdbcType=BIGINT}, 
-      #{payFee,jdbcType=INTEGER}, #{payType,jdbcType=VARCHAR}, #{payTypeCategory,jdbcType=TINYINT}, 
-      #{chargeAccountId,jdbcType=INTEGER}, #{apiVersion,jdbcType=CHAR}, #{dataVersion,jdbcType=INTEGER}, 
-      #{createdAt,jdbcType=TIMESTAMP}, #{updatedAt,jdbcType=TIMESTAMP})
+      #{payFee,jdbcType=INTEGER}, #{arrFee,jdbcType=INTEGER}, #{payType,jdbcType=VARCHAR}, 
+      #{payTypeCategory,jdbcType=TINYINT}, #{chargeAccountId,jdbcType=INTEGER}, #{apiVersion,jdbcType=CHAR}, 
+      #{dataVersion,jdbcType=INTEGER}, #{createdAt,jdbcType=TIMESTAMP}, #{updatedAt,jdbcType=TIMESTAMP}
+      )
   </insert>
     <insert id="insertSelective" parameterType="cn.gotoil.unipay.model.entity.Order">
         insert into dp_order
@@ -198,6 +201,9 @@
             </if>
             <if test="payFee != null">
                 pay_fee,
+            </if>
+            <if test="arrFee != null">
+                arr_fee,
             </if>
             <if test="payType != null">
                 pay_type,
@@ -269,6 +275,9 @@
             </if>
             <if test="payFee != null">
                 #{payFee,jdbcType=INTEGER},
+            </if>
+            <if test="arrFee != null">
+                #{arrFee,jdbcType=INTEGER},
             </if>
             <if test="payType != null">
                 #{payType,jdbcType=VARCHAR},
@@ -350,6 +359,9 @@
             <if test="record.payFee != null">
                 pay_fee = #{record.payFee,jdbcType=INTEGER},
             </if>
+            <if test="record.arrFee != null">
+                arr_fee = #{record.arrFee,jdbcType=INTEGER},
+            </if>
             <if test="record.payType != null">
                 pay_type = #{record.payType,jdbcType=VARCHAR},
             </if>
@@ -394,6 +406,7 @@
         status = #{record.status,jdbcType=TINYINT},
         order_pay_datetime = #{record.orderPayDatetime,jdbcType=BIGINT},
         pay_fee = #{record.payFee,jdbcType=INTEGER},
+        arr_fee = #{record.arrFee,jdbcType=INTEGER},
         pay_type = #{record.payType,jdbcType=VARCHAR},
         pay_type_category = #{record.payTypeCategory,jdbcType=TINYINT},
         charge_account_id = #{record.chargeAccountId,jdbcType=INTEGER},
@@ -453,6 +466,9 @@
             <if test="payFee != null">
                 pay_fee = #{payFee,jdbcType=INTEGER},
             </if>
+            <if test="arrFee != null">
+                arr_fee = #{arrFee,jdbcType=INTEGER},
+            </if>
             <if test="payType != null">
                 pay_type = #{payType,jdbcType=VARCHAR},
             </if>
@@ -494,6 +510,7 @@
       status = #{status,jdbcType=TINYINT},
       order_pay_datetime = #{orderPayDatetime,jdbcType=BIGINT},
       pay_fee = #{payFee,jdbcType=INTEGER},
+      arr_fee = #{arrFee,jdbcType=INTEGER},
       pay_type = #{payType,jdbcType=VARCHAR},
       pay_type_category = #{payTypeCategory,jdbcType=TINYINT},
       charge_account_id = #{chargeAccountId,jdbcType=INTEGER},

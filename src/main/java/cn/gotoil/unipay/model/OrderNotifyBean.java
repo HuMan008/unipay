@@ -61,6 +61,9 @@ public class OrderNotifyBean implements Serializable {
     @Builder.Default
     int payFee = 0;
 
+
+    @Builder.Default
+    int arrFee = 0;
     /**
      * 退款金额
      */

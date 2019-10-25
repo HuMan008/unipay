@@ -35,6 +35,8 @@ public class Order {
 
     private Integer payFee;
 
+    private Integer arrFee;
+
     private String payType;
 
     private Byte payTypeCategory;
@@ -177,6 +179,14 @@ public class Order {
         this.payFee = payFee;
     }
 
+    public Integer getArrFee() {
+        return arrFee;
+    }
+
+    public void setArrFee(Integer arrFee) {
+        this.arrFee = arrFee;
+    }
+
     public String getPayType() {
         return payType;
     }
@@ -255,6 +265,7 @@ public class Order {
         sb.append(", status=").append(status);
         sb.append(", orderPayDatetime=").append(orderPayDatetime);
         sb.append(", payFee=").append(payFee);
+        sb.append(", arrFee=").append(arrFee);
         sb.append(", payType=").append(payType);
         sb.append(", payTypeCategory=").append(payTypeCategory);
         sb.append(", chargeAccountId=").append(chargeAccountId);

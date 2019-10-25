@@ -59,6 +59,9 @@ public class OrderQueryResponse {
     @Builder.Default
     int payFee = 0;
 
+    @Builder.Default
+    int arrFee = 0;
+
     String thirdCode;
     String thirdMsg;
 
@@ -71,6 +74,7 @@ public class OrderQueryResponse {
                 .status(order.getStatus())
                 .orderFee(order.getFee() == null ? 0 : order.getFee())
                 .payFee(order.getPayFee() == null ? 0 : order.getPayFee())
+                .arrFee(order.getArrFee() == null ? 0 : order.getArrFee())
                 .thirdStatus("-")
                 .thirdCode("-")
                 .thirdMsg("本地查询").build();

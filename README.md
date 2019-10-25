@@ -84,6 +84,7 @@ sign的内容为md5(xxxx+appSecret(统一分配))
 | status | <a href="#payStatus">支付状态</a> |
 | orderFee | 订单金额，单位分 |
 | payFee | 支付金额，单位分。实际用户支付金额，不包含优惠券等。 |
+| arrFee | 实际到账金额 |
 | refundFee | 退款金额。退款通知才有 |
 | totalRefundFee | 累计退款金额。退款通知才有 |
 | asyncUrl | 通知地址 |

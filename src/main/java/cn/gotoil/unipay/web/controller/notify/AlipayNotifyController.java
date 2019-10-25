@@ -111,7 +111,8 @@ public class AlipayNotifyController {
                             "total_amount")) == order.getFee()) {
                         Order newOrder = new Order();
                         newOrder.setId(order.getId());
-                        newOrder.setPayFee(UtilMoney.yuanToFen(params.get("receipt_amount")));
+                        newOrder.setPayFee(UtilMoney.yuanToFen(params.get("buyer_pay_amount")));
+                        newOrder.setArrFee(UtilMoney.yuanToFen(params.get("receipt_amount")));
                         newOrder.setStatus(EnumOrderStatus.PaySuccess.getCode());
                         if (StringUtils.isNotEmpty(params.get("gmt_payment"))) {
                             //yyyy-MM-dd HH:mm:ss
@@ -140,6 +141,7 @@ public class AlipayNotifyController {
                                         .refundFee(0)
                                         .totalRefundFee(0)
                                         .payFee(newOrder.getPayFee())
+                                        .arrFee(newOrder.getArrFee())
                                         .asyncUrl(order.getAsyncUrl())
                                         .extraParam(order.getExtraParam())
                                         .payDate(newOrder.getOrderPayDatetime()).

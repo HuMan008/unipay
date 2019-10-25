@@ -119,7 +119,8 @@ public class WechatNotifyController {
                         //                        更新订单
                         Order newOrder = new Order();
                         newOrder.setId(order.getId());
-                        newOrder.setPayFee(Integer.parseInt(reMap.get("total_fee")));
+                        newOrder.setPayFee(Integer.parseInt(reMap.get("cash_fee")));
+                        newOrder.setArrFee(Integer.parseInt(reMap.get("total_fee")));
                         newOrder.setStatus(EnumOrderStatus.PaySuccess.getCode());
                         if (StringUtils.isNotEmpty(reMap.get("time_end"))) {
                             //yyyyMMddHHmmss
