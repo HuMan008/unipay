@@ -86,14 +86,15 @@ public class OrderDeadMessageListener {
                 return;
             }
 
-            //把参数post提交到异步通知地址里去
-            String responStr = UtilHttpClient.notifyPost(notifyBean.getAsyncUrl(), ObjectHelper.introspect(notifyBean));
-            noticeLog.setResponseContent(responStr);
+
             noticeLog.setNoticeDatetime(new Date());
             noticeLog.setRepeatCount(notifyBean.getDoCount());
             noticeLog.setSendType(notifyBean.getSendType());
             noticeLog.setCreatedAt(new Date(notifyBean.getTimeStamp() * 1000));
 
+            //把参数post提交到异步通知地址里去
+            String responStr = UtilHttpClient.notifyPost(notifyBean.getAsyncUrl(), ObjectHelper.introspect(notifyBean));
+            noticeLog.setResponseContent(responStr);
             if ("success".equalsIgnoreCase(responStr)) {
                 channel.basicAck(tag, true);
                 return;

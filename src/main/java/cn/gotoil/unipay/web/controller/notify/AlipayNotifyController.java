@@ -35,6 +35,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.Instant;
 import java.util.Map;
@@ -65,10 +66,11 @@ public class AlipayNotifyController {
     @Autowired
     NotifyAcceptService notifyAcceptService;
 
+
     @RequestMapping(value = {"{orderId:^\\d{21}$}"}, method = RequestMethod.POST)
     @NeedLogin(value = false)
-    public String asyncNotify(Model model, HttpServletRequest request, HttpServletResponse httpServletResponse,
-                              @PathVariable String orderId) throws UnsupportedEncodingException, AlipayApiException {
+    public void asyncNotify(Model model, HttpServletRequest request, HttpServletResponse httpServletResponse,
+                            @PathVariable String orderId) throws UnsupportedEncodingException, AlipayApiException {
         Map<String, String> params = UtilRequest.request2Map(request);
         NotifyAccept notifyAccept = NotifyAcceptService.createDefault(request, EnumOrderMessageType.PAY, orderId);
         log.debug("支付宝异步通知{}", params);
@@ -77,7 +79,7 @@ public class AlipayNotifyController {
             if (redisLockHelper.hasLock(RedisLockHelper.Key.Notify + orderId)) {
                 log.error("支付宝订单【{}】异步通知处理冲突，忽略本次通知", orderId);
                 notifyAccept.setResponstr("error:处理中");
-                return "error";
+                httpServletResponse.getOutputStream().print("error");
             }
             redisLockHelper.addLock(RedisLockHelper.Key.Notify + orderId, false, 0, null);
             //订单查询
@@ -85,14 +87,14 @@ public class AlipayNotifyController {
             if (order == null) {
                 log.error("支付宝订单【{}】异步通知处理失败，本地订单未查询到", orderId);
                 notifyAccept.setResponstr("error:本地未找到订单");
-                return "error";
+                httpServletResponse.getOutputStream().print("error");
             }
             notifyAccept.setAppOrderNo(order.getAppOrderNo());
             //订单不是支付中状态
             if (EnumOrderStatus.Created.getCode() != order.getStatus().byteValue()) {
                 log.error("支付宝订单【{}】异步通知处理失败，订单状态不是待支付", orderId);
                 notifyAccept.setResponstr("error:本地未找到订单");
-                return "error";
+                httpServletResponse.getOutputStream().print("error");
             }
             ChargeConfig chargeConfig = chargeConfigService.loadByChargeId(order.getChargeAccountId());
             ChargeAlipayModel chargeAlipayModel =
@@ -109,12 +111,12 @@ public class AlipayNotifyController {
                             "total_amount")) == order.getFee()) {
                         Order newOrder = new Order();
                         newOrder.setId(order.getId());
-                        newOrder.setPayFee(UtilMoney.yuanToFen(params.get("buyer_pay_amount")));
+                        newOrder.setPayFee(UtilMoney.yuanToFen(params.get("receipt_amount")));
                         newOrder.setStatus(EnumOrderStatus.PaySuccess.getCode());
                         if (StringUtils.isNotEmpty(params.get("gmt_payment"))) {
                             //yyyy-MM-dd HH:mm:ss
                             newOrder.setOrderPayDatetime(DateUtils.simpleDatetimeFormatter().parse(params.get(
-                                    "gmt_payment")).getTime());
+                                    "gmt_payment")).getTime() / 1000);
                         } else {
                             newOrder.setOrderPayDatetime(0L);
                         }
@@ -125,14 +127,14 @@ public class AlipayNotifyController {
                         if (x != 1) {
                             log.error("支付宝订单【{}】更新失败{}", orderId, newOrder);
                             notifyAccept.setResponstr("error:更新订单状态失败");
-                            return "error";
+                            httpServletResponse.getOutputStream().print("error");
                         }
                         OrderNotifyBean orderNotifyBean =
                                 OrderNotifyBean.builder().unionOrderID(order.getId())
                                         .method(EnumOrderMessageType.PAY.name())
                                         .appId(order.getAppId())
                                         .paymentId(newOrder.getPaymentId())
-                                        .appOrderNO(newOrder.getPaymentId())
+                                        .appOrderNO(order.getAppOrderNo())
                                         .status(newOrder.getStatus())
                                         .orderFee(order.getFee())
                                         .refundFee(0)
@@ -149,7 +151,7 @@ public class AlipayNotifyController {
                         rabbitTemplate.convertAndSend(ConstsRabbitMQ.ORDERFIRSTEXCHANGENAME,
                                 ConstsRabbitMQ.ORDERROUTINGKEY, JSON.toJSONString(orderNotifyBean));
                         notifyAccept.setResponstr("success:发通知");
-                        return "success";
+                        httpServletResponse.getOutputStream().print("success");
                     } else if ("TRADE_CLOSED".equals(params.get("trade_status"))) {
                         Order newOrder = new Order();
                         newOrder.setId(order.getId());
@@ -158,27 +160,31 @@ public class AlipayNotifyController {
                         orderService.updateOrder(order, newOrder);
                         log.info("支付宝订单【{}】异步通知 订单关闭{}", orderId, params);
                         notifyAccept.setResponstr("success:订单已关闭");
-                        return "success";
+                        httpServletResponse.getOutputStream().print("success");
                     } else {
                         log.error("支付宝订单【{}】异步通知状态不是支付成功{}", orderId, params);
-                        notifyAccept.setResponstr("error:订单状态不是成功状态");
-                        return "error";
+                        notifyAccept.setResponstr("success:订单状态不是成功状态");
+                        httpServletResponse.getOutputStream().print("success");
                     }
                 } else {
                     log.error("支付宝订单【{}】异步通知类型未确定", orderId);
                     notifyAccept.setResponstr("error:method未知");
-                    return "error";
+                    httpServletResponse.getOutputStream().print("error");
                 }
             } else {
                 log.error("支付宝订单【{}】异步通知签名验验证失败", orderId);
                 notifyAccept.setResponstr("error:签名验验证失败");
-                return "error";
+                httpServletResponse.getOutputStream().print("error");
             }
 
         } catch (Exception e) {
             log.error("支付宝订单【{}】异步通知处理失败", orderId);
             notifyAccept.setResponstr(UtilString.getLongString("error:异常" + e.getMessage(), 4000));
-            return "error";
+            try {
+                httpServletResponse.getOutputStream().print("error");
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
         } finally {
             redisLockHelper.releaseLock(RedisLockHelper.Key.Notify + orderId);
             notifyAcceptService.add(notifyAccept);

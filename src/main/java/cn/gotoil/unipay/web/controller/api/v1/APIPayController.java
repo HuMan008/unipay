@@ -4,8 +4,9 @@ package cn.gotoil.unipay.web.controller.api.v1;
 import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.exception.CommonError;
 import cn.gotoil.bill.tools.encoder.Hash;
+import cn.gotoil.bill.web.annotation.Authentication;
 import cn.gotoil.bill.web.helper.ServletRequestHelper;
-import cn.gotoil.bill.web.message.BillApiResponse;
+import cn.gotoil.bill.web.interceptor.authentication.AuthenticationType;
 import cn.gotoil.unipay.classes.HashCompareAuthenticationKeyProvider;
 import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.ChargeAlipayModel;
@@ -37,6 +38,7 @@ import javax.validation.Valid;
  */
 @RestController
 @RequestMapping("api/v1")
+@Authentication(authenticationType = AuthenticationType.Signature)
 public class APIPayController {
 
     @Autowired
@@ -52,7 +54,7 @@ public class APIPayController {
 
     @RequestMapping(value = "dopay", method = RequestMethod.POST)
     @ApiOperation(value = "API订单创建", position = 5)
-    public BillApiResponse createOrderAction(@Valid @RequestBody PayRequest payRequest) {
+    public Object createOrderAction(@Valid @RequestBody PayRequest payRequest) {
         if (!payRequest.getAppId().equals(ServletRequestHelper.XU())) {
             throw new BillException(UnipayError.CreatOrderError);
         }
@@ -98,13 +100,13 @@ public class APIPayController {
         jsonObject.put("payData", payInfoStr);
         jsonObject.put("extraParam", order.getExtraParam());
         jsonObject.put("sign", Hash.md5(HashCompareAuthenticationKeyProvider.key(payRequest.getAppId()) + payInfoStr));
-        return new BillApiResponse(jsonObject);
+        return jsonObject;
     }
 
 
     @RequestMapping(value = "remoteQuery/{oid:^\\d{21}$}", method = RequestMethod.POST)
     @ApiOperation(value = "订单支付状态 远程", position = 10)
-    public BillApiResponse queryOrderFromRemote(@PathVariable String oid) {
+    public Object queryOrderFromRemoteAction(@PathVariable String oid) {
         Order o = orderService.loadByOrderID(oid);
         if (o == null) {
             throw new BillException(UnipayError.OrderNotExists);
@@ -116,17 +118,16 @@ public class APIPayController {
         if (orderQueryResponse == null || orderQueryResponse.getStatus() == -127) {
             throw new BillException(UnipayError.PayTypeNotImpl);
         }
-        return new BillApiResponse(orderQueryResponse);
+        return orderQueryResponse;
     }
-
 
     @RequestMapping(value = "query/{appOrderNo}", method = RequestMethod.POST)
     @ApiOperation(value = "订单支付状态 本地", position = 10)
-    public BillApiResponse queryOrder(@PathVariable String appOrderNo) {
+    public Object queryOrderAction(@PathVariable String appOrderNo) {
         Order order = orderService.loadByAppOrderNo(appOrderNo, ServletRequestHelper.XU());
         if (order == null) {
             throw new BillException(UnipayError.OrderNotExists);
         }
-        return new BillApiResponse(OrderQueryResponse.warpOrderToOrderQuyerResponse(order));
+        return OrderQueryResponse.warpOrderToOrderQuyerResponse(order);
     }
 }

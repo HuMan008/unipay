@@ -84,7 +84,7 @@ public class OrderNotifyBean implements Serializable {
     String extraParam;
 
     /**
-     * 支付时间
+     * 支付时间 10位时间撮
      */
     long payDate;
 
@@ -96,7 +96,7 @@ public class OrderNotifyBean implements Serializable {
     String sign = "";
 
     /**
-     * 通知时间
+     * 通知时间 10位时间戳
      */
     @Builder.Default
     long timeStamp = 0;

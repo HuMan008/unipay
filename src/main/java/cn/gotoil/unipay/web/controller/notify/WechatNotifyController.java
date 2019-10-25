@@ -119,12 +119,12 @@ public class WechatNotifyController {
                         //                        更新订单
                         Order newOrder = new Order();
                         newOrder.setId(order.getId());
-                        newOrder.setPayFee(Integer.parseInt(reMap.get("cash_fee")));
+                        newOrder.setPayFee(Integer.parseInt(reMap.get("total_fee")));
                         newOrder.setStatus(EnumOrderStatus.PaySuccess.getCode());
                         if (StringUtils.isNotEmpty(reMap.get("time_end"))) {
                             //yyyyMMddHHmmss
                             newOrder.setOrderPayDatetime(DateUtils.simpleDateTimeNoSymbolFormatter().parse(reMap.get(
-                                    "time_end")).getTime());
+                                    "time_end")).getTime() / 1000);
                         } else {
                             newOrder.setOrderPayDatetime(0L);
                         }
@@ -143,7 +143,7 @@ public class WechatNotifyController {
                                             .unionOrderID(order.getId())
                                             .appId(order.getAppId())
                                             .method(EnumOrderMessageType.PAY.name())
-                                            .appOrderNO(newOrder.getPaymentId())
+                                            .appOrderNO(order.getAppOrderNo())
                                             .status(newOrder.getStatus())
                                             .orderFee(order.getFee())
                                             .payFee(newOrder.getPayFee())

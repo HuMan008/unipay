@@ -37,7 +37,7 @@ public class OrderQueryResponse {
     String paymentUid;
 
     /**
-     * 订单支付时间  支付成功才有的
+     * 订单支付时间  支付成功才有的 10位长度的时间戳
      */
     long payDateTime;
 
@@ -67,7 +67,7 @@ public class OrderQueryResponse {
                 .unionOrderID(order.getId())
                 .appOrderNO(order.getAppOrderNo())
                 .paymentId(StringUtils.isEmpty(order.getPaymentId()) ? "" : order.getPaymentId())
-                .payDateTime(order.getOrderPayDatetime() == null ? 0 : order.getOrderPayDatetime())
+                .payDateTime(order.getOrderPayDatetime() == null ? 0 : order.getOrderPayDatetime() / 1000)
                 .status(order.getStatus())
                 .orderFee(order.getFee() == null ? 0 : order.getFee())
                 .payFee(order.getPayFee() == null ? 0 : order.getPayFee())
