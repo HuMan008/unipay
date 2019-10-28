@@ -28,7 +28,7 @@ public class OrderController {
     @ApiOperation(value = "订单查询", position = 1, tags = "订单管理")
     @RequestMapping(value = "queryOrder", method = RequestMethod.POST)
     @NeedLogin
-    public Object queryOrder(@RequestBody OrderQueryListRequest orderQueryListRequest){
+    public Object queryOrderAction(@RequestBody OrderQueryListRequest orderQueryListRequest) {
         return orderQueryService.queryOrder(orderQueryListRequest);
     }
 
@@ -42,8 +42,8 @@ public class OrderController {
     @ApiOperation(value = "查询订单状态，退款状态", position = 5, tags = "订单管理")
     @RequestMapping(value = "queryOrderStatus", method = RequestMethod.GET)
     @NeedLogin
-    public Object queryOrderStatus(@ApiParam(value = "appkey") @RequestParam String appkey, @ApiParam(value = "订单号") @RequestParam String orderId,
-                                   @ApiParam(value = " localStatus/remoteStatus 本地/远程查询订单状态, " + "localRefund/remoteRefund 本地/远程查询退款状态",
+    public Object queryOrderStatusAction(@ApiParam(value = "appkey") @RequestParam String appkey, @ApiParam(value = "订单号") @RequestParam String orderId,
+                                         @ApiParam(value = " localStatus/remoteStatus 本地/远程查询订单状态, " + "localRefund/remoteRefund 本地/远程查询退款状态",
                                            allowableValues = "localStatus,remoteStatus,localRefund,remoteRefund", example = "localStatus") @RequestParam(defaultValue = "localStatus") String type) {
         Order order = orderQueryService.getOrderByAppKeyAndId(appkey,orderId);
         if(order == null){

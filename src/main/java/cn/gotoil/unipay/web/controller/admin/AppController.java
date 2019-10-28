@@ -33,7 +33,7 @@ public class AppController {
     @ApiOperation(value = "收款账号", position = 1, tags = "应用管理")
     @RequestMapping(value = "getAccounts", method = RequestMethod.GET)
     @NeedLogin
-    public Object getAccounts() {
+    public Object getAccountsAction() {
         HashMap<String, List> result = new HashMap<>();
         for (EnumPayType enums : EnumPayType.values()) {
             result.put(enums.getDescp(), appService.queryAllAccount(enums.getCode()));
@@ -44,21 +44,21 @@ public class AppController {
     @ApiOperation(value = "状态类型", position = 2, tags = "应用管理")
     @RequestMapping(value = "getStatus", method = RequestMethod.GET)
     @NeedLogin
-    public Object getStatus() {
+    public Object getStatusAction() {
         return new BillApiResponse(EnumStatus.values());
     }
 
     @ApiOperation(value = "收款账号类型", position = 3, tags = "应用管理")
     @RequestMapping(value = "getAccountTypes", method = RequestMethod.GET)
     @NeedLogin
-    public Object getAccountTypes() {
+    public Object getAccountTypesAction() {
         return new BillApiResponse(EnumPayType.values());
     }
 
     @ApiOperation(value = "新增APP", position = 5, tags = "应用管理")
     @RequestMapping(value = "/addApp", method = {RequestMethod.POST})
     @NeedLogin
-    public Object addAccount(@RequestBody AppAddRquest appAddRquest) {
+    public Object addAccountAction(@RequestBody AppAddRquest appAddRquest) {
         if (appService.nameHasExist(appAddRquest.getAppName(), null)) {
             throw new BillException(5000, "应用名称重复");
         }
@@ -77,14 +77,14 @@ public class AppController {
     @ApiOperation(value = "查询APP", position = 7, tags = "应用管理")
     @RequestMapping(value = "/queryApp", method = {RequestMethod.POST})
     @NeedLogin
-    public Object queryApp(@Valid @RequestBody AppListRequest appListRequest) {
+    public Object queryAppAction(@Valid @RequestBody AppListRequest appListRequest) {
         return appService.queryApps(appListRequest);
     }
 
     @ApiOperation(value = "修改APP状态", position = 9, tags = "应用管理")
     @RequestMapping(value = "/updateStatus", method = {RequestMethod.GET})
     @NeedLogin
-    public Object updateStatus(@ApiParam(value = "APPKEY") @RequestParam String appkey, @ApiParam(value = "新状态 0启用 " +
+    public Object updateStatusAction(@ApiParam(value = "APPKEY") @RequestParam String appkey, @ApiParam(value = "新状态 0启用 " +
             "1禁用", allowableValues = "0,1", example = "0") @RequestParam Integer status) {
         return appService.updateStatus(appkey, status.byteValue());
     }
@@ -92,22 +92,22 @@ public class AppController {
     @ApiOperation(value = "检查APP名称是否重复", position = 11, tags = "应用管理")
     @RequestMapping(value = "/checkAppName", method = {RequestMethod.GET})
     @NeedLogin
-    public Object checkAppName(@ApiParam(value = "名称") @RequestParam String appName,
-                               @ApiParam(value = "APPKEY") @RequestParam String appKey) {
+    public Object checkAppNameAction(@ApiParam(value = "名称") @RequestParam String appName,
+                                     @ApiParam(value = "APPKEY") @RequestParam String appKey) {
         return appService.nameHasExist(appName, appKey);
     }
 
     @ApiOperation(value = "根据APPKEY获取APP", position = 13, tags = "应用管理")
     @RequestMapping(value = "/getAppByAppKey", method = {RequestMethod.GET})
     @NeedLogin
-    public Object getAppByAppKey(String appKey) {
+    public Object getAppByAppKeyAction(String appKey) {
         return new BillApiResponse(appService.load(appKey));
     }
 
     @ApiOperation(value = "修改APP", position = 15, tags = "应用管理")
     @RequestMapping(value = "/updateApp", method = {RequestMethod.POST})
     @NeedLogin
-    public Object updateApp(@RequestBody AppAddRquest appAddRquest, HttpServletRequest request) {
+    public Object updateAppAction(@RequestBody AppAddRquest appAddRquest, HttpServletRequest request) {
         if (appService.nameHasExist(appAddRquest.getAppName(), appAddRquest.getAppKey())) {
             throw new BillException(5000, "应用名称重复");
         }
@@ -125,7 +125,7 @@ public class AppController {
     @ApiOperation(value = "获取有效APP", position = 17, tags = "应用管理")
     @RequestMapping(value = "/getApps", method = {RequestMethod.GET})
     @NeedLogin
-    public Object getApps() {
+    public Object getAppsAction() {
         return new BillApiResponse(appService.getApps());
     }
 }
