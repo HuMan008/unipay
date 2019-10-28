@@ -13,7 +13,6 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,7 +29,7 @@ import static cn.gotoil.unipay.web.helper.RedisLockHelper.Key.OrderStatusSync;
  * @author think <syj247@qq.com>、
  * @date 2019-10-11、10:47
  */
-@Component
+//@Component
 @Slf4j
 public class OrderTask {
 

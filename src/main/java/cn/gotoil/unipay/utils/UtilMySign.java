@@ -1,10 +1,15 @@
 package cn.gotoil.unipay.utils;
 
-import cn.gotoil.bill.tools.ObjectHelper;
 import cn.gotoil.bill.tools.encoder.Hash;
 import cn.gotoil.unipay.model.OrderNotifyBean;
 import com.google.common.base.Charsets;
+import org.apache.commons.lang3.StringUtils;
 
+import java.beans.BeanInfo;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -36,7 +41,7 @@ public class UtilMySign {
     @SuppressWarnings("unchecked")
     public static String sign(OrderNotifyBean orderNotifyBean, String appKey) {
         try {
-            TreeMap<String, String> treeMap = new TreeMap(ObjectHelper.introspectStringValueMap(orderNotifyBean));
+            TreeMap<String, String> treeMap = new TreeMap(introspectStringValueMapValueNotEmpty(orderNotifyBean));
             //签名明文组装不包含sign字段
             if (treeMap.containsKey("sign")) {
                 treeMap.remove("sign");
@@ -54,5 +59,22 @@ public class UtilMySign {
             return "";
         }
     }
+
+
+    public static Map<String, String> introspectStringValueMapValueNotEmpty(Object obj) throws Exception {
+        Map<String, String> result = new HashMap<>();
+        BeanInfo info = Introspector.getBeanInfo(obj.getClass());
+        for (PropertyDescriptor pd : info.getPropertyDescriptors()) {
+            Method reader = pd.getReadMethod();
+            if (reader != null && !"class".equals(pd.getName())) {
+                if (reader.invoke(obj) != null && StringUtils.isNotEmpty(reader.invoke(obj).toString())) {
+                    result.put(pd.getName(), reader.invoke(obj).toString());
+                }
+
+            }
+        }
+        return result;
+    }
+
 
 }

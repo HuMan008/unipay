@@ -171,7 +171,7 @@ public class AlipayServiceImpl implements AlipayService {
                 String tradeStatus = alipayTradeQueryResponse.getTradeStatus();
 
                 OrderQueryResponse orderQueryResponse =
-                        OrderQueryResponse.builder().unionOrderID(order.getId()).appOrderNO(order.getAppOrderNo()).paymentId(alipayTradeQueryResponse.getOutTradeNo()).orderFee(UtilMoney.yuanToFen(alipayTradeQueryResponse.getTotalAmount())).payFee(UtilMoney.yuanToFen(alipayTradeQueryResponse.getBuyerPayAmount())).thirdStatus(alipayTradeQueryResponse.getTradeStatus()).thirdCode(alipayTradeQueryResponse.getCode()).thirdMsg(alipayTradeQueryResponse.getMsg()).build();
+                        OrderQueryResponse.builder().unionOrderID(order.getId()).appOrderNO(order.getAppOrderNo()).paymentId(alipayTradeQueryResponse.getOutTradeNo()).orderFee(UtilMoney.yuanToFen(alipayTradeQueryResponse.getTotalAmount())).payFee(UtilMoney.yuanToFen(alipayTradeQueryResponse.getReceiptAmount())).thirdStatus(alipayTradeQueryResponse.getTradeStatus()).thirdCode(alipayTradeQueryResponse.getCode()).thirdMsg(alipayTradeQueryResponse.getMsg()).build();
                 //                交易状态：WAIT_BUYER_PAY（交易创建，等待买家付款）、TRADE_CLOSED（未付款交易超时关闭，或支付完成后全额退款）、TRADE_SUCCESS
                 // （交易支付成功）、TRADE_FINISHED（交易结束，不可退款）
                 if ("WAIT_BUYER_PAY".equalsIgnoreCase(tradeStatus)) {
@@ -180,10 +180,13 @@ public class AlipayServiceImpl implements AlipayService {
                     orderQueryResponse.setStatus(EnumOrderStatus.PayFailed.getCode());
                 } else if ("TRADE_SUCCESS".equalsIgnoreCase(tradeStatus) || "TRADE_FINISHED".equalsIgnoreCase(tradeStatus)) {
                     orderQueryResponse.setPaymentId(alipayTradeQueryResponse.getTradeNo());
-                    orderQueryResponse.setPaymentUid(alipayTradeQueryResponse.getBuyerUserId());
+                    orderQueryResponse.setPaymentUid(alipayTradeQueryResponse.getBuyerLogonId());
                     orderQueryResponse.setPayFee(StringUtils.isEmpty(alipayTradeQueryResponse.getBuyerPayAmount()) ?
                             UtilMoney.yuanToFen(alipayTradeQueryResponse.getTotalAmount()) :
                             UtilMoney.yuanToFen(alipayTradeQueryResponse.getBuyerPayAmount()));
+                    orderQueryResponse.setArrFee(StringUtils.isEmpty(alipayTradeQueryResponse.getReceiptAmount()) ?
+                            UtilMoney.yuanToFen(alipayTradeQueryResponse.getTotalAmount()) :
+                            UtilMoney.yuanToFen(alipayTradeQueryResponse.getReceiptAmount()));
                     if (null != alipayTradeQueryResponse.getSendPayDate()) {
                         orderQueryResponse.setPayDateTime(alipayTradeQueryResponse.getSendPayDate().toInstant().getEpochSecond());
                     }

@@ -1,8 +1,10 @@
 package cn.gotoil.unipay.model;
 
 import cn.gotoil.unipay.model.enums.EnumOrderMessageType;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -14,6 +16,8 @@ import java.io.Serializable;
  */
 @Builder
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrderNotifyBean implements Serializable {
 
     /**
@@ -57,6 +61,9 @@ public class OrderNotifyBean implements Serializable {
     @Builder.Default
     int payFee = 0;
 
+
+    @Builder.Default
+    int arrFee = 0;
     /**
      * 退款金额
      */
@@ -80,7 +87,7 @@ public class OrderNotifyBean implements Serializable {
     String extraParam;
 
     /**
-     * 支付时间
+     * 支付时间 10位时间撮
      */
     long payDate;
 
@@ -92,7 +99,7 @@ public class OrderNotifyBean implements Serializable {
     String sign = "";
 
     /**
-     * 通知时间
+     * 通知时间 10位时间戳
      */
     @Builder.Default
     long timeStamp = 0;

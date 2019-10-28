@@ -19,20 +19,20 @@ public class OrderExample {
         oredCriteria = new ArrayList<Criteria>();
     }
 
-    public String getOrderByClause() {
-        return orderByClause;
-    }
-
     public void setOrderByClause(String orderByClause) {
         this.orderByClause = orderByClause;
     }
 
-    public boolean isDistinct() {
-        return distinct;
+    public String getOrderByClause() {
+        return orderByClause;
     }
 
     public void setDistinct(boolean distinct) {
         this.distinct = distinct;
+    }
+
+    public boolean isDistinct() {
+        return distinct;
     }
 
     public List<Criteria> getOredCriteria() {
@@ -68,20 +68,20 @@ public class OrderExample {
         distinct = false;
     }
 
-    public Integer getLimit() {
-        return limit;
-    }
-
     public void setLimit(Integer limit) {
         this.limit = limit;
     }
 
-    public Integer getOffset() {
-        return offset;
+    public Integer getLimit() {
+        return limit;
     }
 
     public void setOffset(Integer offset) {
         this.offset = offset;
+    }
+
+    public Integer getOffset() {
+        return offset;
     }
 
     protected abstract static class GeneratedCriteria {
@@ -1195,6 +1195,66 @@ public class OrderExample {
             return (Criteria) this;
         }
 
+        public Criteria andArrFeeIsNull() {
+            addCriterion("arr_fee is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andArrFeeIsNotNull() {
+            addCriterion("arr_fee is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andArrFeeEqualTo(Integer value) {
+            addCriterion("arr_fee =", value, "arrFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andArrFeeNotEqualTo(Integer value) {
+            addCriterion("arr_fee <>", value, "arrFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andArrFeeGreaterThan(Integer value) {
+            addCriterion("arr_fee >", value, "arrFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andArrFeeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("arr_fee >=", value, "arrFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andArrFeeLessThan(Integer value) {
+            addCriterion("arr_fee <", value, "arrFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andArrFeeLessThanOrEqualTo(Integer value) {
+            addCriterion("arr_fee <=", value, "arrFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andArrFeeIn(List<Integer> values) {
+            addCriterion("arr_fee in", values, "arrFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andArrFeeNotIn(List<Integer> values) {
+            addCriterion("arr_fee not in", values, "arrFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andArrFeeBetween(Integer value1, Integer value2) {
+            addCriterion("arr_fee between", value1, value2, "arrFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andArrFeeNotBetween(Integer value1, Integer value2) {
+            addCriterion("arr_fee not between", value1, value2, "arrFee");
+            return (Criteria) this;
+        }
+
         public Criteria andPayTypeIsNull() {
             addCriterion("pay_type is null");
             return (Criteria) this;
@@ -1660,6 +1720,38 @@ public class OrderExample {
 
         private String typeHandler;
 
+        public String getCondition() {
+            return condition;
+        }
+
+        public Object getValue() {
+            return value;
+        }
+
+        public Object getSecondValue() {
+            return secondValue;
+        }
+
+        public boolean isNoValue() {
+            return noValue;
+        }
+
+        public boolean isSingleValue() {
+            return singleValue;
+        }
+
+        public boolean isBetweenValue() {
+            return betweenValue;
+        }
+
+        public boolean isListValue() {
+            return listValue;
+        }
+
+        public String getTypeHandler() {
+            return typeHandler;
+        }
+
         protected Criterion(String condition) {
             super();
             this.condition = condition;
@@ -1694,38 +1786,6 @@ public class OrderExample {
 
         protected Criterion(String condition, Object value, Object secondValue) {
             this(condition, value, secondValue, null);
-        }
-
-        public String getCondition() {
-            return condition;
-        }
-
-        public Object getValue() {
-            return value;
-        }
-
-        public Object getSecondValue() {
-            return secondValue;
-        }
-
-        public boolean isNoValue() {
-            return noValue;
-        }
-
-        public boolean isSingleValue() {
-            return singleValue;
-        }
-
-        public boolean isBetweenValue() {
-            return betweenValue;
-        }
-
-        public boolean isListValue() {
-            return listValue;
-        }
-
-        public String getTypeHandler() {
-            return typeHandler;
         }
     }
 }

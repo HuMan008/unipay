@@ -2,6 +2,7 @@ package cn.gotoil.unipay.utils;
 
 import com.google.common.base.Charsets;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpRequestRetryHandler;
@@ -176,7 +177,7 @@ public class UtilHttpClient {
 
         newHttpclient =
                 HttpClients.custom().setConnectionManager(cm).setDefaultRequestConfig(requestConfig(connectTimeOut,
-                        connectRequestTimeOut, socketTimeOut))
+                        connectRequestTimeOut, socketTimeOut)).setConnectionManagerShared(true)
                 //                .setKeepAliveStrategy(myStrategy)
                 //                .setRetryHandler(httpRequestRetryHandler)
                 .build();
@@ -328,7 +329,10 @@ public class UtilHttpClient {
         if (map != null) {
             List<NameValuePair> params = new ArrayList<NameValuePair>();
             for (Map.Entry<String, Object> entry : map.entrySet()) {
-                params.add(new BasicNameValuePair(entry.getKey(), entry.getValue().toString()));
+                if (entry.getValue() != null && StringUtils.isNotEmpty(entry.getValue().toString())) {
+                    params.add(new BasicNameValuePair(entry.getKey(), entry.getValue().toString()));
+                }
+
             }
             UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(params, Charsets.UTF_8);
             httpPost.setEntity(formEntity);

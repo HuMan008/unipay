@@ -120,11 +120,12 @@ public class WechatNotifyController {
                         Order newOrder = new Order();
                         newOrder.setId(order.getId());
                         newOrder.setPayFee(Integer.parseInt(reMap.get("cash_fee")));
+                        newOrder.setArrFee(Integer.parseInt(reMap.get("total_fee")));
                         newOrder.setStatus(EnumOrderStatus.PaySuccess.getCode());
                         if (StringUtils.isNotEmpty(reMap.get("time_end"))) {
                             //yyyyMMddHHmmss
                             newOrder.setOrderPayDatetime(DateUtils.simpleDateTimeNoSymbolFormatter().parse(reMap.get(
-                                    "time_end")).getTime());
+                                    "time_end")).getTime() / 1000);
                         } else {
                             newOrder.setOrderPayDatetime(0L);
                         }
@@ -141,8 +142,9 @@ public class WechatNotifyController {
                             OrderNotifyBean orderNotifyBean =
                                     OrderNotifyBean.builder()
                                             .unionOrderID(order.getId())
+                                            .appId(order.getAppId())
                                             .method(EnumOrderMessageType.PAY.name())
-                                            .appOrderNO(newOrder.getPaymentId())
+                                            .appOrderNO(order.getAppOrderNo())
                                             .status(newOrder.getStatus())
                                             .orderFee(order.getFee())
                                             .payFee(newOrder.getPayFee())
@@ -197,7 +199,7 @@ public class WechatNotifyController {
     }
 
     @NeedLogin(value = false)
-    @RequestMapping("return/{orderId:^\\d{21}$}}")
+    @RequestMapping("return/{orderId:^\\d{21}$}")
     public ModelAndView syncNotify(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
                                    @PathVariable String orderId) throws Exception {
         log.info("微信同步通知");

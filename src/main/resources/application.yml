@@ -1,5 +1,5 @@
 server:
-  port: 811
+  port: 80
 spring:
   main:
     allow-bean-definition-overriding: true
@@ -34,6 +34,8 @@ spring:
         acknowledge-mode: MANUAL
       direct:
         acknowledge-mode: MANUAL
+  thymeleaf:
+    cache: false
 logging:
   level:
     org.springframework.web: DEBUG
@@ -42,12 +44,13 @@ logging:
 isDebug: true
 
 #本机域名或者IP 必须能外网访问的
-domain: "http://unipay.pgt"
+domain: "http://dxtc2n.natappfree.cc"
 #微信授权域名 勇哥那的地址 第一个占位符是wxappid 第二个占位符是跳转的地址
 wechat_open_id_grant_url: "http://thirdparty.guotongshiyou.cn/third_party/oauth/wechat/%s?redirect=%s"
 
 
 bill:
+  #  defaultAuthenticationType: Signature
   defaultAuthenticationType: NONE
   keyOfHashCompareAuthenticationPathPrefix: "/api/v1/"
   apiResponseAroundControllerPackagesExecution: "execution(* cn.gotoil.unipay.controller..*.*Action(..))"

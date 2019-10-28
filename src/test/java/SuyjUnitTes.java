@@ -1,4 +1,7 @@
+import cn.gotoil.bill.tools.ObjectHelper;
+import cn.gotoil.unipay.model.OrderNotifyBean;
 import cn.gotoil.unipay.utils.UtilHttpClient;
+import com.alibaba.fastjson.JSON;
 import org.junit.Test;
 
 /**
@@ -21,5 +24,25 @@ public class SuyjUnitTes {
     public void t2() {
         UtilHttpClient.doPost("http://www.gio2yfwe.com", null);
         UtilHttpClient.doPost("www.gio2yfwe.com", null);
+    }
+
+    @Test
+    public void t3() {
+        String str = new String("{\"appId\":\"AQhPkDihNxljLFpsBUdelgIP\"," +
+                "\"appOrderNO\":\"10752467826376704\",\"asyncUrl\":\"http://bole.guotongshiyou" +
+                ".cn/payment/notify/bal/MaxAlipay\",\"doCount\":1,\"extraParam\":\"\",\"method\":\"PAY\"," +
+                "\"orderFee\":1,\"payDate\":1571904454,\"payFee\":1,\"paymentId\":\"2019102422001491801403471107\"," +
+                "\"refundFee\":0,\"sendType\":0,\"sign\":\"471811eb49016921bc48cb172785c7b0\",\"status\":0," +
+                "\"timeStamp\":1571904467,\"totalRefundFee\":0,\"unionOrderID\":\"201910241607249411769\"}");
+        OrderNotifyBean oo = JSON.parseObject(str, OrderNotifyBean.class);
+        try {
+            String yyy = UtilHttpClient.notifyPost("http://bole.guotongshiyou.cn/payment/notify/bal/MaxAlipay",
+                    ObjectHelper.introspect(oo));
+            System.out.println(yyy);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        ;
     }
 }

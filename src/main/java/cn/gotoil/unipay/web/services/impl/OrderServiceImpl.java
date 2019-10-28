@@ -19,6 +19,7 @@ import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.model.enums.EnumStatus;
 import cn.gotoil.unipay.model.mapper.OrderMapper;
 import cn.gotoil.unipay.utils.UtilBase64;
+import cn.gotoil.unipay.utils.UtilMoney;
 import cn.gotoil.unipay.utils.UtilMySign;
 import cn.gotoil.unipay.utils.UtilString;
 import cn.gotoil.unipay.web.message.request.PayRequest;
@@ -185,6 +186,7 @@ public class OrderServiceImpl implements OrderService {
         order.setExpiredTimeMinute(payRequest.getExpireOutTime());
         order.setFee(payRequest.getFee());
         order.setPayFee(0);
+        order.setArrFee(0);
         order.setSubjects(payRequest.getSubject());
         order.setDescp(payRequest.getReMark());
         order.setExtraParam(payRequest.getExtraParam());
@@ -286,6 +288,7 @@ public class OrderServiceImpl implements OrderService {
                 Order newOrder = new Order();
                 newOrder.setId(order.getId());
                 newOrder.setPayFee(orderQueryResponse.getPayFee());
+                newOrder.setArrFee(orderQueryResponse.getArrFee());
                 newOrder.setStatus(EnumOrderStatus.PaySuccess.getCode());
                 newOrder.setOrderPayDatetime(orderQueryResponse.getPayDateTime());
                 newOrder.setPaymentUid(orderQueryResponse.getPaymentUid());
@@ -302,6 +305,7 @@ public class OrderServiceImpl implements OrderService {
                                     .orderFee(order.getFee())
                                     .refundFee(0)
                                     .payFee(orderQueryResponse.getPayFee())
+                                    .arrFee(orderQueryResponse.getPayFee())
                                     .totalRefundFee(0)
                                     .asyncUrl(order.getAsyncUrl())
                                     .extraParam(order.getExtraParam())
@@ -366,6 +370,16 @@ public class OrderServiceImpl implements OrderService {
         Order order = loadByOrderID(orderId);
         if (order == null) {
             return new ModelAndView(UtilString.makeErrorPage(UnipayError.OrderNotExists));
+        } else if (StringUtils.isEmpty(order.getSyncUrl())) {
+            //未设置同步地址
+            ModelAndView modelAndView = new ModelAndView("payresult");
+            modelAndView.addObject("status", order.getStatus());
+            modelAndView.addObject("orderId", order.getId());
+            modelAndView.addObject("paymentId", order.getPaymentId());
+            modelAndView.addObject("subjects", order.getSubjects());
+            modelAndView.addObject("feeY", UtilMoney.fenToYuan(order.getFee(), true));
+            modelAndView.addObject("payFeeY", UtilMoney.fenToYuan(order.getPayFee(), true));
+            return modelAndView;
         } else {
             OrderNotifyBean orderNotifyBean = OrderNotifyBean.builder()
                     .appId(order.getAppId())
@@ -376,6 +390,7 @@ public class OrderServiceImpl implements OrderService {
                     .status(order.getStatus())
                     .orderFee(order.getFee())
                     .payFee(order.getPayFee())
+                    .arrFee(order.getArrFee())
                     .refundFee(0)
                     .totalRefundFee(0)
                     .asyncUrl(order.getAsyncUrl())

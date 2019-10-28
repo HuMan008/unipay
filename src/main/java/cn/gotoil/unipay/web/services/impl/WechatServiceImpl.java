@@ -7,10 +7,7 @@ import cn.gotoil.unipay.model.ChargeWechatModel;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.model.enums.EnumOrderStatus;
 import cn.gotoil.unipay.model.enums.EnumPayType;
-import cn.gotoil.unipay.utils.UtilHttpClient;
-import cn.gotoil.unipay.utils.UtilMoney;
-import cn.gotoil.unipay.utils.UtilString;
-import cn.gotoil.unipay.utils.UtilWechat;
+import cn.gotoil.unipay.utils.*;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.message.response.OrderRefundQueryResponse;
@@ -69,11 +66,7 @@ public class WechatServiceImpl implements WechatService {
             data.put("trade_type", TradeType.JSAPI.name());
         } else if (EnumPayType.WechatH5.getCode().equals(payRequest.getPayType())) {
             data.put("trade_type", TradeType.MWEB.name());
-            //这里还需要放IP todo
-            //http://ip138.com/ ？
-            //https://ip.huomao.com/ip？
-            //request里取？
-            data.put("spbill_create_ip", "123.33.3.3");
+            data.put("spbill_create_ip", UtilRequest.getIpAddress(httpServletRequest));
         }
         String sign = "";
         try {
@@ -194,9 +187,10 @@ public class WechatServiceImpl implements WechatService {
                                 .appOrderNO(order.getAppOrderNo())
                                 .paymentId(reMap.get("transaction_id"))
                                 .paymentUid(reMap.get("openid"))
-                                .payDateTime(DateUtils.simpleDateTimeNoSymbolFormatter().parse(reMap.get("time_end")).getTime())
+                                .payDateTime(DateUtils.simpleDateTimeNoSymbolFormatter().parse(reMap.get("time_end")).getTime() / 1000)
                                 .orderFee(Integer.parseInt(reMap.get("total_fee")))
                                 .payFee(Integer.parseInt(reMap.get("cash_fee")))
+                                .arrFee(Integer.parseInt(reMap.get("total_fee")))
                                 .thirdStatus(reMap.get("trade_state"))
                                 .thirdCode(reMap.get("result_code"))
                                 .thirdMsg(reMap.get("err_code") + "#" + reMap.get("err_code_des")).build();
