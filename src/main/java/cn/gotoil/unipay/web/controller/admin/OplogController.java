@@ -20,7 +20,7 @@ public class OplogController {
     OpLogService opLogService;
 
     @ApiOperation(value = "查询日志", position = 1, tags = "日志管理")
-    @RequestMapping(value = "/queryOpLogList", method = {RequestMethod.GET})
+    @RequestMapping(value = "/queryOpLogList", method = {RequestMethod.POST})
     @NeedLogin
     public Object queryOpLogList(@RequestBody OplogListRequest oplogListRequest){
         return opLogService.queryOplog(oplogListRequest);

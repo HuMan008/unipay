@@ -39,6 +39,9 @@ public class OrderQuerySerivceImpl implements OrderQueryService {
         Map<String, Object> params = orderQueryListRequest.getParams();
         int total = extOrderQueryMapper.queryOrderCounts(params);
         pageResponse.setTotal(total);
+
+        params.put("offset", pageResponse.getOffset());
+        params.put("pageSize", pageResponse.getPageSize());
         pageResponse.setRows(extOrderQueryMapper.queryOrder(params));
         return pageResponse;
     }

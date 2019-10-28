@@ -4,19 +4,19 @@
 
     <sql id="queryOrder_sql_where">
         <if test=" status != null and status != '' ">
-            and o.status  = ${status}
+            and o.status = #{status}
         </if>
         <if test=" appkey != null and appkey != '' ">
-            and o.app_id  = ${appkey}
+            and o.app_id = #{appkey}
         </if>
         <if test=" orderId != null and orderId != '' ">
-            and o.id  = ${orderId}
+            and o.id = #{orderId}
         </if>
         <if test=" paymentId != null and paymentId != '' ">
-            and o.payment_id  = ${paymentId}
+            and o.payment_id = #{paymentId}
         </if>
         <if test=" payType != null and payType != '' ">
-            and o.pay_type  = ${payType}
+            and o.pay_type = #{payType}
         </if>
         <if test="beginTime != null and beginTime != ''">
             and DATE_FORMAT(o.created_at,'%Y-%m-%d') >= #{beginTime}

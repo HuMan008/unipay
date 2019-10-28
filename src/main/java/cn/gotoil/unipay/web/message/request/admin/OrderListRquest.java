@@ -8,7 +8,8 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 @Data
-@EqualsAndHashCode(callSuper = false)public class OrderListRquest {
+@EqualsAndHashCode(callSuper = false)
+public class OrderListRquest {
 
     @ApiModelProperty(required = true, example = "", value = "名称", position = 1)
     String appId;

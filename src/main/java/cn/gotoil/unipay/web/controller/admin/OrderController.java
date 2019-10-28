@@ -26,7 +26,7 @@ public class OrderController {
     OrderService orderService;
 
     @ApiOperation(value = "订单查询", position = 1, tags = "订单管理")
-    @RequestMapping(value = "queryOrder", method = RequestMethod.GET)
+    @RequestMapping(value = "queryOrder", method = RequestMethod.POST)
     @NeedLogin
     public Object queryOrder(@RequestBody OrderQueryListRequest orderQueryListRequest){
         return orderQueryService.queryOrder(orderQueryListRequest);

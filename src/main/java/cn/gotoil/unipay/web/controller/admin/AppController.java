@@ -75,7 +75,7 @@ public class AppController {
 
 
     @ApiOperation(value = "查询APP", position = 7, tags = "应用管理")
-    @RequestMapping(value = "/queryApp", method = {RequestMethod.GET})
+    @RequestMapping(value = "/queryApp", method = {RequestMethod.POST})
     @NeedLogin
     public Object queryApp(@Valid @RequestBody AppListRequest appListRequest) {
         return appService.queryApps(appListRequest);
