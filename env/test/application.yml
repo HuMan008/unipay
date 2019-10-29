@@ -1,0 +1,68 @@
+server:
+  port: 9111
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  datasource:
+    url: "jdbc:mysql://201.201.201.173:3306/banshee?characterEncoding=utf8"
+    username:  dev
+    password:  devMysql!@#!123
+    driver-class-name: "com.mysql.jdbc.Driver"
+  redis:
+    database: 7
+    host: 201.201.201.176
+    port: 6379
+    timeout: 5s
+    jedis:
+      pool:
+        max-idle: 8
+        max-active: 64
+  rabbitmq:
+    host: 201.201.201.176
+    port: 5672
+    username: gtsy
+    password: gtsy
+    virtual-host: vhost
+    publisher-confirms: true
+    publisher-returns: true
+    template:
+      default-receive-queue: unipay_order_queen
+      exchange: unipay_order_exchange
+      routing-key: unipay_order_route
+    listener:
+      simple:
+        acknowledge-mode: MANUAL
+      direct:
+        acknowledge-mode: MANUAL
+  thymeleaf:
+    cache: false
+logging:
+  level:
+    org.springframework.web: DEBUG
+  path: logs
+
+isDebug: true
+
+#本机域名或者IP 必须能外网访问的
+domain: "http://dxtc2n.natappfree.cc"
+#微信授权域名 勇哥那的地址 第一个占位符是wxappid 第二个占位符是跳转的地址
+wechat_open_id_grant_url: "http://thirdparty.guotongshiyou.cn/third_party/oauth/wechat/%s?redirect=%s"
+
+
+bill:
+  #  defaultAuthenticationType: Signature
+  defaultAuthenticationType: NONE
+  keyOfHashCompareAuthenticationPathPrefix: "/api/v1/"
+  apiResponseAroundControllerPackagesExecution: "execution(* cn.gotoil.unipay.controller..*.*Action(..))"
+  keyOfHashCompareAuthenticationProviderClass: "cn.gotoil.unipay.classes.HashCompareAuthenticationKeyProvider"
+  keyOfHashCompareAuthenticationProviderMethod: "key"
+  allowDevSkipSignature: "YES"
+  exceptBodyContentHttpServletRequestWrapperUrls:
+  - "/web/"
+  - "/static/"
+secure:
+  filterUrl: "/web/**"  ##权限控制的
+  billWebAuthenicationClass: "cn.gotoil.unipay.classes.BillWebAuthenticationProvider"
+  billWebAuthenicationMethod: "findByUserCode"
+  tokenExpirseTimeMinute: 60
+
