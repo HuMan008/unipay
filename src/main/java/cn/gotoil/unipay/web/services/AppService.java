@@ -84,4 +84,12 @@ public interface AppService {
      * @return
      */
     List getApps();
+
+    /**
+     * 根据APPKEY获取配置的收款账号
+     *
+     * @param appkey
+     * @return
+     */
+    AppAccountIds getByAppkey(String appkey);
 }

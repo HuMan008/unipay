@@ -100,7 +100,7 @@ public class AppController {
     @ApiOperation(value = "根据APPKEY获取APP", position = 13, tags = "应用管理")
     @RequestMapping(value = "/getAppByAppKey", method = {RequestMethod.GET})
     @NeedLogin
-    public Object getAppByAppKeyAction(String appKey) {
+    public Object getAppByAppKeyAction(@ApiParam(value = "appkey") @RequestParam String appKey) {
         return new BillApiResponse(appService.load(appKey));
     }
 
@@ -127,5 +127,12 @@ public class AppController {
     @NeedLogin
     public Object getAppsAction() {
         return new BillApiResponse(appService.getApps());
+    }
+
+    @ApiOperation(value = "根据APPKEY获取收款账号", position = 19, tags = "应用管理")
+    @RequestMapping(value = "/getAppAccountIds", method = {RequestMethod.GET})
+    @NeedLogin
+    public Object getAppAccountIdsAction(@ApiParam(value = "appkey") @RequestParam String appkey) {
+        return appService.getByAppkey(appkey);
     }
 }
