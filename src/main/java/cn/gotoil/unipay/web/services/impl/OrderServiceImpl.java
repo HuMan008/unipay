@@ -206,7 +206,7 @@ public class OrderServiceImpl implements OrderService {
         order.setDataVersion(0);
         order.setCreatedAt(new Date());
         order.setUpdatedAt(order.getCreatedAt());
-
+        order.setOrderPayDatetime(0L);
         //appOrderNo存一下 防止重复请求
         SetOperations<String, String> setOperations = redisTemplate.opsForSet();
         setOperations.add(APPORDERNOKEY + payRequest.getAppId(), payRequest.getAppOrderNo());

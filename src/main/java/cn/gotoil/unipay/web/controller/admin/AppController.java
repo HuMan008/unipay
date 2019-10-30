@@ -6,9 +6,9 @@ import cn.gotoil.bill.web.message.BillApiResponse;
 import cn.gotoil.unipay.model.entity.App;
 import cn.gotoil.unipay.model.entity.AppAccountIds;
 import cn.gotoil.unipay.model.enums.EnumPayType;
-import cn.gotoil.unipay.model.enums.EnumStatus;
 import cn.gotoil.unipay.web.message.request.admin.AppAddRquest;
 import cn.gotoil.unipay.web.message.request.admin.AppListRequest;
+import cn.gotoil.unipay.web.message.response.admin.BaseComboResponse;
 import cn.gotoil.unipay.web.services.AppService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -45,11 +45,7 @@ public class AppController {
     @RequestMapping(value = "getStatus", method = RequestMethod.GET)
     @NeedLogin
     public Object getStatusAction() {
-        HashMap<String, Object> result = new HashMap<>();
-        for (EnumStatus enums : EnumStatus.values()) {
-            result.put(String.valueOf(enums.getCode()), enums.getCode() + "@" + enums.getDescp());
-        }
-        return new BillApiResponse(result);
+        return BaseComboResponse.getEnumsStatusCombo();
     }
 
     @ApiOperation(value = "收款账号类型", position = 3, tags = "应用管理")
