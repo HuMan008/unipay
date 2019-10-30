@@ -45,7 +45,11 @@ public class AppController {
     @RequestMapping(value = "getStatus", method = RequestMethod.GET)
     @NeedLogin
     public Object getStatusAction() {
-        return new BillApiResponse(EnumStatus.values());
+        HashMap<String, Object> result = new HashMap<>();
+        for (EnumStatus enums : EnumStatus.values()) {
+            result.put(String.valueOf(enums.getCode()), enums.getCode() + "@" + enums.getDescp());
+        }
+        return new BillApiResponse(result);
     }
 
     @ApiOperation(value = "收款账号类型", position = 3, tags = "应用管理")
