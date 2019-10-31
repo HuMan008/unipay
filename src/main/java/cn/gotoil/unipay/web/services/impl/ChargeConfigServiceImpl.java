@@ -9,13 +9,10 @@ import cn.gotoil.unipay.model.entity.AppChargeAccount;
 import cn.gotoil.unipay.model.entity.AppChargeAccountExample;
 import cn.gotoil.unipay.model.entity.ChargeConfig;
 import cn.gotoil.unipay.model.entity.ChargeConfigExample;
-import cn.gotoil.unipay.model.enums.EnumPayCategory;
 import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.model.mapper.AppChargeAccountMapper;
 import cn.gotoil.unipay.model.mapper.ChargeConfigMapper;
 import cn.gotoil.unipay.model.mapper.ext.ExtChargeConfigMapper;
-import cn.gotoil.unipay.model.view.AccountView;
-import cn.gotoil.unipay.utils.DateUtil;
 import cn.gotoil.unipay.utils.UtilString;
 import cn.gotoil.unipay.web.annotation.OpLog;
 import cn.gotoil.unipay.web.services.ChargeConfigService;
@@ -28,7 +25,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 /**
  * 应用收款账号配置及关系实现类
@@ -87,53 +86,22 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
      */
     @Override
     public List queryAccounts(String accountName, String payType, String status) {
-        Set<String> keys = stringRedisTemplate.keys(APPCHARGKEY + "*");
-        List<Map<String, Object>> list = new ArrayList<>();
-        ArrayList<AccountView> avs = new ArrayList<>();
-        for (String strkey : keys) {
-            Map<String, Object> mm = redisHashHelper.get(strkey, Map.class);
-            AccountView av = new AccountView();
+        ChargeConfigExample example = new ChargeConfigExample();
+        ChargeConfigExample.Criteria criteria = example.createCriteria();
 
-            String name = String.valueOf(mm.get("name"));
-            String type = String.valueOf(mm.get("payType"));
-            String state = String.valueOf(mm.get("status"));
-
-            if (StringUtils.isNotEmpty(accountName)
-                    && !accountName.equals(name)) {
-                continue;
-            } else if (StringUtils.isNotEmpty(status)
-                    && !status.equals(state)) {
-                continue;
-            } else if (StringUtils.isNotEmpty(payType)
-                    && !payType.equals(type)) {
-                continue;
-            }
-
-
-            av.setId(Integer.valueOf(String.valueOf(mm.get("id"))));
-            av.setName(name);
-            av.setState(Byte.valueOf(state));
-            if (mm.get("createdAt") != null) {
-                av.setCreatedAt(DateUtil.stringtoDateByNyrsfm(String.valueOf(mm.get("createdAt"))));
-            }
-            av.setUpdatedAt(DateUtil.stringtoDateByNyrsfm(String.valueOf(mm.get("updatedAt"))));
-            av.setPayDesc(EnumPayCategory.getDescByCode(type));
-            av.setPayType(type);
-            avs.add(av);
+        if (StringUtils.isNotEmpty(accountName)) {
+            criteria.andNameLike("%" + accountName);
         }
-        Collections.sort(avs, new Comparator<AccountView>() {
-            @Override
-            public int compare(AccountView o1, AccountView o2) {
-                if (o1.getPayType().hashCode() > o2.getPayType().hashCode()) {
-                    return 1;
-                } else if (o1.getPayType().hashCode() == o2.getPayType().hashCode()) {
-                    return 0;
-                } else {
-                    return -1;
-                }
-            }
-        });
-        return avs;
+        if (StringUtils.isNotEmpty(payType)) {
+            criteria.andPayTypeEqualTo(payType);
+        }
+        if (StringUtils.isNotEmpty(status)) {
+            criteria.andStatusEqualTo(Byte.valueOf(status));
+        }
+
+        example.setOrderByClause("created_at desc");
+
+        return chargeConfigMapper.selectByExampleWithBLOBs(example);
     }
 
     @Override

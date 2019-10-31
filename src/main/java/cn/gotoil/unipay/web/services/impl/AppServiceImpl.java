@@ -162,7 +162,7 @@ public class AppServiceImpl implements AppService {
         Map<String, Object> params = appListRequest.getParams();
         AppExample.Criteria criteria = appExample.createCriteria();
         if (params.containsKey("appName") && StringUtils.isNotEmpty((String) params.get("appName"))) {
-            criteria.andAppNameLike(String.valueOf(params.get("appName")));
+            criteria.andAppNameLike("%" + String.valueOf(params.get("appName")));
         }
 
         if (params.containsKey("status") && StringUtils.isNotEmpty((String) params.get("status"))) {
