@@ -10,7 +10,9 @@ import cn.gotoil.unipay.model.entity.AppChargeAccountExample;
 import cn.gotoil.unipay.model.entity.ChargeConfig;
 import cn.gotoil.unipay.model.entity.ChargeConfigExample;
 import cn.gotoil.unipay.model.enums.EnumPayType;
+import cn.gotoil.unipay.model.enums.EnumStatus;
 import cn.gotoil.unipay.model.mapper.AppChargeAccountMapper;
+import cn.gotoil.unipay.model.mapper.AppMapper;
 import cn.gotoil.unipay.model.mapper.ChargeConfigMapper;
 import cn.gotoil.unipay.model.mapper.ext.ExtChargeConfigMapper;
 import cn.gotoil.unipay.utils.UtilString;
@@ -21,7 +23,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -52,8 +53,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
     @Resource
     ExtChargeConfigMapper extChargeConfigMapper;
     @Resource
-    StringRedisTemplate stringRedisTemplate;
-
+    AppMapper appMapper;
 
     /**
      * config对象
@@ -310,6 +310,38 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
             log.error(e.getMessage());
         }
         return 0;
+    }
+
+    /**
+     * 配置应用收款信息
+     *
+     * @param appkeys
+     * @param accountId
+     */
+    @Override
+    public void setAppAndAccount(String[] appkeys, String accountId) {
+        Integer acId = Integer.valueOf(accountId);
+        ChargeConfig chargeConfig = chargeConfigMapper.selectByPrimaryKey(acId);
+        if (chargeConfig == null) {
+            throw new BillException(9001, "收款账号不存在");
+        }
+
+        AppChargeAccountExample example = new AppChargeAccountExample();
+        AppChargeAccountExample.Criteria criteria = example.createCriteria();
+        for (String appkey : appkeys) {
+            criteria.andPayTypeEqualTo(chargeConfig.getPayType()).andAppIdEqualTo(appkey).andAccountIdEqualTo(acId);
+            if (appChargeAccountMapper.selectByExample(example).size() == 0) {
+                AppChargeAccount appChargeAccount = new AppChargeAccount();
+                appChargeAccount.setStatus(EnumStatus.Enable.getCode());
+                appChargeAccount.setAccountId(acId);
+                appChargeAccount.setPayType(chargeConfig.getPayType());
+                appChargeAccount.setAppId(appkey);
+                appChargeAccount.setCreatedAt(new Date());
+                appChargeAccount.setUpdatedAt(new Date());
+                appChargeAccountMapper.insert(appChargeAccount);
+            }
+            example.clear();
+        }
     }
 }
 
