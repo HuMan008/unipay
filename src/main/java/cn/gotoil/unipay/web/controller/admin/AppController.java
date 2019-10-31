@@ -9,6 +9,7 @@ import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.web.message.request.admin.AppAddRquest;
 import cn.gotoil.unipay.web.message.request.admin.AppListRequest;
 import cn.gotoil.unipay.web.message.response.admin.BaseComboResponse;
+import cn.gotoil.unipay.web.message.response.admin.PaytypeResponse;
 import cn.gotoil.unipay.web.services.AppService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -19,8 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.HashMap;
-import java.util.List;
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping("web/app")
@@ -34,11 +34,15 @@ public class AppController {
     @RequestMapping(value = "getAccounts", method = RequestMethod.GET)
     @NeedLogin
     public Object getAccountsAction() {
-        HashMap<String, List> result = new HashMap<>();
+        ArrayList<PaytypeResponse> paytypeList = new ArrayList<>();
         for (EnumPayType enums : EnumPayType.values()) {
-            result.put(enums.getDescp(), appService.queryAllAccount(enums.getCode()));
+            PaytypeResponse paytypeResponse = new PaytypeResponse();
+            paytypeResponse.setPayName(enums.getDescp());
+            paytypeResponse.setPayType(enums.getCode());
+            paytypeResponse.setChargeConfig(appService.queryAllAccount(enums.getCode()));
+            paytypeList.add(paytypeResponse);
         }
-        return result;
+        return paytypeList;
     }
 
     @ApiOperation(value = "状态类型", position = 2, tags = "应用管理")

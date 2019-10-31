@@ -342,23 +342,23 @@ public class AppServiceImpl implements AppService {
         }
 
         if (typeAccountId.containsKey(EnumPayType.AlipaySDK.getCode())) {
-            appAccountIds.setAlipayH5Id(typeAccountId.get(EnumPayType.AlipaySDK.getCode()));
+            appAccountIds.setAlipaySDKId(typeAccountId.get(EnumPayType.AlipaySDK.getCode()));
         }
 
         if (typeAccountId.containsKey(EnumPayType.WechatNAtive.getCode())) {
-            appAccountIds.setAlipayH5Id(typeAccountId.get(EnumPayType.WechatNAtive.getCode()));
+            appAccountIds.setWechatNAtiveId(typeAccountId.get(EnumPayType.WechatNAtive.getCode()));
         }
 
         if (typeAccountId.containsKey(EnumPayType.WechatH5.getCode())) {
-            appAccountIds.setAlipayH5Id(typeAccountId.get(EnumPayType.WechatH5.getCode()));
+            appAccountIds.setWechatH5Id(typeAccountId.get(EnumPayType.WechatH5.getCode()));
         }
 
         if (typeAccountId.containsKey(EnumPayType.WechatJSAPI.getCode())) {
-            appAccountIds.setAlipayH5Id(typeAccountId.get(EnumPayType.WechatJSAPI.getCode()));
+            appAccountIds.setWechatJSAPIId(typeAccountId.get(EnumPayType.WechatJSAPI.getCode()));
         }
 
         if (typeAccountId.containsKey(EnumPayType.WechatSDK.getCode())) {
-            appAccountIds.setAlipayH5Id(typeAccountId.get(EnumPayType.WechatSDK.getCode()));
+            appAccountIds.setWechatSDKId(typeAccountId.get(EnumPayType.WechatSDK.getCode()));
         }
         return appAccountIds;
     }
