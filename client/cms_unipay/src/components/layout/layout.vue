@@ -3,7 +3,7 @@
     <a-layout-header class="header">
       <div class="logoBox">
         <div class="logo" >
-          国通活动管理平台
+          国通支付管理平台
         </div>
         <!-- <a-icon class="manuTrager" :type="collapsed ? 'menu-unfold' : 'menu-fold'" @click="toggleCollapsed()" /> -->
       </div>
@@ -40,14 +40,20 @@
           <a-sub-menu key="sub1" class="mySubMenu">
             <span slot="title">
               <a-icon type="user" />
-              <span>VIP拉新活动</span>
+              <span>系统管理</span>
             </span>
-            <!-- <a-menu-item key="1" @click="routerChange('ActAdd')">新增活动</a-menu-item> -->
-            <a-menu-item key="2" @click="routerChange('ActManage')">活动列表</a-menu-item>
-            <a-menu-item key="3" @click="routerChange('SelesRecord')">销售记录</a-menu-item>
-            <a-menu-item key="4" @click="routerChange('SelesStatistics')">销售统计</a-menu-item>
-            <!-- <a-menu-item key="3">option3</a-menu-item> -->
+            <a-menu-item key="1" @click="routerChange('AppManage')">应用管理</a-menu-item>
+            <a-menu-item key="2" @click="routerChange('AppManage')">收款账号管理</a-menu-item>
           </a-sub-menu>
+
+           <a-sub-menu key="sub2" class="mySubMenu">
+            <span slot="title">
+              <a-icon type="user" />
+              <span>订单管理</span>
+            </span>
+            <a-menu-item key="1" @click="routerChange('AppManage')">订单列表</a-menu-item>
+          </a-sub-menu>
+
         </a-menu>
       </a-layout-sider>
       <a-layout style="padding: 0 24px 24px">

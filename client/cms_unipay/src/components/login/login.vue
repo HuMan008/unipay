@@ -11,32 +11,24 @@
         <a-form-item>
           <a-input
             v-decorator="[
-              'user_name',
+              'code',
               { rules: [{ required: true, message: '请输入用户名!' }] }
             ]"
             placeholder="请输入用户名"
           >
-            <a-icon
-              slot="prefix"
-              type="user"
-              style="color: rgba(0,0,0,.25)"
-            />
+            <a-icon slot="prefix" type="user" style="color: rgba(0,0,0,.25)" />
           </a-input>
         </a-form-item>
         <a-form-item>
           <a-input
             v-decorator="[
-              'password',
+              'pwd',
               { rules: [{ required: true, message: '请输入密码' }] }
             ]"
             type="password"
             placeholder="请输入密码"
           >
-            <a-icon
-              slot="prefix"
-              type="lock"
-              style="color: rgba(0,0,0,.25)"
-            />
+            <a-icon slot="prefix" type="lock" style="color: rgba(0,0,0,.25)" />
           </a-input>
         </a-form-item>
         <a-form-item>
@@ -46,43 +38,40 @@
             block
             html-type="submit"
             class="login-form-button"
-          >
-            登 录
-          </a-button>
+          >登 录</a-button>
         </a-form-item>
       </a-form>
     </div>
   </div>
 </template>
 <script>
-import { MemberService } from '../../services/MemberService.js'
+import { MemberService } from "../../services/MemberService.js";
 // import { store } from '../../store'
 export default {
-  name: 'Login',
+  name: "Login",
   metaInfo() {
     return {
-      title: '国通活动管理平台：登录'
-    }
+      title: "国通活动管理平台：登录"
+    };
   },
   data() {
     return {
       // user: '',
       // password: ''
-    }
+    };
   },
-  beforeCreate () {
-    this.form = this.$form.createForm(this)
+  beforeCreate() {
+    this.form = this.$form.createForm(this);
   },
-  mounted() {
-
-  },
+  mounted() {},
   methods: {
     handleSubmit(e) {
-      e.preventDefault()
+      e.preventDefault();
       // console.log(this.$message)
       this.form.validateFields((err, values) => {
+        // console.log('Received values of form: ', values)
+
         if (!err) {
-          // console.log('Received values of form: ', values)
           // const postData = {
           //   'phone': values.userName,
           //   'code': '8888',
@@ -91,27 +80,34 @@ export default {
           //   'appid': '1'
           // }
           MemberService.login(values).then(res => {
-            const r = res.data
-            if (r.code === 0) {
-              this.$message.success('登录成功')
-              this.$store.commit('SET_USER', r.data)
+            const r = res.data;
+            console.log(r);
+            if (r.status === 0) {
+              this.$message.success("登录成功");
+              let user = {
+                token: r.data.token,
+                nickName: r.data.code,
+                roleSet: r.data.roles,
+                permissionSet: r.data.permissions
+              };
+              this.$store.commit("SET_USER", user);
               setTimeout(() => {
-                this.$router.push('/main/ActManage')
-              }, 2000)
+                this.$router.push("/main/Dashboards");
+              }, 2000);
             } else {
-              this.$message.error(r.message)
+              this.$message.error(r.message);
             }
-          })
+          });
         }
-      })
+      });
     }
   }
-}
+};
 </script>
 <style scoped>
-.loginBox{
+.loginBox {
   width: 350px;
-  background-color: rgba(255,255,255,.7);
+  background-color: rgba(255, 255, 255, 0.7);
   padding: 30px 20px;
   /* border-radius: 5px; */
   position: absolute;
@@ -119,15 +115,17 @@ export default {
   top: 40%;
   transform: translate(-50%, -50%);
 }
-.bg{
+
+.bg {
   position: absolute;
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-image: url('../../assets/img/login_bg.jpg');
+  background-image: url("../../assets/img/login_bg.jpg");
   background-size: cover;
 }
-h2{
-    text-align: center;
-  }
+
+h2 {
+  text-align: center;
+}
 </style>

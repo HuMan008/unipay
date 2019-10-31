@@ -3,10 +3,8 @@ import Router from 'vue-router'
 // import HelloWorld from '@/components/HelloWorld'
 import Dashboards from '@/components/dashboards/dashboards'
 import Layout from '@/components/layout/layout'
-import ActManage from '@/components/act-manage/act-manage'
-import SelesRecord from '@/components/act-manage/seles-record'
-import SelesStatistics from '@/components/act-manage/seles-statistics'
 import Login from '@/components/login/login'
+import AppManage from '@/components/app-manage/app-manage';
 
 Vue.use(Router)
 
@@ -32,19 +30,9 @@ export default new Router({
           component: Dashboards
         },
         {
-          path: '/main/ActManage',
-          name: 'ActManage',
-          component: ActManage
-        },
-        {
-          path: '/main/SelesRecord',
-          name: 'SelesRecord',
-          component: SelesRecord
-        },
-        {
-          path: '/main/SelesStatistics',
-          name: 'SelesStatistics',
-          component: SelesStatistics
+          path: '/main/AppManage',
+          name: 'AppManage',
+          component: AppManage
         }
       ]
     }
