@@ -327,8 +327,8 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
         }
 
         AppChargeAccountExample example = new AppChargeAccountExample();
-        AppChargeAccountExample.Criteria criteria = example.createCriteria();
         for (String appkey : appkeys) {
+            AppChargeAccountExample.Criteria criteria = example.createCriteria();
             criteria.andPayTypeEqualTo(chargeConfig.getPayType()).andAppIdEqualTo(appkey).andAccountIdEqualTo(acId);
             if (appChargeAccountMapper.selectByExample(example).size() == 0) {
                 AppChargeAccount appChargeAccount = new AppChargeAccount();
