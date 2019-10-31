@@ -1,45 +1,52 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-// import { HTTP_SILENT } from '../services/HttpService'
-// import { UserService } from '../services/UserService'
+// import { stat } from 'fs'
 
 Vue.use(Vuex)
-const USER_CACHE_KEY = 'gt_bike_user'
+const CACHE_KEY_USER = 'gt_user_info'
 
 const store = new Vuex.Store({
   state: {
     busy: false,
-    // 用户信息
     user: {
       token: '',
-      real_name: ''
+      nickName: '',
+      roleSet: {},
+      permissionSet: {}
     }
   },
   mutations: {
     // ROUTER_LOADING(state, data) {
     //   state.routerLoading = data
     // },
-
     SET_USER(state, user) {
-      state.user = user
+      this.state.user.token = user.token
+      this.state.user.nickName = user.nickName
+      this.state.user.roleSet = user.roleSet
+      this.state.user.permissionSet = user.permissionSet
       try {
-        window.sessionStorage.setItem(USER_CACHE_KEY, JSON.stringify(user))
-      } catch (error) {}
+        window.sessionStorage.setItem(CACHE_KEY_USER, JSON.stringify(user))
+      } catch (error) {
+      }
     },
 
     CLEAN_USER(state) {
       state.user = {}
       try {
-        window.sessionStorage.setItem(
-          USER_CACHE_KEY,
-          JSON.stringify(state.user)
-        )
-      } catch (error) {}
+        window.sessionStorage.clear(CACHE_KEY_USER)
+      } catch (error) {
+      }
     }
   },
   getters: {
     authenticated(state) {
-      return state.user && state.user.token
+      return store.state.user && store.state.user.token
+    },
+    hasRole(state, roleCode) {
+      return store.state.user.roleSet.lengh > 0 && store.state.user.roleSet.indexof(roleCode) !== -1
+    },
+    hasPermission(state, optCode) {
+      return store.state.user.permissionSet.lengh > 0 && store.state.user.permissionSet.indexof(optCode) !== -1
     }
   },
   actions: {
@@ -52,10 +59,10 @@ const store = new Vuex.Store({
   }
 })
 try {
-  const user = JSON.parse(window.sessionStorage.getItem(USER_CACHE_KEY))
+  const user = JSON.parse(window.sessionStorage.getItem(CACHE_KEY_USER))
   if (user) {
     store.commit('SET_USER', user)
   }
-} catch (e) {}
-
+} catch (e) {
+}
 export default store

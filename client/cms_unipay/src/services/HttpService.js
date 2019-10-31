@@ -9,7 +9,7 @@ const Http = axios.create()
 
 Http.interceptors.request.use(config => {
   if (store.getters.authenticated) {
-    config.headers['Authorization'] = 'Bearer ' + store.state.user.token
+    config.headers['gtToken'] = store.state.user.token
   }
 
   // if (config.autoLoading !== false) {
@@ -23,6 +23,30 @@ Http.interceptors.response.use(
   response => {
     // if (response.config.autoLoading !== false) {
     //   store.dispatch('busy', false)
+    // }
+    // if (response.data && response.data.status > 10001 && response.data.status <= 10007) {
+    //   let tipMsg = ""
+    //   switch (response.data.status) {
+    //     case 10005:
+    //       tipMsg = "TOKEN错误,请重新登录"
+    //       break
+    //     case 10006:
+    //       tipMsg = "权限不足"
+    //       break
+    //     case 10007:
+    //       tipMsg = "系统错误，请联系技术人员"
+    //       break
+    //     case 10001:
+    //       tipMsg = "您未登录或登录超时"
+    //       break
+    //   }
+    //   message.alert(tipMsg)
+    //     .then(() => {
+    //       store.commit('CLEAN_USER')
+    //       Router.replace({ name: 'Login' })
+    //     })
+    //     .catch()
+    //   return null;
     // }
     return response
   },
