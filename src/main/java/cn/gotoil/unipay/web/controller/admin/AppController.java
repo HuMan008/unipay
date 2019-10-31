@@ -52,7 +52,7 @@ public class AppController {
     @RequestMapping(value = "getAccountTypes", method = RequestMethod.GET)
     @NeedLogin
     public Object getAccountTypesAction() {
-        return new BillApiResponse(EnumPayType.values());
+        return  BaseComboResponse.getPayTypeCombo();
     }
 
     @ApiOperation(value = "新增APP", position = 5, tags = "应用管理")
