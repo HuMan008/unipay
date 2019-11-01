@@ -43,7 +43,7 @@
               <span>系统管理</span>
             </span>
             <a-menu-item key="1" @click="routerChange('AppManage')">应用管理</a-menu-item>
-            <a-menu-item key="2" @click="routerChange('AppManage')">收款账号管理</a-menu-item>
+            <a-menu-item key="2" @click="routerChange('ChargeConfig')">收款账号管理</a-menu-item>
           </a-sub-menu>
 
            <a-sub-menu key="sub2" class="mySubMenu">
@@ -51,7 +51,7 @@
               <a-icon type="user" />
               <span>订单管理</span>
             </span>
-            <a-menu-item key="1" @click="routerChange('AppManage')">订单列表</a-menu-item>
+            <a-menu-item key="3" @click="routerChange('AppManage')">订单列表</a-menu-item>
           </a-sub-menu>
 
         </a-menu>
@@ -84,7 +84,7 @@ export default {
       this.$router.push({name: link})
     },
     getInfo() {
-      this.userType = JSON.parse(window.sessionStorage.getItem('gt_bike_user')).real_name
+      // this.userType = JSON.parse(window.sessionStorage.getItem('gt_bike_user')).real_name
     },
     logOut() {
       this.$store.commit('CLEAN_USER')

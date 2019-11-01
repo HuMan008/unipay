@@ -45,6 +45,7 @@
           @click="changeStatus(item)"
         />
         <a href="#" slot="editApp" slot-scope="item" @click="openModal(item,2)">编辑</a>
+        <a href="#" slot="payGrant" slot-scope="item" @click="openGrantPayModal(item.appKey)">支付授权</a>
         <a-table
           slot="expandedRowRender"
           :columns="innerColumns"
@@ -53,6 +54,34 @@
         ></a-table>
       </a-table>
     </a-layout-content>
+
+    <a-modal
+      title="支付方式授权"
+      :visible="grantModelVisible"
+      @ok="doGrant"
+      @cancel="cancelGrant"
+      :confirmLoading="confirmLoading"
+    >
+      <a-form-item
+        :label="item.payName"
+        class="serchItem row"
+        v-for="item in selectList"
+        :key="item.payType"
+      >
+        <a-select
+          style="width: 380px"
+          :defaultValue="item.selected"
+          @change="chargeChange($event,item.payType)"
+        >
+          <a-select-option
+            v-for="configItem in item.chargeConfig"
+            :key="configItem.id"
+            :value="configItem.id"
+          >{{configItem.name }}</a-select-option>
+        </a-select>
+      </a-form-item>
+    </a-modal>
+
     <a-modal
       :title="modalTitle"
       :visible="modelVisible"
@@ -204,9 +233,14 @@ export default {
           scopedSlots: { customRender: "modifyStatus" }
         },
         {
-          title: "操作",
+          title: "编辑",
           // key: "id",
           scopedSlots: { customRender: "editApp" }
+        },
+        {
+          title: "支付方式授权",
+          // key: "id",
+          scopedSlots: { customRender: "payGrant" }
         }
       ],
       innerColumns: [
@@ -241,7 +275,11 @@ export default {
       searchForm: {
         appName: "",
         status: ""
-      }
+      },
+      grantModelVisible: false,
+      selectList: [],
+      newCharge: {},
+      waitGrantAppId: ""
     };
   },
 
@@ -253,6 +291,48 @@ export default {
     this.getStatus1Options();
   },
   methods: {
+    chargeChange(newValue, chargeType) {
+      // this.newCharge.push({ payType: chargeType, select: newValue });
+      this.$set(this.newCharge, chargeType, newValue);
+    },
+    // 打开授权页面
+    openGrantPayModal(id) {
+      this.newCharge = {};
+      this.selectList = [];
+      this.waitGrantAppId = id;
+      this.grantModelVisible = true;
+      HttpService.get("/web/app/getAccounts?appkey=" + id).then(res => {
+        if (res.data.status === 0) {
+          this.selectList = res.data.data;
+        }
+      });
+      // 获取数据
+    },
+    // 授权对话框取消
+    cancelGrant() {
+      this.grantModelVisible = false;
+    },
+    // 授权点确认
+    doGrant() {
+      // this.newCharge.push("appKey", "aaa");
+      this.$set(this.newCharge, "appKey", this.waitGrantAppId);
+      console.log(this.newCharge);
+      HttpService.post("/web/app/updateApp?checkName=1", this.newCharge).then(res => {
+        if (res.data.status === 0) {
+          let _this = this;
+          this.modelVisible = false;
+          this.$notification.success({
+            message: "添加应用成功",
+            duration: 3,
+            onClose: () => {
+              _this.getList();
+            }
+          });
+        } else {
+          this.$notification.warning({ message: res.data.message });
+        }
+      });
+    },
     // 获取列表数据
     getList() {
       this.ListOfData = [];
