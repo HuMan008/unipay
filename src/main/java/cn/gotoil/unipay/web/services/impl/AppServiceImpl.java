@@ -253,7 +253,7 @@ public class AppServiceImpl implements AppService {
     }
 
     private void setAccount(List<String> disable, Integer accountId, String type, String appId) {
-        if (accountId == null || "".equals(accountId)) {
+        if (accountId == null || accountId.compareTo(0) == 0 || "".equals(accountId)) {
             disable.add(type);
         } else {//启用或新增关联支付帐号信息
             AppChargeAccountExample example = new AppChargeAccountExample();
