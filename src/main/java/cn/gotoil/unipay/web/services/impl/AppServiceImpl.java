@@ -79,12 +79,12 @@ public class AppServiceImpl implements AppService {
 
     private void appChargeAccountMapper(String appId, AppAccountIds appAccountIds) {
         if (appAccountIds != null) {
-            created(appId, appAccountIds.getAlipaySDKId(), EnumPayType.AlipaySDK.getCode());
-            created(appId, appAccountIds.getAlipayH5Id(), EnumPayType.AlipayH5.getCode());
-            created(appId, appAccountIds.getWechatJSAPIId(), EnumPayType.WechatJSAPI.getCode());
-            created(appId, appAccountIds.getWechatSDKId(), EnumPayType.WechatSDK.getCode());
-            created(appId, appAccountIds.getWechatNAtiveId(), EnumPayType.WechatNAtive.getCode());
-            created(appId, appAccountIds.getWechatH5Id(), EnumPayType.WechatH5.getCode());
+            created(appId, appAccountIds.getAlipaySDK(), EnumPayType.AlipaySDK.getCode());
+            created(appId, appAccountIds.getAlipayH5(), EnumPayType.AlipayH5.getCode());
+            created(appId, appAccountIds.getWechatJSAPI(), EnumPayType.WechatJSAPI.getCode());
+            created(appId, appAccountIds.getWechatSDK(), EnumPayType.WechatSDK.getCode());
+            created(appId, appAccountIds.getWechatNative(), EnumPayType.WechatNAtive.getCode());
+            created(appId, appAccountIds.getWechatH5(), EnumPayType.WechatH5.getCode());
         }
     }
 
@@ -215,12 +215,12 @@ public class AppServiceImpl implements AppService {
         //禁用类型
         List<String> disable = new ArrayList<String>();
 
-        setAccount(disable, appAccountIds.getAlipaySDKId(), EnumPayType.AlipaySDK.getCode(), app.getAppKey());
-        setAccount(disable, appAccountIds.getAlipayH5Id(), EnumPayType.AlipayH5.getCode(), app.getAppKey());
-        setAccount(disable, appAccountIds.getWechatJSAPIId(), EnumPayType.WechatJSAPI.getCode(), app.getAppKey());
-        setAccount(disable, appAccountIds.getWechatSDKId(), EnumPayType.WechatSDK.getCode(), app.getAppKey());
-        setAccount(disable, appAccountIds.getWechatH5Id(), EnumPayType.WechatH5.getCode(), app.getAppKey());
-        setAccount(disable, appAccountIds.getWechatNAtiveId(), EnumPayType.WechatNAtive.getCode(), app.getAppKey());
+        setAccount(disable, appAccountIds.getAlipaySDK(), EnumPayType.AlipaySDK.getCode(), app.getAppKey());
+        setAccount(disable, appAccountIds.getAlipayH5(), EnumPayType.AlipayH5.getCode(), app.getAppKey());
+        setAccount(disable, appAccountIds.getWechatJSAPI(), EnumPayType.WechatJSAPI.getCode(), app.getAppKey());
+        setAccount(disable, appAccountIds.getWechatSDK(), EnumPayType.WechatSDK.getCode(), app.getAppKey());
+        setAccount(disable, appAccountIds.getWechatH5(), EnumPayType.WechatH5.getCode(), app.getAppKey());
+        setAccount(disable, appAccountIds.getWechatNative(), EnumPayType.WechatNAtive.getCode(), app.getAppKey());
 
 
         if (disable.size() > 0) {
@@ -338,27 +338,27 @@ public class AppServiceImpl implements AppService {
 
         AppAccountIds appAccountIds = new AppAccountIds();
         if (typeAccountId.containsKey(EnumPayType.AlipayH5.getCode())) {
-            appAccountIds.setAlipayH5Id(typeAccountId.get(EnumPayType.AlipayH5.getCode()));
+            appAccountIds.setAlipayH5(typeAccountId.get(EnumPayType.AlipayH5.getCode()));
         }
 
         if (typeAccountId.containsKey(EnumPayType.AlipaySDK.getCode())) {
-            appAccountIds.setAlipaySDKId(typeAccountId.get(EnumPayType.AlipaySDK.getCode()));
+            appAccountIds.setAlipaySDK(typeAccountId.get(EnumPayType.AlipaySDK.getCode()));
         }
 
         if (typeAccountId.containsKey(EnumPayType.WechatNAtive.getCode())) {
-            appAccountIds.setWechatNAtiveId(typeAccountId.get(EnumPayType.WechatNAtive.getCode()));
+            appAccountIds.setWechatNative(typeAccountId.get(EnumPayType.WechatNAtive.getCode()));
         }
 
         if (typeAccountId.containsKey(EnumPayType.WechatH5.getCode())) {
-            appAccountIds.setWechatH5Id(typeAccountId.get(EnumPayType.WechatH5.getCode()));
+            appAccountIds.setWechatH5(typeAccountId.get(EnumPayType.WechatH5.getCode()));
         }
 
         if (typeAccountId.containsKey(EnumPayType.WechatJSAPI.getCode())) {
-            appAccountIds.setWechatJSAPIId(typeAccountId.get(EnumPayType.WechatJSAPI.getCode()));
+            appAccountIds.setWechatJSAPI(typeAccountId.get(EnumPayType.WechatJSAPI.getCode()));
         }
 
         if (typeAccountId.containsKey(EnumPayType.WechatSDK.getCode())) {
-            appAccountIds.setWechatSDKId(typeAccountId.get(EnumPayType.WechatSDK.getCode()));
+            appAccountIds.setWechatSDK(typeAccountId.get(EnumPayType.WechatSDK.getCode()));
         }
         return appAccountIds;
     }

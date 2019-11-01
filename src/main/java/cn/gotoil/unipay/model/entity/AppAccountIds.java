@@ -11,20 +11,20 @@ import lombok.*;
 public class AppAccountIds {
 
      @ApiModelProperty(example = "", value = "微信H5", position = 1)
-     private Integer wechatH5Id;
+     private Integer WechatH5;
 
      @ApiModelProperty(example = "", value = "微信JSAPI", position = 3)
-     private Integer wechatJSAPIId;
+     private Integer WechatJSAPI;
 
      @ApiModelProperty(example = "", value = "微信SDK", position = 5)
-     private Integer wechatSDKId;
+     private Integer WechatSDK;
 
      @ApiModelProperty(example = "", value = "微信NATIVE", position = 7)
-     private Integer wechatNAtiveId;
+     private Integer WechatNative;
 
      @ApiModelProperty(example = "", value = "支付宝H5", position = 9)
-     private Integer alipayH5Id;
+     private Integer AlipayH5;
 
      @ApiModelProperty(required = true, example = "", value = "支付宝SDK", position = 11)
-     private Integer alipaySDKId;
+     private Integer AlipaySDK;
 }
