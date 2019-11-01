@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.ArrayList;
+import java.util.Map;
 
 @RestController
 @RequestMapping("web/app")
@@ -33,13 +34,15 @@ public class AppController {
     @ApiOperation(value = "收款账号", position = 1, tags = "应用管理")
     @RequestMapping(value = "getAccounts", method = RequestMethod.GET)
     @NeedLogin
-    public Object getAccountsAction() {
+    public Object getAccountsAction(@ApiParam(value = "appkey") @RequestParam String appkey) {
         ArrayList<PaytypeResponse> paytypeList = new ArrayList<>();
+        Map<String,Integer> map = appService.getByAppkey(appkey);
         for (EnumPayType enums : EnumPayType.values()) {
             PaytypeResponse paytypeResponse = new PaytypeResponse();
             paytypeResponse.setPayName(enums.getDescp());
             paytypeResponse.setPayType(enums.getCode());
             paytypeResponse.setChargeConfig(appService.queryAllAccount(enums.getCode()));
+            paytypeResponse.setSelected(map.get(enums.getCode()));
             paytypeList.add(paytypeResponse);
         }
         return paytypeList;

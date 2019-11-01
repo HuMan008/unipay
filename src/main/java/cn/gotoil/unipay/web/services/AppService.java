@@ -6,6 +6,7 @@ import cn.gotoil.unipay.web.message.BasePageResponse;
 import cn.gotoil.unipay.web.message.request.admin.AppListRequest;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 应用服务
@@ -91,5 +92,5 @@ public interface AppService {
      * @param appkey
      * @return
      */
-    Object getByAppkey(String appkey);
+    Map getByAppkey(String appkey);
 }

@@ -325,7 +325,7 @@ public class AppServiceImpl implements AppService {
      * @return
      */
     @Override
-    public Object getByAppkey(String appkey) {
+    public Map getByAppkey(String appkey) {
 
         AppChargeAccountExample example = new AppChargeAccountExample();
         example.createCriteria().andAppIdEqualTo(appkey).andStatusEqualTo(EnumStatus.Enable.getCode());
