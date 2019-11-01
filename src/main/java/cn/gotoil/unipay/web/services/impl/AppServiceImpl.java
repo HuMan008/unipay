@@ -226,7 +226,7 @@ public class AppServiceImpl implements AppService {
         if (disable.size() > 0) {
             //禁用关联支付帐号信息
             HashMap param = new HashMap();
-            param.put("appkey", app.getAppKey());
+            param.put("appid", app.getAppKey());
             param.put("pays", disable);
             param.put("status", EnumStatus.Disable.getCode());
 
