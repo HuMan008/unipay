@@ -111,11 +111,12 @@ public class AppController {
     @ApiOperation(value = "修改APP", position = 15, tags = "应用管理")
     @RequestMapping(value = "/updateApp", method = {RequestMethod.POST})
     @NeedLogin
-    public Object updateAppAction(@RequestBody AppAddRquest appAddRquest, HttpServletRequest request) {
-        if (appService.nameHasExist(appAddRquest.getAppName(), appAddRquest.getAppKey())) {
-            throw new BillException(5000, "应用名称重复");
+    public Object updateAppAction(@RequestBody AppAddRquest appAddRquest, @RequestParam(required = false, defaultValue = "0") String checkname, HttpServletRequest request) {
+        if ("0".equals(checkname)) {
+            if (appService.nameHasExist(appAddRquest.getAppName(), appAddRquest.getAppKey())) {
+                throw new BillException(5000, "应用名称重复");
+            }
         }
-
         App app = new App();
         BeanUtils.copyProperties(appAddRquest, app);
         AppAccountIds appAccountIds = new AppAccountIds();
