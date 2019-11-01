@@ -6,6 +6,7 @@ import cn.gotoil.bill.web.message.BillApiResponse;
 import cn.gotoil.unipay.model.entity.App;
 import cn.gotoil.unipay.model.entity.AppAccountIds;
 import cn.gotoil.unipay.model.enums.EnumPayType;
+import cn.gotoil.unipay.model.enums.EnumStatus;
 import cn.gotoil.unipay.web.message.request.admin.AppAddRquest;
 import cn.gotoil.unipay.web.message.request.admin.AppListRequest;
 import cn.gotoil.unipay.web.message.response.admin.BaseComboResponse;
@@ -121,6 +122,9 @@ public class AppController {
             }
         }
         App app = new App();
+        if (app.getStatus() == null) {
+            app.setStatus(EnumStatus.Enable.getCode());
+        }
         BeanUtils.copyProperties(appAddRquest, app);
         AppAccountIds appAccountIds = new AppAccountIds();
         BeanUtils.copyProperties(appAddRquest, appAccountIds);
