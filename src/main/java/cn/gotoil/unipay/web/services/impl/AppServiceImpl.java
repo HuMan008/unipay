@@ -325,41 +325,23 @@ public class AppServiceImpl implements AppService {
      * @return
      */
     @Override
-    public AppAccountIds getByAppkey(String appkey) {
+    public Object getByAppkey(String appkey) {
 
         AppChargeAccountExample example = new AppChargeAccountExample();
         example.createCriteria().andAppIdEqualTo(appkey).andStatusEqualTo(EnumStatus.Enable.getCode());
         java.util.List<AppChargeAccount> list = appChargeAccountMapper.selectByExample(example);
 
         Map<String, Integer> typeAccountId = new HashMap<>();
+
         for (AppChargeAccount account : list) {
             typeAccountId.put(account.getPayType(), account.getAccountId());
         }
 
-        AppAccountIds appAccountIds = new AppAccountIds();
-        if (typeAccountId.containsKey(EnumPayType.AlipayH5.getCode())) {
-            appAccountIds.setAlipayH5(typeAccountId.get(EnumPayType.AlipayH5.getCode()));
+        for (EnumPayType payType : EnumPayType.values()) {
+            if (!typeAccountId.containsKey(payType.getCode())) {
+                typeAccountId.put(payType.getCode(), null);
+            }
         }
-
-        if (typeAccountId.containsKey(EnumPayType.AlipaySDK.getCode())) {
-            appAccountIds.setAlipaySDK(typeAccountId.get(EnumPayType.AlipaySDK.getCode()));
-        }
-
-        if (typeAccountId.containsKey(EnumPayType.WechatNAtive.getCode())) {
-            appAccountIds.setWechatNative(typeAccountId.get(EnumPayType.WechatNAtive.getCode()));
-        }
-
-        if (typeAccountId.containsKey(EnumPayType.WechatH5.getCode())) {
-            appAccountIds.setWechatH5(typeAccountId.get(EnumPayType.WechatH5.getCode()));
-        }
-
-        if (typeAccountId.containsKey(EnumPayType.WechatJSAPI.getCode())) {
-            appAccountIds.setWechatJSAPI(typeAccountId.get(EnumPayType.WechatJSAPI.getCode()));
-        }
-
-        if (typeAccountId.containsKey(EnumPayType.WechatSDK.getCode())) {
-            appAccountIds.setWechatSDK(typeAccountId.get(EnumPayType.WechatSDK.getCode()));
-        }
-        return appAccountIds;
+        return typeAccountId;
     }
 }

@@ -91,5 +91,5 @@ public interface AppService {
      * @param appkey
      * @return
      */
-    AppAccountIds getByAppkey(String appkey);
+    Object getByAppkey(String appkey);
 }
