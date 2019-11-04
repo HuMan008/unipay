@@ -81,7 +81,7 @@ export default {
           // }
           MemberService.login(values).then(res => {
             const r = res.data;
-            console.log(r);
+            // console.log(r);
             if (r.status === 0) {
               this.$message.success("登录成功");
               let user = {

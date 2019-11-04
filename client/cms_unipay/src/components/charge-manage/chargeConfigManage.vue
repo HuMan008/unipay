@@ -259,7 +259,6 @@ export default {
               updatedAt: listData[i].updatedAt
             });
           }
-          console.log(this.ListOfData);
         } else {
           this.$message.error(r.message ? r.message : "系统错误");
         }
