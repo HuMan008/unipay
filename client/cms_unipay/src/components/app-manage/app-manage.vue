@@ -47,9 +47,11 @@
         <a href="#" slot="editApp" slot-scope="item" @click="openModal(item,2)">编辑</a>
         <a href="#" slot="payGrant" slot-scope="item" @click="openGrantPayModal(item.appKey)">支付授权</a>
         <a-table
+          bordered="true"
           slot="expandedRowRender"
+          slot-scope="record"
           :columns="innerColumns"
-          :dataSource="innerData"
+          :dataSource="record.innerData"
           :pagination="false"
         ></a-table>
       </a-table>
@@ -73,6 +75,7 @@
           :defaultValue="item.selected"
           @change="chargeChange($event,item.payType)"
         >
+          <a-select-option value="0">禁用</a-select-option>
           <a-select-option
             v-for="configItem in item.chargeConfig"
             :key="configItem.id"
@@ -91,7 +94,31 @@
       v-if="modelVisible"
     >
       <a-form id="saveOrUpdateForm" :form="form" @submit="saveOrUSubmit">
-        <input v-decorator="['appKey',{}]" type="hidden" />
+        <a-form-item
+          label
+          :label-col="{ span: 4 }"
+          :wrapper-col="{ span: 12 }"
+          v-if="modalType!==1"
+          style="display: none"
+        >
+          <a-input maxlength="48" v-decorator="[
+          'appKey',
+          {}
+        ]" />
+        </a-form-item>
+        <a-form-item
+          label
+          :label-col="{ span: 4 }"
+          :wrapper-col="{ span: 12 }"
+          v-if="modalType!==1"
+          style="display: none"
+        >
+          <a-input maxlength="48" v-decorator="[
+          'status',
+          {}
+        ]" />
+        </a-form-item>
+
         <a-form-item label="应用名称" :label-col="{ span: 4 }" :wrapper-col="{ span: 12 }">
           <a-input
             maxlength="48"
@@ -211,7 +238,7 @@ export default {
       status1Options: [],
       collapsed: false,
       tHead: [
-        { title: "应用名称", width: 150, dataIndex: "appName" },
+        { title: "应用名称", width: 180, dataIndex: "appName" },
         { title: "应用ID", width: 150, dataIndex: "appKey" },
         {
           title: "备注",
@@ -247,7 +274,6 @@ export default {
         { title: "列名", width: 120, dataIndex: "desp" },
         { title: "值", dataIndex: "val" }
       ],
-      innerData: [],
       ListOfData: [],
       searchInfo: {
         page: 1,
@@ -279,7 +305,8 @@ export default {
       grantModelVisible: false,
       selectList: [],
       newCharge: {},
-      waitGrantAppId: ""
+      waitGrantAppId: "",
+      editAppKey: ""
     };
   },
 
@@ -304,9 +331,17 @@ export default {
       HttpService.get("/web/app/getAccounts?appkey=" + id).then(res => {
         if (res.data.status === 0) {
           this.selectList = res.data.data;
+          for (const i in res.data.data) {
+            let xx = res.data.data[i];
+            this.$set(
+              this.newCharge,
+              xx.payType,
+              xx.selected === null ? 0 : xx.selected
+            );
+          }
         }
       });
-      // 获取数据
+      console.log(this.newCharge);
     },
     // 授权对话框取消
     cancelGrant() {
@@ -317,21 +352,23 @@ export default {
       // this.newCharge.push("appKey", "aaa");
       this.$set(this.newCharge, "appKey", this.waitGrantAppId);
       console.log(this.newCharge);
-      HttpService.post("/web/app/updateApp?checkName=1", this.newCharge).then(res => {
-        if (res.data.status === 0) {
-          let _this = this;
-          this.modelVisible = false;
-          this.$notification.success({
-            message: "添加应用成功",
-            duration: 3,
-            onClose: () => {
-              _this.getList();
-            }
-          });
-        } else {
-          this.$notification.warning({ message: res.data.message });
+      HttpService.post("/web/app/updateApp?checkName=1", this.newCharge).then(
+        res => {
+          if (res.data.status === 0) {
+            let _this = this;
+            this.modelVisible = false;
+            this.$notification.success({
+              message: "操作成功",
+              duration: 3,
+              onClose: () => {
+                _this.getList();
+              }
+            });
+          } else {
+            this.$notification.warning({ message: res.data.message });
+          }
         }
-      });
+      );
     },
     // 获取列表数据
     getList() {
@@ -363,37 +400,39 @@ export default {
               orderDescp: listData[i].orderDescp,
               defaultOrderExpiredTime: listData[i].defaultOrderExpiredTime,
               createdAt: listData[i].createdAt,
-              updatedAt: listData[i].updatedAt
-            });
-            this.innerData.push({
-              key: "row" + i + listData[i].appSecret,
-              desp: "秘钥",
-              val: listData[i].appSecret
-            });
-            this.innerData.push({
-              key: "row" + i + listData[i].orderHeader + Math.random(),
-              desp: "默认订单标题",
-              val: listData[i].orderHeader
-            });
-            this.innerData.push({
-              key: "row" + i + listData[i].orderDescp + Math.random(),
-              desp: "默认订单描述",
-              val: listData[i].orderDescp
-            });
-            this.innerData.push({
-              key: "row" + i + listData[i].syncUrl + Math.random(),
-              desp: "默认同步地址",
-              val: listData[i].syncUrl
-            });
-            this.innerData.push({
-              key: "row" + i + listData[i].asyncUrl + Math.random(),
-              desp: "默认异步地址",
-              val: listData[i].asyncUrl
-            });
-            this.innerData.push({
-              key: "row" + i + listData[i].defaultOrderExpiredTime,
-              desp: "默认订单分钟数",
-              val: listData[i].defaultOrderExpiredTime
+              updatedAt: listData[i].updatedAt,
+              innerData: [
+                {
+                  key: "row" + i + listData[i].appSecret,
+                  desp: "秘钥",
+                  val: listData[i].appSecret
+                },
+                {
+                  key: "row" + i + listData[i].orderHeader + Math.random(),
+                  desp: "默认订单标题",
+                  val: listData[i].orderHeader
+                },
+                {
+                  key: "row" + i + listData[i].orderDescp + Math.random(),
+                  desp: "默认订单描述",
+                  val: listData[i].orderDescp
+                },
+                {
+                  key: "row" + i + listData[i].syncUrl + Math.random(),
+                  desp: "默认同步地址",
+                  val: listData[i].syncUrl
+                },
+                {
+                  key: "row" + i + listData[i].asyncUrl + Math.random(),
+                  desp: "默认异步地址",
+                  val: listData[i].asyncUrl
+                },
+                {
+                  key: "row" + i + listData[i].defaultOrderExpiredTime,
+                  desp: "默认订单分钟数",
+                  val: listData[i].defaultOrderExpiredTime
+                }
+              ]
             });
           }
         } else {
@@ -457,7 +496,8 @@ export default {
     },
     // 弹出新增或者修改对话框 item 行数据 ,type ==1 新增 其他为修改
     openModal(item, type) {
-      // 开启新增编辑弹窗
+      // 开启新增编辑弹窗、
+      this.editAppKey = "";
       this.modalType = type;
       this.modelVisible = true;
       if (this.modalType === 1) {
@@ -475,6 +515,7 @@ export default {
         }, 100);
       } else {
         this.modalTitle = "编辑应用";
+        this.editAppKey = item.appKey;
         setTimeout(() => {
           this.form.setFieldsValue({
             appKey: item.appKey,
@@ -484,7 +525,8 @@ export default {
             orderDescp: item.orderDescp,
             defaultOrderExpiredTime: item.defaultOrderExpiredTime,
             syncUrl: item.syncUrl,
-            asyncUrl: item.asyncUrl
+            asyncUrl: item.asyncUrl,
+            status: item.status
           });
         }, 100);
       }
@@ -532,6 +574,7 @@ export default {
     },
     // 编辑应用提交
     submitEdit(values) {
+      console.log(values);
       HttpService.post("/web/app/updateApp", values).then(res => {
         if (res.data.status === 0) {
           let _this = this;
@@ -630,6 +673,7 @@ textarea {
 }
 
 .serchItem {
-  margin-right: 10px;
+  margin-left: 10px;
+  margin-right: 18px;
 }
 </style>
