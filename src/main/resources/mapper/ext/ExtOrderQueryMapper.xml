@@ -6,8 +6,8 @@
         <if test=" status != null and status != '' ">
             and o.status = #{status}
         </if>
-        <if test=" appkey != null and appkey != '' ">
-            and o.app_id = #{appkey}
+        <if test=" appid != null and appid != '' ">
+            and o.app_id = #{appid}
         </if>
         <if test=" queryId != null and queryId != '' ">
             and (o.id = #{queryId} or o.payment_id = #{queryId} or o.app_order_no = #{queryId})
@@ -24,15 +24,11 @@
         </if>
     </sql>
 
-    <select id="queryOrder" parameterType="map" resultType="cn.gotoil.unipay.model.view.OrderView">
+    <select id="queryOrder" parameterType="map" resultType="cn.gotoil.unipay.model.entity.Order">
         SELECT
-            o.*,
-            a.app_key,
-            a.app_name
+        o.*
         FROM
           dp_order o
-        LEFT JOIN dp_app a
-        ON o.app_id = a.app_key
         <where>
           <include refid="queryOrder_sql_where" />
         </where>
