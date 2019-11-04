@@ -51,7 +51,7 @@
               <a-icon type="user" />
               <span>订单管理</span>
             </span>
-            <a-menu-item key="3" @click="routerChange('AppManage')">订单列表</a-menu-item>
+            <a-menu-item key="3" @click="routerChange('OrderManage')">订单列表</a-menu-item>
           </a-sub-menu>
 
         </a-menu>

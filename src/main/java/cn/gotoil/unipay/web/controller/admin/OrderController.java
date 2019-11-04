@@ -6,6 +6,7 @@ import cn.gotoil.bill.web.message.BillApiResponse;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.web.message.request.admin.OrderQueryListRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
+import cn.gotoil.unipay.web.message.response.admin.BaseComboResponse;
 import cn.gotoil.unipay.web.services.OrderQueryService;
 import cn.gotoil.unipay.web.services.OrderService;
 import io.swagger.annotations.Api;
@@ -57,5 +58,13 @@ public class OrderController {
         }else{
             throw new BillException(5100,"查询类型出错");
         }
+    }
+
+
+    @ApiOperation(value = "支付状态下拉框", position = 2, tags = "应用管理")
+    @RequestMapping(value = "getOrderStatus", method = RequestMethod.GET)
+    @NeedLogin
+    public Object getStatusAction() {
+        return BaseComboResponse.getPayStatusCombo();
     }
 }

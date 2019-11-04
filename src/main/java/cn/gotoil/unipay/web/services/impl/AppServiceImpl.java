@@ -308,13 +308,15 @@ public class AppServiceImpl implements AppService {
 
     /**
      * 查询有效APP
-     *
+     * @param  includeDisabled 是否包含无效
      * @return
      */
     @Override
-    public List getApps() {
+    public List<App> getApps(boolean includeDisabled) {
         AppExample example = new AppExample();
-        example.createCriteria().andStatusEqualTo(EnumStatus.Enable.getCode());
+        if(includeDisabled){
+            example.createCriteria().andStatusEqualTo(EnumStatus.Enable.getCode());
+        }
         return appMapper.selectByExample(example);
     }
 

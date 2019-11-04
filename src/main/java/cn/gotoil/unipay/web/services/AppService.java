@@ -84,7 +84,7 @@ public interface AppService {
      *
      * @return
      */
-    List getApps();
+    List<App> getApps(boolean includeDisabled);
 
     /**
      * 根据APPKEY获取配置的收款账号

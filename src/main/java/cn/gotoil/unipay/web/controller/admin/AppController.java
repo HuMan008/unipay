@@ -22,7 +22,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("web/app")
@@ -139,7 +141,7 @@ public class AppController {
     @RequestMapping(value = "/getApps", method = {RequestMethod.GET})
     @NeedLogin
     public Object getAppsAction() {
-        return new BillApiResponse(appService.getApps());
+        return new BillApiResponse(appService.getApps(false));
     }
 
     @ApiOperation(value = "根据APPKEY获取收款账号", position = 19, tags = "应用管理")
@@ -147,5 +149,12 @@ public class AppController {
     @NeedLogin
     public Object getAppAccountIdsAction(@ApiParam(value = "appkey") @RequestParam String appkey) {
         return appService.getByAppkey(appkey);
+    }
+
+    @ApiOperation(value = "获取应用下拉框", position = 18, tags = "应用管理")
+    @RequestMapping(value = "/appCombo", method = {RequestMethod.GET})
+    @NeedLogin
+    public List<BaseComboResponse> appComboAction(@RequestParam(required = false,defaultValue = "true") boolean showDisable){
+       return appService.getApps(showDisable).stream().map(es->new BaseComboResponse(es.getAppName(),es.getAppKey())).collect(Collectors.toList());
     }
 }
