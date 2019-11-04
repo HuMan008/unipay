@@ -9,12 +9,10 @@
         <if test=" appkey != null and appkey != '' ">
             and o.app_id = #{appkey}
         </if>
-        <if test=" orderId != null and orderId != '' ">
-            and o.id = #{orderId}
+        <if test=" queryId != null and queryId != '' ">
+            and (o.id = #{queryId} or o.payment_id = #{queryId} or o.app_order_no = #{queryId})
         </if>
-        <if test=" paymentId != null and paymentId != '' ">
-            and o.payment_id = #{paymentId}
-        </if>
+
         <if test=" payType != null and payType != '' ">
             and o.pay_type = #{payType}
         </if>
