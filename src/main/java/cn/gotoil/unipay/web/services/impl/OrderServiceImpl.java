@@ -4,6 +4,7 @@ package cn.gotoil.unipay.web.services.impl;
 import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.tools.date.DateUtils;
 import cn.gotoil.bill.tools.encoder.Hash;
+import cn.gotoil.bill.web.message.BillApiResponse;
 import cn.gotoil.unipay.config.consts.ConstsRabbitMQ;
 import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.ChargeAlipayModel;
@@ -404,5 +405,41 @@ public class OrderServiceImpl implements OrderService {
             httpServletResponse.sendRedirect(order.getSyncUrl() + "?param=" + param + "&sign=" + sign);
             return null;
         }
+    }
+
+
+    /**
+     * 单独为某个订单发送通知
+     * @param order
+     * @return
+     */
+    @Override
+    public BillApiResponse manualSendNotify(Order order){
+        assert order!=null ;
+        if(EnumOrderStatus.PaySuccess.getCode() != order.getStatus()){
+            throw new BillException(UnipayError.OrderStatusIsNotPaySuccess);
+        }
+        OrderNotifyBean orderNotifyBean =
+                OrderNotifyBean.builder().unionOrderID(order.getId())
+                        .method(EnumOrderMessageType.PAY.name())
+                        .appOrderNO(order.getAppOrderNo())
+                        .status(order.getStatus())
+                        .orderFee(order.getFee())
+                        .refundFee(0)
+                        .payFee(order.getPayFee())
+                        .arrFee(order.getPayFee())
+                        .totalRefundFee(0)
+                        .asyncUrl(order.getAsyncUrl())
+                        .extraParam(order.getExtraParam())
+                        .payDate(order.getOrderPayDatetime())
+                        .timeStamp(Instant.now().getEpochSecond())
+                        .sendType((byte)1)
+                        .build();
+        String appSecret = appService.key(order.getAppId());
+        String signStr = UtilMySign.sign(orderNotifyBean, appSecret);
+        orderNotifyBean.setSign(signStr);
+        rabbitTemplate.convertAndSend(ConstsRabbitMQ.ORDERFIRSTEXCHANGENAME,
+                ConstsRabbitMQ.ORDERROUTINGKEY, JSON.toJSONString(orderNotifyBean));
+        return new BillApiResponse(0,"已加入消息队列",null);
     }
 }

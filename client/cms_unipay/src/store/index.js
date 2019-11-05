@@ -20,10 +20,11 @@ const store = new Vuex.Store({
     //   state.routerLoading = data
     // },
     SET_USER(state, user) {
-      this.state.user.token = user.token
-      this.state.user.nickName = user.nickName
-      this.state.user.roleSet = user.roleSet
-      this.state.user.permissionSet = user.permissionSet
+      state.user = user;
+      // state.user.token = user.token
+      // state.user.nickName = user.nickName
+      // state.user.roleSet = user.roleSet
+      // state.user.permissionSet = user.permissionSet
       try {
         window.sessionStorage.setItem(CACHE_KEY_USER, JSON.stringify(user))
       } catch (error) {
@@ -40,13 +41,14 @@ const store = new Vuex.Store({
   },
   getters: {
     authenticated(state) {
-      return store.state.user && store.state.user.token
+      console.log(state)
+      return state.user && state.user.token
     },
     hasRole(state, roleCode) {
-      return store.state.user.roleSet.lengh > 0 && store.state.user.roleSet.indexof(roleCode) !== -1
+      return state.user.roleSet.lengh > 0 && state.user.roleSet.indexof(roleCode) !== -1
     },
     hasPermission(state, optCode) {
-      return store.state.user.permissionSet.lengh > 0 && store.state.user.permissionSet.indexof(optCode) !== -1
+      return state.user.permissionSet.lengh > 0 && state.user.permissionSet.indexof(optCode) !== -1
     }
   },
   actions: {

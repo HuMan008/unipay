@@ -154,7 +154,7 @@ public class AppController {
     @ApiOperation(value = "获取应用下拉框", position = 18, tags = "应用管理")
     @RequestMapping(value = "/appCombo", method = {RequestMethod.GET})
     @NeedLogin
-    public List<BaseComboResponse> appComboAction(@RequestParam(required = false,defaultValue = "true") boolean showDisable){
+    public Object appComboAction(@RequestParam(required = false,defaultValue = "true") boolean showDisable){
        return appService.getApps(showDisable).stream().map(es->new BaseComboResponse(es.getAppName(),es.getAppKey())).collect(Collectors.toList());
     }
 }

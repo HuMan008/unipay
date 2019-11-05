@@ -26,6 +26,8 @@ public enum UnipayError implements BillError {
 
     WebUserError_UserPwdError(11009, "用户名密码错误"),
 
+    OrderStatusIsNotPaySuccess(4021,"订单状态不是支付成功，不允许发送通知");
+
     ;
 
     private int code;

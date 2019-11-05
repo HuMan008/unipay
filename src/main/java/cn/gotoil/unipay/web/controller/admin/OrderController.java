@@ -3,10 +3,12 @@ package cn.gotoil.unipay.web.controller.admin;
 import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.web.annotation.NeedLogin;
 import cn.gotoil.bill.web.message.BillApiResponse;
+import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.web.message.request.admin.OrderQueryListRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.message.response.admin.BaseComboResponse;
+import cn.gotoil.unipay.web.services.NoticeLogService;
 import cn.gotoil.unipay.web.services.OrderQueryService;
 import cn.gotoil.unipay.web.services.OrderService;
 import io.swagger.annotations.Api;
@@ -25,6 +27,8 @@ public class OrderController {
 
     @Autowired
     OrderService orderService;
+    @Autowired
+    NoticeLogService noticeLogService;
 
     @ApiOperation(value = "订单查询", position = 1, tags = "订单管理")
     @RequestMapping(value = "queryOrder", method = RequestMethod.POST)
@@ -66,5 +70,21 @@ public class OrderController {
     @NeedLogin
     public Object getStatusAction() {
         return BaseComboResponse.getPayStatusCombo();
+    }
+
+    @RequestMapping(value = "getNotifyLog/{orderId:^\\d{21}$}", method = RequestMethod.GET)
+    @NeedLogin
+    public Object getNotifyLogListAction(@PathVariable String orderId){
+        return noticeLogService.listByOrderId(orderId);
+    }
+
+    @RequestMapping(value = "doNotify/{orderId:^\\d{21}$}", method = RequestMethod.GET)
+    @NeedLogin
+    public Object sendNotifyAction(@PathVariable String orderId){
+        Order order = orderService.loadByOrderID(orderId);
+        if(order==null){
+            throw new BillException(UnipayError.OrderNotExists);
+        }
+        return  orderService.manualSendNotify(order);
     }
 }

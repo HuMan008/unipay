@@ -1,7 +1,7 @@
 <template>
   <div class="bg">
     <div class="loginBox">
-      <h2 class="color_main">国通活动管理平台</h2>
+      <h2 class="color_main">支付管理平台</h2>
       <a-form
         id="components-form-demo-normal-login"
         :form="form"
@@ -51,7 +51,7 @@ export default {
   name: "Login",
   metaInfo() {
     return {
-      title: "国通活动管理平台：登录"
+      title: "支付管理平台：登录"
     };
   },
   data() {
@@ -81,7 +81,7 @@ export default {
           // }
           MemberService.login(values).then(res => {
             const r = res.data;
-            console.log(r);
+            // console.log(r);
             if (r.status === 0) {
               this.$message.success("登录成功");
               let user = {

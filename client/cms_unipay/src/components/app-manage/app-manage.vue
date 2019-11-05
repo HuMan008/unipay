@@ -26,13 +26,18 @@
           </a-select>
         </a-form-item>
         <a-form-item>
-          <a-button type="primary" @click="getList()">查询</a-button>
+          <a-button type="primary" @click="getList(1,20)">查询</a-button>
         </a-form-item>
       </div>
       <a-form-item>
         <a-button type="primary" @click="openModal('', 1)">新增应用</a-button>
       </a-form-item>
-      <a-table :columns="tHead" :dataSource="ListOfData" :pagination="pagination">
+      <a-table
+        :columns="tHead"
+        :dataSource="ListOfData"
+        :pagination="pagination"
+        @change="pageList"
+      >
         <div slot="money" slot-scope="item">{{item.money / 100 | currency}}</div>
         <div slot="preset_money" slot-scope="item">{{item.preset_money / 100 | currency}}</div>
         <a-switch
@@ -47,7 +52,7 @@
         <a href="#" slot="editApp" slot-scope="item" @click="openModal(item,2)">编辑</a>
         <a href="#" slot="payGrant" slot-scope="item" @click="openGrantPayModal(item.appKey)">支付授权</a>
         <a-table
-          bordered="true"
+          :bordered="true"
           slot="expandedRowRender"
           slot-scope="record"
           :columns="innerColumns"
@@ -282,7 +287,8 @@ export default {
       pagination: {
         pageNo: 1,
         pageSize: 20,
-        total: 0
+        total: 0,
+        current: 1
       },
       modelVisible: false,
       modify_visible: false,
@@ -314,8 +320,8 @@ export default {
   //   this.form = this.$form.createForm(this);
   // },
   mounted() {
-    this.getList();
     this.getStatus1Options();
+    this.getList(this.pagination.pageNo, this.pagination.pageSize);
   },
   methods: {
     chargeChange(newValue, chargeType) {
@@ -341,7 +347,6 @@ export default {
           }
         }
       });
-      console.log(this.newCharge);
     },
     // 授权对话框取消
     cancelGrant() {
@@ -351,7 +356,6 @@ export default {
     doGrant() {
       // this.newCharge.push("appKey", "aaa");
       this.$set(this.newCharge, "appKey", this.waitGrantAppId);
-      console.log(this.newCharge);
       HttpService.post("/web/app/updateApp?checkName=1", this.newCharge).then(
         res => {
           if (res.data.status === 0) {
@@ -370,12 +374,16 @@ export default {
         }
       );
     },
+    // 分页取
+    pageList(pagination) {
+      this.getList(pagination.current, this.pagination.pageSize);
+    },
     // 获取列表数据
-    getList() {
+    getList(pageNo, pageSize) {
       this.ListOfData = [];
       var param1 = {
-        pageNo: this.pagination.pageNo,
-        pageSize: this.pagination.pageSize,
+        pageNo: pageNo,
+        pageSize: pageSize,
         params: {
           appName: this.searchForm.appName,
           status: this.searchForm.status
@@ -386,6 +394,7 @@ export default {
         if (r.status === 0) {
           const listData = r.data.rows;
           this.pagination.total = r.data.totalCount;
+          this.pagination.current = pageNo;
           for (const i in listData) {
             this.ListOfData.push({
               key: i,
@@ -489,7 +498,6 @@ export default {
     // 状态修改框 取消按钮
     modify_modal_handleCancel() {
       let cindex = this.modify_status_from.index;
-      console.log(this.ListOfData[cindex]);
       this.ListOfData[cindex].status = this.modify_status_from.oldStatus;
       // this.$set(this.ListOfData[cindex], status, 0);
       // this.ListOfData[cindex].appName = "FWWEFEFWEFW";
@@ -551,9 +559,7 @@ export default {
         }
       });
     },
-    pageChange(pagination) {
-      // console.log(pagination)
-    },
+    pageChange(pagination) {},
     // 新增应用提交
     submitAdd(values) {
       HttpService.post("/web/app/addApp", values).then(res => {
@@ -574,7 +580,6 @@ export default {
     },
     // 编辑应用提交
     submitEdit(values) {
-      console.log(values);
       HttpService.post("/web/app/updateApp", values).then(res => {
         if (res.data.status === 0) {
           let _this = this;
