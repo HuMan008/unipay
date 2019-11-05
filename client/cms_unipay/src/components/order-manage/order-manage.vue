@@ -61,6 +61,14 @@
         <div slot="statusDiv" slot-scope="item">{{formatStatus(item)}}</div>
         <div slot="appDiv" slot-scope="item">{{formatApp(item)}}</div>
         <div slot="payTypeDiv" slot-scope="item">{{formatPayType(item)}}</div>
+        <a
+          href="javaScript:void(0)"
+          slot="notifyLog"
+          slot-scope="item"
+          @click="showNotifyLog(item)"
+        >查看</a>
+        <a href="#" slot="sendMsg" slot-scope="item" @click="sendMsg(item)">发送</a>
+
         <a-table
           :bordered="true"
           slot="expandedRowRender"
@@ -70,6 +78,25 @@
           :pagination="false"
         ></a-table>
       </a-table>
+      <a-modal
+        width="860"
+        :bordered="true"
+        title="通知记录"
+        :visible="modal_notifyLogVisible"
+        @ok="modal_notify_close"
+        @cancel="modal_notify_close"
+        :confirmLoading="false"
+      >
+        <a-table :columns="notifyLogHd" :dataSource="notifyLogList" :pagination="false">
+          <div
+            :title="record.params"
+            :style="{maxWidth: '300px',whiteSpace: 'nowrap',textOverflow: 'ellipsis',overflow: 'hidden', wordWrap: 'break-word', wordBreak: 'break-all' }"
+            slot="longTextShow"
+            slot-scope="text, record"
+          >{{record.params}}</div>
+          <div slot="sendType" slot-scope="text">{{text==='0'?"自动":'手动'}}</div>
+        </a-table>
+      </a-modal>
     </a-layout-content>
   </div>
 </template>
@@ -113,7 +140,17 @@ export default {
           dataIndex: "payType",
           scopedSlots: { customRender: "payTypeDiv" }
         },
-        { title: "创建于", width: 190, dataIndex: "createdAt" }
+        { title: "创建于", width: 190, dataIndex: "createdAt" },
+        {
+          title: "通知记录",
+          width: 120,
+          scopedSlots: { customRender: "notifyLog" }
+        },
+        {
+          title: "发送通知",
+          width: 120,
+          scopedSlots: { customRender: "sendMsg" }
+        }
       ],
       innerColumns: [
         { title: "列名", width: 160, dataIndex: "desp" },
@@ -146,7 +183,30 @@ export default {
       // 支付方式map key:code  value:label
       payStatusMap: new Map(),
       payTypeMap: new Map(),
-      appMap: new Map()
+      appMap: new Map(),
+      modal_notifyLogVisible: false,
+      // 通知记录表格
+      notifyLogHd: [
+        { title: "通知地址", width: 200, dataIndex: "notifyUrl" },
+        {
+          title: "参数",
+          width: 250,
+          dataIndex: "params",
+          scopedSlots: { customRender: "longTextShow" }
+        },
+        { title: "响应", width: 180, dataIndex: "responseContent" },
+        { title: "通知时间", width: 120, dataIndex: "noticeDatetime" },
+        { title: "重试次数", width: 30, dataIndex: "repeatCount" },
+        {
+          title: "发送方式",
+          width: 40,
+          dataIndex: "sendType",
+          scopedSlots: { customRender: "sendType" }
+        },
+        { title: "创建时间", width: 120, dataIndex: "createdAt" }
+      ],
+      // 通知记录列表
+      notifyLogList: []
     };
   },
 
@@ -335,6 +395,42 @@ export default {
         }
       });
     },
+    // 查看异步通知记录
+    showNotifyLog(item) {
+      this.modal_notifyLogVisible = true;
+      this.notifyLogList = [];
+      HttpService.get("/web/order/getNotifyLog/" + item.id).then(res => {
+        if (res.data.status === 0) {
+          for (const i in res.data.data) {
+            let record = res.data.data[i];
+            this.notifyLogList.push({
+              key: i,
+              notifyUrl: record.notifyUrl,
+              params: record.params,
+              responseContent: record.responseContent,
+              noticeDatetime: record.noticeDatetime,
+              repeatCount: record.repeatCount,
+              sendType: record.sendType,
+              createdAt: record.createdAt
+            });
+          }
+        } else {
+          this.$message.error(res.data.message ? res.data.message : "系统错误");
+        }
+      });
+    },
+    modal_notify_close() {
+      this.modal_notifyLogVisible = false;
+    },
+    sendMsg(item) {
+      HttpService.get("/web/order/doNotify/" + item.id).then(res => {
+        if (res.data.status === 0) {
+          this.$message.success(res.data.message);
+        } else {
+          this.$message.error(res.data.message ? res.data.message : "系统错误");
+        }
+      });
+    },
     formatStatus(v) {
       return this.payStatusMap.get(v + "");
     },
@@ -365,7 +461,6 @@ export default {
 .actionBox button:last-child {
   margin-top: 5px;
 }
-
 .imgView {
   border: 1px dashed #d9d9d9;
   width: 104px;

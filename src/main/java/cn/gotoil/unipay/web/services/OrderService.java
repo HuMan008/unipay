@@ -1,6 +1,7 @@
 package cn.gotoil.unipay.web.services;
 
 
+import cn.gotoil.bill.web.message.BillApiResponse;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
@@ -103,4 +104,11 @@ public interface OrderService {
      */
     ModelAndView syncUrl(String orderId, HttpServletRequest httpServletRequest,
                          HttpServletResponse httpServletResponse) throws Exception;
+
+    /**
+     * 单独为某个订单发送通知
+     * @param order
+     * @return
+     */
+    BillApiResponse manualSendNotify(Order order);
 }

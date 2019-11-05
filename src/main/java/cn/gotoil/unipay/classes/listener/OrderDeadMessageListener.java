@@ -79,9 +79,10 @@ public class OrderDeadMessageListener {
             /**
              * 创建订单的时候无通知地址，并且应用未设置。
              */
-            if (StringUtils.isEmpty(notifyBean.getAsyncUrl())) {
-                log.error("订单【{}】异步通知地址为空...请通知应用【{}】补充", notifyBean.getUnionOrderID(), notifyBean.getAppId());
-                noticeLog.setResponseContent("通知地址为空");
+            if (StringUtils.isEmpty(notifyBean.getAsyncUrl()) || !notifyBean.getAsyncUrl().toUpperCase().startsWith(
+                    "HTTP")) {
+                log.error("订单【{}】异步通知地址为空，或者没带协议...请通知应用【{}】补充", notifyBean.getUnionOrderID(), notifyBean.getAppId());
+                noticeLog.setResponseContent("通知地址格式不正确");
                 channel.basicAck(tag, true);
                 return;
             }
@@ -95,10 +96,7 @@ public class OrderDeadMessageListener {
             //把参数post提交到异步通知地址里去
             String responStr = UtilHttpClient.notifyPost(notifyBean.getAsyncUrl(), ObjectHelper.introspect(notifyBean));
             noticeLog.setResponseContent(responStr);
-            if ("success".equalsIgnoreCase(responStr)) {
-                channel.basicAck(tag, true);
-                return;
-            } else {
+            if (!"success".equalsIgnoreCase(responStr)) {
                 //对方未响应success
                 message.getMessageProperties().getExpiration();
                 Map<String, Object> headers = message.getMessageProperties().getHeaders();
@@ -114,10 +112,12 @@ public class OrderDeadMessageListener {
                     String signStr = UtilMySign.sign(notifyBean, appSecret);
                     notifyBean.setSign(signStr);
                     //用下一个队列发送消息
-                    rabbitTemplate.convertAndSend(orderMessageConfig.getMessageQueues().get(index + 1).getExchangeName(),
-                            ConstsRabbitMQ.ORDERROUTINGKEY, JSON.toJSONString(notifyBean));
+                    rabbitTemplate.convertAndSend(orderMessageConfig.getMessageQueues().get(index + 1).getExchangeName(), ConstsRabbitMQ.ORDERROUTINGKEY, JSON.toJSONString(notifyBean));
                 }
             }
+            // 不管什么情况 ，我都要消费掉他。
+            channel.basicAck(tag, true);
+            return;
         } catch (UnknownHostException uhe) {
             noticeLog.setResponseContent("通知地址不可到达");
             log.error("通知地址不可到达【】..{},\t异常：{}", message.getBody(), uhe);
