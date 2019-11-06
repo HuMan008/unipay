@@ -19,3 +19,7 @@ gradle-app.setting
 # gradle/wrapper/gradle-wrapper.properties
 
 #/build.gradle
+
+src/main/resources/static/index.html
+src/main/resources/static/static
+

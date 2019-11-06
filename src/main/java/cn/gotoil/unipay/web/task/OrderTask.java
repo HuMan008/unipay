@@ -48,7 +48,7 @@ public class OrderTask {
     private ExecutorService executorService;
 
 
-    @Scheduled(initialDelay = 8000, fixedDelay = 1000 * 60 * 5)
+//    @Scheduled(initialDelay = 8000, fixedDelay = 1000 * 60 * 5)
     public void expiredOrder() {
         if (redisLockHelper.hasLock(OrderExpiredSync)) {
             return;

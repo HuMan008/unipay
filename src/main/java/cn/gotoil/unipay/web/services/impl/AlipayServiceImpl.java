@@ -5,6 +5,7 @@ import cn.gotoil.unipay.model.ChargeAccount;
 import cn.gotoil.unipay.model.ChargeAlipayModel;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.model.enums.EnumOrderStatus;
+import cn.gotoil.unipay.utils.DateUtil;
 import cn.gotoil.unipay.utils.UtilMoney;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
@@ -26,12 +27,14 @@ import com.alipay.api.response.AlipayTradeWapPayResponse;
 import com.google.common.base.Charsets;
 import com.google.common.net.UrlEscapers;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
 
 /**
  * 支付宝支付实现
@@ -195,7 +198,13 @@ public class AlipayServiceImpl implements AlipayService {
                 return orderQueryResponse;
 
             } else if ("40004".equals(alipayTradeQueryResponse.getCode()) && "ACQ.TRADE_NOT_EXIST".equals(alipayTradeQueryResponse.getSubCode())) {
-                return OrderQueryResponse.builder().unionOrderID(order.getId()).appOrderNO(order.getAppOrderNo()).paymentId(alipayTradeQueryResponse.getOutTradeNo()).orderFee(0).payFee(0).thirdStatus(alipayTradeQueryResponse.getTradeStatus()).thirdCode(alipayTradeQueryResponse.getCode()).status(EnumOrderStatus.Created.getCode()).thirdMsg(alipayTradeQueryResponse.getMsg()).build();
+                // 在用户输入正确的支付密码前，订单都是不存在 那么 就应该判断是否真过期
+                Date flagDate  = DateUtils.addMilliseconds(order.getCreatedAt(),order.getExpiredTimeMinute()+15);
+                if(flagDate.getTime()<System.currentTimeMillis()){
+                    return OrderQueryResponse.builder().unionOrderID(order.getId()).appOrderNO(order.getAppOrderNo()).paymentId(alipayTradeQueryResponse.getOutTradeNo()).orderFee(0).payFee(0).thirdStatus(alipayTradeQueryResponse.getTradeStatus()).thirdCode(alipayTradeQueryResponse.getCode()).status(EnumOrderStatus.PayFailed.getCode()).thirdMsg(alipayTradeQueryResponse.getMsg()).build();
+                }else{
+                    return OrderQueryResponse.builder().unionOrderID(order.getId()).appOrderNO(order.getAppOrderNo()).paymentId(alipayTradeQueryResponse.getOutTradeNo()).orderFee(0).payFee(0).thirdStatus(alipayTradeQueryResponse.getTradeStatus()).thirdCode(alipayTradeQueryResponse.getCode()).status(EnumOrderStatus.Created.getCode()).thirdMsg(alipayTradeQueryResponse.getMsg()).build();
+                }
             } else {
                 logger.error("执行【{}】支付宝订单状态查询失败{}", order.getId(), JSONObject.toJSONString(alipayTradeQueryResponse));
                 return OrderQueryResponse.builder().appOrderNO(order.getAppOrderNo()).

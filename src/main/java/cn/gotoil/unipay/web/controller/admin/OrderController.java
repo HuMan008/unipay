@@ -62,7 +62,7 @@ ExtOrderQueryMapper extOrderQueryMapper;
         params.put("beginTime",(String)orderQueryPayingListRequest.getParams().getOrDefault("beginTime",""));
         params.put("endTime",(String)orderQueryPayingListRequest.getParams().getOrDefault("endTime",""));
         params.put("payType",(String)orderQueryPayingListRequest.getParams().getOrDefault("payType",""));
-        params.put("offset", orderQueryPayingListRequest.getPageNo());
+        params.put("offset", orderQueryPayingListRequest.getPageNo()-1);
         params.put("pageSize", orderQueryPayingListRequest.getPageSize());
         List<Order> orderList = extOrderQueryMapper.queryOrder(params);
         for(Order order:orderList){
