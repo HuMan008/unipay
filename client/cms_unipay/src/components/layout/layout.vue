@@ -14,7 +14,7 @@
       <a-dropdown :trigger="['click']">
         <a href="#" class="ant-dropdown-link">
           <a-icon type="user"/>
-          {{userType}}
+          {{nickName}}
           <a-icon type="down" />
         </a>
         <a-menu slot="overlay">
@@ -42,8 +42,8 @@
               <a-icon type="user" />
               <span>系统管理</span>
             </span>
-            <a-menu-item key="1" @click="routerChange('AppManage')">应用管理</a-menu-item>
-            <a-menu-item key="2" @click="routerChange('ChargeConfig')">收款账号管理</a-menu-item>
+            <a-menu-item key="11" @click="routerChange('AppManage')">应用管理</a-menu-item>
+            <a-menu-item key="12" @click="routerChange('ChargeConfig')">收款账号管理</a-menu-item>
           </a-sub-menu>
 
            <a-sub-menu key="sub2" class="mySubMenu">
@@ -51,7 +51,8 @@
               <a-icon type="user" />
               <span>订单管理</span>
             </span>
-            <a-menu-item key="3" @click="routerChange('OrderManage')">订单列表</a-menu-item>
+            <a-menu-item key="21" @click="routerChange('OrderManage')">订单列表</a-menu-item>
+            <a-menu-item key="22" @click="routerChange('PayingOrder')">支付中订单</a-menu-item>
           </a-sub-menu>
 
         </a-menu>
@@ -70,7 +71,7 @@ export default {
   data() {
     return {
       collapsed: false,
-      userType: ''
+      nickName: ''
     }
   },
   mounted() {
@@ -84,7 +85,7 @@ export default {
       this.$router.push({name: link})
     },
     getInfo() {
-      // this.userType = JSON.parse(window.sessionStorage.getItem('gt_bike_user')).real_name
+      this.nickName = JSON.parse(window.sessionStorage.getItem('gt_user_info')).nickName
     },
     logOut() {
       this.$store.commit('CLEAN_USER')

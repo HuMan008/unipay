@@ -7,6 +7,7 @@ import Login from '@/components/login/login'
 import AppManage from '@/components/app-manage/app-manage';
 import ChargeConfig from '@/components/charge-manage/chargeConfigManage';
 import OrderManage from '@/components/order-manage/order-manage';
+import PayingOrder from '@/components/order-manage/payingOrder';
 
 Vue.use(Router)
 
@@ -45,6 +46,10 @@ export default new Router({
           path: '/main/OrderManage',
           name: 'OrderManage',
           component: OrderManage
+        }, {
+          path: '/main/PayingOrder',
+          name: 'PayingOrder',
+          component: PayingOrder
         }
       ]
     }

@@ -56,9 +56,11 @@ public class OrderQuerySerivceImpl implements OrderQueryService {
         BasePageResponse pageResponse = new BasePageResponse();
         BeanUtils.copyProperties(orderQueryPayingListRequest, pageResponse);
         Map<String, Object> params = orderQueryPayingListRequest.getParams();
-        params.put("status", EnumOrderStatus.Created);
+        params.put("status", EnumOrderStatus.Created.getCode());
         int total = extOrderQueryMapper.queryOrderCounts(params);
         pageResponse.setTotal(total);
+        params.put("offset", pageResponse.getOffset());
+        params.put("pageSize", pageResponse.getPageSize());
         pageResponse.setRows(extOrderQueryMapper.queryOrder(params));
         return pageResponse;
     }

@@ -5,7 +5,10 @@ import cn.gotoil.bill.web.annotation.NeedLogin;
 import cn.gotoil.bill.web.message.BillApiResponse;
 import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.entity.Order;
+import cn.gotoil.unipay.model.enums.EnumOrderStatus;
+import cn.gotoil.unipay.model.mapper.ext.ExtOrderQueryMapper;
 import cn.gotoil.unipay.web.message.request.admin.OrderQueryListRequest;
+import cn.gotoil.unipay.web.message.request.admin.OrderQueryPayingListRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.message.response.admin.BaseComboResponse;
 import cn.gotoil.unipay.web.services.NoticeLogService;
@@ -16,6 +19,11 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("web/order")
@@ -29,6 +37,8 @@ public class OrderController {
     OrderService orderService;
     @Autowired
     NoticeLogService noticeLogService;
+@Resource
+ExtOrderQueryMapper extOrderQueryMapper;
 
     @ApiOperation(value = "订单查询", position = 1, tags = "订单管理")
     @RequestMapping(value = "queryOrder", method = RequestMethod.POST)
@@ -37,12 +47,30 @@ public class OrderController {
         return orderQueryService.queryOrder(orderQueryListRequest);
     }
 
-   /* @ApiOperation(value = "支付中订单查询", position = 3, tags = "订单管理")
-    @RequestMapping(value = "queryPayingOrder", method = RequestMethod.GET)
+//   /* @ApiOperation(value = "支付中订单查询", position = 3, tags = "订单管理")
+    @RequestMapping(value = "queryPayingOrder", method = RequestMethod.POST)
     @NeedLogin
-    public Object queryPayingOrder(@RequestBody OrderQueryPayingListRequest orderQueryPayingListRequest){
+    public Object queryPayingOrderAction(@RequestBody OrderQueryPayingListRequest orderQueryPayingListRequest){
         return orderQueryService.queryPayingOrder(orderQueryPayingListRequest);
-    }*/
+    }
+
+    @RequestMapping(value = "doSyncOrder", method = RequestMethod.POST)
+    @NeedLogin
+    public Object doSyncOrderrAction(@RequestBody OrderQueryPayingListRequest orderQueryPayingListRequest){
+        Map<String,Object> params =  new HashMap<>();
+        params.put("status", EnumOrderStatus.Created.getCode());
+        params.put("beginTime",(String)orderQueryPayingListRequest.getParams().getOrDefault("beginTime",""));
+        params.put("endTime",(String)orderQueryPayingListRequest.getParams().getOrDefault("endTime",""));
+        params.put("payType",(String)orderQueryPayingListRequest.getParams().getOrDefault("payType",""));
+        params.put("offset", orderQueryPayingListRequest.getPageNo());
+        params.put("pageSize", orderQueryPayingListRequest.getPageSize());
+        List<Order> orderList = extOrderQueryMapper.queryOrder(params);
+        for(Order order:orderList){
+            orderService.syncOrderWithReomte(order);
+        }
+        return new BillApiResponse(0,"同步成功，请刷新页面",null);
+
+    }
 
     @ApiOperation(value = "查询订单状态，退款状态", position = 5, tags = "订单管理")
     @RequestMapping(value = "queryOrderStatus", method = RequestMethod.GET)

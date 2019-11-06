@@ -1,8 +1,8 @@
 <template>
   <div>
     <a-breadcrumb style="margin: 16px 0">
-      <a-breadcrumb-item>应用管理</a-breadcrumb-item>
-      <a-breadcrumb-item>应用列表</a-breadcrumb-item>
+      <a-breadcrumb-item>订单管理</a-breadcrumb-item>
+      <a-breadcrumb-item>订单列表</a-breadcrumb-item>
     </a-breadcrumb>
     <a-layout-content
       :style="{ background: '#fff', padding: '24px', margin: 0, minHeight: '300px' }"
@@ -46,7 +46,7 @@
               :value="item.value"
             >{{item.label}}</a-select-option>
           </a-select>
-        </a-form-item>
+        </a-form-item >
         <a-form-item>
           <a-button type="primary" @click="getList(1,20)">查询</a-button>
         </a-form-item>
@@ -61,14 +61,19 @@
         <div slot="statusDiv" slot-scope="item">{{formatStatus(item)}}</div>
         <div slot="appDiv" slot-scope="item">{{formatApp(item)}}</div>
         <div slot="payTypeDiv" slot-scope="item">{{formatPayType(item)}}</div>
-        <a
+        <div
+          @dblclick="() => remoteQuery(item.id,item.appId)"
+          slot="orderIdDiv"
+          slot-scope="text, item"
+          title="双击我查看远程状态"
+        >{{text}}</div>
+        <a v-if="item.status===0"
           href="javaScript:void(0)"
           slot="notifyLog"
           slot-scope="item"
           @click="showNotifyLog(item)"
         >查看</a>
-        <a href="#" slot="sendMsg" slot-scope="item" @click="sendMsg(item)">发送</a>
-
+        <a v-if="item.status===0" href="#" slot="sendMsg" slot-scope="item" @click="sendMsg(item)">发送</a>
         <a-table
           :bordered="true"
           slot="expandedRowRender"
@@ -110,14 +115,19 @@ import { HttpService } from "../../services/HttpService";
 export default {
   metaInfo() {
     return {
-      title: "应用管理"
+      title: "订单管理"
     };
   },
   data() {
     return {
       collapsed: false,
       tHead: [
-        { title: "统一订单号", width: 180, dataIndex: "id" },
+        {
+          title: "统一订单号",
+          width: 180,
+          dataIndex: "id",
+          scopedSlots: { customRender: "orderIdDiv" }
+        },
         {
           title: "应用名称",
           width: 150,
@@ -442,6 +452,37 @@ export default {
     },
     pageChange(pagination) {
       // console.log(pagination)
+    },
+    // 订单远程状态查询
+    remoteQuery(orderId, appId) {
+      HttpService.get(
+        "/web/order/queryOrderStatus?appkey=" +
+          appId +
+          "&orderId=" +
+          orderId +
+          "&type=remoteStatus"
+      ).then(res => {
+        let dd = res.data;
+        if (dd.status === 0) {
+          let jsonData = dd.data;
+          var t = jsonData.status === 0 ? "success" : jsonData.status === 1 ? "info" : "warning";
+          let thirdCodeMsg = jsonData.thirdCode + jsonData.thirdMsg;
+          let payResult = jsonData.status === 0 ? '成功' : jsonData.status === 1 ? '待支付' : '失败';
+          let description =
+            '订单金额【' + jsonData.orderFee + '】分.' +
+            '远程响应代码【' + thirdCodeMsg + '】' +
+            '本地状态解析【' + payResult + '】';
+          if (jsonData.status === 0) {
+            description = description + '支付金额【' + jsonData.payFee + '】分.'
+          }
+          this.$notification[t]({
+            message: jsonData.unionOrderID,
+            description: description
+          });
+        } else {
+          this.$message.error(res.data.message ? res.data.message : "系统错误");
+        }
+      });
     },
     moment
   },

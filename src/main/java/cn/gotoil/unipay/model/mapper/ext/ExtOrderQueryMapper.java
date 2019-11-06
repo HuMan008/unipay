@@ -8,7 +8,7 @@ import java.util.Map;
 
 @Mapper
 public interface ExtOrderQueryMapper {
-    List<OrderView> queryOrder(Map<String,Object> params);
+    List<Order> queryOrder(Map<String,Object> params);
 
     int queryOrderCounts(Map<String,Object> params);
 
