@@ -95,14 +95,6 @@ public class AccountController {
         return new BillApiResponse("刷新成功");
     }
 
-    @ApiOperation(value = "配置应用收款账号", position = 17, tags = "账号管理")
-    @RequestMapping(value = "/setAppAndAccount", method = {RequestMethod.GET})
-    @NeedLogin
-    public Object setAppAndAccountAction(@ApiParam(value = "appkey") @RequestParam String[] appkey,
-                                         @ApiParam(value = "accountId") @RequestParam String accountId) {
-        configService.setAppAndAccount(appkey, accountId);
-        return new BillApiResponse("操作成功");
-    }
 
 
 }

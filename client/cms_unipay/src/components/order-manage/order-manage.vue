@@ -93,12 +93,15 @@
         :confirmLoading="false"
       >
         <a-table :columns="notifyLogHd" :dataSource="notifyLogList" :pagination="false">
-          <div
-            :title="record.params"
-            :style="{maxWidth: '300px',whiteSpace: 'nowrap',textOverflow: 'ellipsis',overflow: 'hidden', wordWrap: 'break-word', wordBreak: 'break-all' }"
-            slot="longTextShow"
-            slot-scope="text, record"
-          >{{record.params}}</div>
+          <div :title="item.notifyUrl" slot="longTextShow_url" slot-scope="item">
+            <p class="longtext" style="max-width:200px">  {{item.notifyUrl}}</p>
+          </div>
+          <div :title="item.params" slot="longTextShow_param" slot-scope="item">
+            <p class="longtext" style="max-width:250px">  {{item.params}}</p>
+          </div>
+          <div :title="item.responseContent" slot="longTextShow_response" slot-scope="item">
+            <p class="longtext" style="max-width:180px">  {{item.responseContent}}</p>
+          </div>
           <div slot="sendType" slot-scope="text">{{text==='0'?"自动":'手动'}}</div>
         </a-table>
       </a-modal>
@@ -197,16 +200,15 @@ export default {
       modal_notifyLogVisible: false,
       // 通知记录表格
       notifyLogHd: [
-        { title: "通知地址", width: 200, dataIndex: "notifyUrl" },
+        { title: "通知地址", width: 200, scopedSlots: { customRender: "longTextShow_url" } },
         {
           title: "参数",
           width: 250,
-          dataIndex: "params",
-          scopedSlots: { customRender: "longTextShow" }
+          scopedSlots: { customRender: "longTextShow_param" }
         },
-        { title: "响应", width: 180, dataIndex: "responseContent" },
+        { title: "响应", width: 180, scopedSlots: { customRender: "longTextShow_response" } },
         { title: "通知时间", width: 120, dataIndex: "noticeDatetime" },
-        { title: "重试次数", width: 30, dataIndex: "repeatCount" },
+        { title: "次数", width: 30, dataIndex: "repeatCount" },
         {
           title: "发送方式",
           width: 40,
@@ -465,9 +467,9 @@ export default {
         let dd = res.data;
         if (dd.status === 0) {
           let jsonData = dd.data;
-          var t = jsonData.status === 0 ? "success" : jsonData.status === 1 ? "info" : "warning";
+          var t = jsonData.status === 0 ? "success" : (jsonData.status === 1 ? "info" : "warning");
           let thirdCodeMsg = jsonData.thirdCode + jsonData.thirdMsg;
-          let payResult = jsonData.status === 0 ? '成功' : jsonData.status === 1 ? '待支付' : '失败';
+          let payResult = jsonData.status === 0 ? '成功' : (jsonData.status === 1 ? '待支付' : '失败');
           let description =
             '订单金额【' + jsonData.orderFee + '】分.' +
             '远程响应代码【' + thirdCodeMsg + '】' +
@@ -548,14 +550,6 @@ export default {
   display: block;
 }
 
-.pUrl {
-  max-width: 280px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-bottom: 0;
-}
-
 input {
   width: 320px;
 }
@@ -567,5 +561,13 @@ textarea {
 .serchItem {
   margin-left: 10px;
   margin-right: 18px;
+}
+
+.longText{
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0;
 }
 </style>

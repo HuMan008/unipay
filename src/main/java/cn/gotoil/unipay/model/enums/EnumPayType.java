@@ -16,13 +16,13 @@ import java.util.stream.Collectors;
 @SuppressWarnings("all")
 public enum EnumPayType {
 
-    WechatH5("WechatH5", "微信H5支付", EnumPayCategory.Wechat),
+    WechatH5("WechatH5", "微信H5", EnumPayCategory.Wechat),
 
-    WechatJSAPI("WechatJSAPI", "微信JSAPI支付", EnumPayCategory.Wechat),
+    WechatJSAPI("WechatJSAPI", "微信JSAPI", EnumPayCategory.Wechat),
 
-    WechatSDK("WechatSDK", "微信SDK支付", EnumPayCategory.Wechat),
+    WechatSDK("WechatSDK", "微信SDK", EnumPayCategory.Wechat),
 
-    WechatNAtive("WechatNative", "微信Native支付", EnumPayCategory.Wechat),
+    WechatNAtive("WechatNative", "微信Native", EnumPayCategory.Wechat),
 
 
     AlipayH5("AlipayH5", "支付宝H5", EnumPayCategory.Alipay),

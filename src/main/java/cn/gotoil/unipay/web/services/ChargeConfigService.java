@@ -82,11 +82,4 @@ public interface ChargeConfigService {
      */
     int refreshAccount();
 
-    /**
-     * 配置应用收款信息
-     *
-     * @param appkeys
-     * @param accountId
-     */
-    void setAppAndAccount(String[] appkeys, String accountId);
 }

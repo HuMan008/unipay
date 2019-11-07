@@ -210,6 +210,7 @@ public class AppServiceImpl implements AppService {
     @Override
     @OpLog(desc = "更新应用")
     public int updateApp(App app, AppAccountIds appAccountIds) {
+        app.setUpdatedAt(new Date());
         int result = appMapper.updateByPrimaryKeySelective(app);
 
         //禁用类型

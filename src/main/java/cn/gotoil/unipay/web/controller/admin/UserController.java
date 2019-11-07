@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 @RestController
 @RequestMapping("web/user")
 @Api(description = "用户管理")
-public class UnipayController {
+public class UserController {
 
     @Autowired
     AdminUserService adminUserService;

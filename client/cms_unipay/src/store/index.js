@@ -41,7 +41,6 @@ const store = new Vuex.Store({
   },
   getters: {
     authenticated(state) {
-      console.log(state)
       return state.user && state.user.token
     },
     hasRole(state, roleCode) {

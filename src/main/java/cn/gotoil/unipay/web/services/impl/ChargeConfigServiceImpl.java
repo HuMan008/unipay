@@ -106,10 +106,8 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
 
     @Override
     public void addAppChargeAccount2Redis(AppChargeAccount appChargeAccount) {
-//        String key1 = appChargAccountKey(appChargeAccount.getId());
-        String key2 = appChargAccountKey4AppidAndPayType(appChargeAccount.getAppId(), appChargeAccount.getPayType());
-//        redisHashHelper.set(key1, appChargeAccount, IGNORESET);
-        redisHashHelper.set(key2, appChargeAccount, IGNORESET);
+        String key = appChargAccountKey4AppidAndPayType(appChargeAccount.getAppId(), appChargeAccount.getPayType());
+        redisHashHelper.set(key, appChargeAccount, IGNORESET);
     }
 
 
@@ -209,7 +207,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
         int result = extChargeConfigMapper.insertChargeConfig(chargeConfig);
         if (result == 1) {
             String key = appChargAccountKey(chargeConfig.getId());
-            redisHashHelper.set(key, chargeConfig, Sets.newHashSet("config"));
+            redisHashHelper.set(key, chargeConfig, IGNORESET);
         }
         return result;
     }
@@ -234,7 +232,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
         int result = chargeConfigMapper.updateByPrimaryKeyWithBLOBs(chargeConfig);
         if (result == 1) {
             String key = appChargAccountKey(chargeConfig.getId());
-            redisHashHelper.set(key, chargeConfig, Sets.newHashSet("config"));
+            redisHashHelper.set(key, chargeConfig,IGNORESET);
         }
         return result;
     }
@@ -286,7 +284,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
         if (result == 1) {
             ChargeConfig c1 = chargeConfigMapper.selectByPrimaryKey(id);
             String key = appChargAccountKey(c1.getId());
-            redisHashHelper.set(key, c1, Sets.newHashSet("config"));
+            redisHashHelper.set(key, c1, IGNORESET);
         }
         return result == 1 ? true : false;
     }
@@ -312,37 +310,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
         return 0;
     }
 
-    /**
-     * 配置应用收款信息
-     *
-     * @param appkeys
-     * @param accountId
-     */
-    @Override
-    public void setAppAndAccount(String[] appkeys, String accountId) {
-        Integer acId = Integer.valueOf(accountId);
-        ChargeConfig chargeConfig = chargeConfigMapper.selectByPrimaryKey(acId);
-        if (chargeConfig == null) {
-            throw new BillException(9001, "收款账号不存在");
-        }
 
-        AppChargeAccountExample example = new AppChargeAccountExample();
-        for (String appkey : appkeys) {
-            AppChargeAccountExample.Criteria criteria = example.createCriteria();
-            criteria.andPayTypeEqualTo(chargeConfig.getPayType()).andAppIdEqualTo(appkey).andAccountIdEqualTo(acId);
-            if (appChargeAccountMapper.selectByExample(example).size() == 0) {
-                AppChargeAccount appChargeAccount = new AppChargeAccount();
-                appChargeAccount.setStatus(EnumStatus.Enable.getCode());
-                appChargeAccount.setAccountId(acId);
-                appChargeAccount.setPayType(chargeConfig.getPayType());
-                appChargeAccount.setAppId(appkey);
-                appChargeAccount.setCreatedAt(new Date());
-                appChargeAccount.setUpdatedAt(new Date());
-                appChargeAccountMapper.insert(appChargeAccount);
-            }
-            example.clear();
-        }
-    }
 }
 
 

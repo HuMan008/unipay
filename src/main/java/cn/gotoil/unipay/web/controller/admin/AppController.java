@@ -10,11 +10,13 @@ import cn.gotoil.unipay.model.enums.EnumStatus;
 import cn.gotoil.unipay.web.message.request.admin.AppAddRquest;
 import cn.gotoil.unipay.web.message.request.admin.AppListRequest;
 import cn.gotoil.unipay.web.message.response.admin.BaseComboResponse;
+import cn.gotoil.unipay.web.message.response.admin.PayTypeWithCatResponse;
 import cn.gotoil.unipay.web.message.response.admin.PaytypeResponse;
 import cn.gotoil.unipay.web.services.AppService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -43,12 +45,23 @@ public class AppController {
         for (EnumPayType enums : EnumPayType.values()) {
             PaytypeResponse paytypeResponse = new PaytypeResponse();
             paytypeResponse.setPayName(enums.getDescp());
-            paytypeResponse.setPayType(enums.getCode());
+            paytypeResponse.setPayType(enums.getCode().substring(0,1).toLowerCase().concat(enums.getCode().substring(1)));
+//            paytypeResponse.setPayType(enums.getCode());
             paytypeResponse.setChargeConfig(appService.queryAllAccount(enums.getCode()));
             paytypeResponse.setSelected(map.get(enums.getCode()));
+            paytypeResponse.setPayCategoryType(enums.getEnumPayCategory().getCode());
+            paytypeResponse.setPayCategoryTypeName(enums.getEnumPayCategory().getDescp());
             paytypeList.add(paytypeResponse);
         }
-        return paytypeList;
+
+        Map<String, List<PaytypeResponse>> tempMap =
+                paytypeList.stream().collect(Collectors.groupingBy(PaytypeResponse::getPayCategoryTypeName));
+        List<PayTypeWithCatResponse> resultList = new ArrayList<>();
+        for(Map.Entry<String, List<PaytypeResponse>> entity: tempMap.entrySet()){
+          PayTypeWithCatResponse payTypeWithCatResponse = new PayTypeWithCatResponse(entity.getKey(),entity.getValue())  ;
+            resultList.add(payTypeWithCatResponse);
+        }
+        return resultList;
     }
 
     @ApiOperation(value = "状态类型", position = 2, tags = "应用管理")

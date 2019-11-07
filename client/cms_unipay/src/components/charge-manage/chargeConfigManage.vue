@@ -43,8 +43,7 @@
         <a-button type="primary" @click="openModal('', 1)">新增收款账号</a-button>
       </a-form-item>
       <a-table :columns="tHead" :dataSource="ListOfData" :pagination="false">
-        <div slot="money" slot-scope="item">{{item.money / 100 | currency}}</div>
-        <div slot="preset_money" slot-scope="item">{{item.preset_money / 100 | currency}}</div>
+        <div slot="payTypeDiv" slot-scope="item">{{formatPayType(item)}}</div>
         <a-switch
           slot="modifyStatus"
           slot-scope="item"
@@ -54,14 +53,24 @@
           :defaultChecked="!item.status"
           @click="changeStatus(item)"
         />
-        <a href="#" slot="editConfig" slot-scope="item" @click="openModal(item,2)">编辑</a>
+        <a
+          href="javaScript:void(0);"
+          slot="editConfig"
+          slot-scope="item"
+          @click="openModal(item,2)"
+        >编辑</a>
         <a-table
+          :bordered="true"
           slot="expandedRowRender"
           slot-scope="record"
           :columns="innerColumns"
           :dataSource="record.innerData"
           :pagination="false"
-        ></a-table>
+        >
+          <div slot="longTextShow" slot-scope="item" :title="item.val">
+            <p class="longText">{{item.val}}</p>
+          </div>
+        </a-table>
       </a-table>
     </a-layout-content>
     <a-modal
@@ -159,6 +168,7 @@ export default {
   data() {
     return {
       payTypeCombo: [],
+      payTypeComboMap: new Map(),
       statusCombo: [],
       searchForm: {
         name: "",
@@ -169,7 +179,7 @@ export default {
       tHead: [
         // { title: "ID", width: 150, dataIndex: "id", display: "None" },
         { title: "账号名称", width: 180, dataIndex: "name" },
-        { title: "支付方式", width: 150, dataIndex: "payType" },
+        { title: "支付方式", width: 150, dataIndex: "payType", scopedSlots: { customRender: "payTypeDiv" } },
         {
           title: "创建于",
           width: 190,
@@ -194,8 +204,12 @@ export default {
         }
       ],
       innerColumns: [
-        { title: "列名", width: 120, dataIndex: "desp" },
-        { title: "值", dataIndex: "val" }
+        { title: "列名", width: 180, dataIndex: "desp" },
+        {
+          title: "值",
+          key: "val",
+          scopedSlots: { customRender: "longTextShow" }
+        }
       ],
       ListOfData: [],
       modelVisible: false,
@@ -221,9 +235,9 @@ export default {
   //   this.form = this.$form.createForm(this);
   // },
   mounted() {
-    this.getList();
     this.getStatusCombo();
     this.getPayTypeCombo();
+    this.getList();
   },
   methods: {
     // 获取列表数据
@@ -252,7 +266,7 @@ export default {
               innerData: [
                 {
                   key: "row" + i + listData[i].configJson,
-                  desp: "JSON值",
+                  desp: "JSON串",
                   val: listData[i].configJson
                 }
               ],
@@ -278,8 +292,14 @@ export default {
       HttpService.get("/web/app/getAccountTypes", {}).then(res => {
         if (res.data.status === 0) {
           this.payTypeCombo = res.data.data;
+          for (const i in res.data.data) {
+            this.payTypeComboMap.set(res.data.data[i].value, res.data.data[i].label);
+          }
         }
       });
+    },
+    formatPayType(v) {
+      return this.payTypeComboMap.get(v);
     },
     // 启用 禁用 应用
     changeStatus(item) {
@@ -475,8 +495,8 @@ export default {
   display: block;
 }
 
-.pUrl {
-  max-width: 280px;
+.longText {
+  max-width: 780px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

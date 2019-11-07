@@ -49,8 +49,13 @@
           :defaultChecked="!item.status"
           @click="changeStatus(item)"
         />
-        <a href="#" slot="editApp" slot-scope="item" @click="openModal(item,2)">编辑</a>
-        <a href="#" slot="payGrant" slot-scope="item" @click="openGrantPayModal(item.appKey)">支付授权</a>
+        <a href="javascript:void(0);" slot="editApp" slot-scope="item" @click="openModal(item,2)">编辑</a>
+        <a
+          href="javascript:void(0);"
+          slot="payGrant"
+          slot-scope="item"
+          @click="openGrantPayModal(item.appKey)"
+        >支付授权</a>
         <a-table
           :bordered="true"
           slot="expandedRowRender"
@@ -69,25 +74,30 @@
       @cancel="cancelGrant"
       :confirmLoading="confirmLoading"
     >
-      <a-form-item
-        :label="item.payName"
-        class="serchItem row"
-        v-for="item in selectList"
-        :key="item.payType"
-      >
-        <a-select
-          style="width: 380px"
-          :defaultValue="item.selected"
-          @change="chargeChange($event,item.payType)"
+      <template v-for="item in selectList">
+        <a-divider orientation="left" style="font-color:red" :key="item.cateName">{{item.cateName}}</a-divider>
+        <a-form-item
+          :label-col="{ span: 4}"
+          :wrapper-col="{ span: 6 }"
+          :label="item.payName"
+          class="serchItem row"
+          v-for="item in item.paytypeResponse"
+          :key="item.payType"
         >
-          <a-select-option value="0">禁用</a-select-option>
-          <a-select-option
-            v-for="configItem in item.chargeConfig"
-            :key="configItem.id"
-            :value="configItem.id"
-          >{{configItem.name }}</a-select-option>
-        </a-select>
-      </a-form-item>
+          <a-select
+            style="width: 380px"
+            :defaultValue="item.selected"
+            @change="chargeChange($event,item.payType)"
+          >
+            <a-select-option value="0">禁用</a-select-option>
+            <a-select-option
+              v-for="configItem in item.chargeConfig"
+              :key="configItem.id"
+              :value="configItem.id"
+            >{{configItem.name }}</a-select-option>
+          </a-select>
+        </a-form-item>
+      </template>
     </a-modal>
 
     <a-modal
@@ -207,7 +217,7 @@
             maxlength="200"
             v-decorator="[
           'asyncUrl',
-          {rules: [{ required: false, message: '默认交易备注' }]}
+          {rules: [{ required: false, message: '默认异步地址' }]}
         ]"
           />
         </a-form-item>
@@ -240,6 +250,10 @@ export default {
   },
   data() {
     return {
+      labelCol: {
+        xs: { span: 3 },
+        sm: { span: 4 }
+      },
       status1Options: [],
       collapsed: false,
       tHead: [
@@ -327,6 +341,11 @@ export default {
     chargeChange(newValue, chargeType) {
       // this.newCharge.push({ payType: chargeType, select: newValue });
       this.$set(this.newCharge, chargeType, newValue);
+      // this.$set(this.newCharge, this.firstCaseToLow(chargeType), newValue);
+      // console.log(this.newCharge, chargeType, newValue);
+    },
+    firstCaseToLow(s) {
+      return s.charAt(0).toLowerCase() + s.slice(1);
     },
     // 打开授权页面
     openGrantPayModal(id) {
@@ -338,14 +357,18 @@ export default {
         if (res.data.status === 0) {
           this.selectList = res.data.data;
           for (const i in res.data.data) {
-            let xx = res.data.data[i];
-            this.$set(
-              this.newCharge,
-              xx.payType,
-              xx.selected === null ? 0 : xx.selected
-            );
+            let xx = res.data.data[i].paytypeResponse;
+            for (const j in xx) {
+              let yy = xx[j];
+              this.$set(
+                this.newCharge,
+                yy.payType,
+                yy.selected === null ? 0 : yy.selected
+              );
+            }
           }
         }
+        // console.log(this.newCharge);
       });
     },
     // 授权对话框取消
@@ -360,7 +383,7 @@ export default {
         res => {
           if (res.data.status === 0) {
             let _this = this;
-            this.modelVisible = false;
+            this.grantModelVisible = false;
             this.$notification.success({
               message: "操作成功",
               duration: 3,
@@ -670,11 +693,11 @@ export default {
 }
 
 input {
-  width: 320px;
+  width: 280px;
 }
 
 textarea {
-  width: 320px;
+  width: 280px;
 }
 
 .serchItem {

@@ -18,4 +18,7 @@ public class PaytypeResponse {
     private String payType;
     private List<ChargeConfig> chargeConfig;
     private Integer selected;
+    private String payCategoryType;
+    private String payCategoryTypeName;
+
 }
