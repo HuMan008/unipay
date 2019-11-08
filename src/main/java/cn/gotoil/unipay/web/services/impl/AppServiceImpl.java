@@ -318,7 +318,7 @@ public class AppServiceImpl implements AppService {
             aca.setAppId(appKey);
             aca.setPayType(model.getPayTypeCode());
             aca.setAppId(String.valueOf(model.getAccId()));
-            aca.setUpdatedAt(date);
+            aca.setCreatedAt(date);
             aca.setUpdatedAt(date);
             aca.setStatus(EnumStatus.Enable.getCode());
             accounts.add(aca);
