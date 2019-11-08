@@ -294,16 +294,20 @@ public class AppServiceImpl implements AppService {
             List<Integer> hasPay =
                     AppChargeAccountReList.stream().map(e -> e.getAccountId()).collect(Collectors.toList());
             //页面数据-数据库已有数据就是需要增加的
-            List<Integer> watiAddList = pageChoose;
+            List<Integer> watiAddList = new ArrayList<>(pageChoose);
             watiAddList.removeAll(hasPay);
             //数据库有的，页面没有的 就是要删除的
-            List<Integer> waitDelete = hasPay;
+            List<Integer> waitDelete = new ArrayList<>(hasPay); ;
             waitDelete.removeAll(pageChoose);
             //添加
             List<TModel> waitAddModel = watiAddList.stream().map(e -> pageModelMap.get(e)).collect(Collectors.toList());
-            addAppConfigRelation(appAccountIds.getAppKey(), waitAddModel);
+            if(waitAddModel.size()>0){
+                addAppConfigRelation(appAccountIds.getAppKey(), waitAddModel);
+            }
             //移除
-            deleteByappIdAccId(appAccountIds.getAppKey(), waitDelete);
+            if(waitDelete.size()>0){
+                deleteByappIdAccId(appAccountIds.getAppKey(), waitDelete);
+            }
             return true;
         }
     }
@@ -317,7 +321,7 @@ public class AppServiceImpl implements AppService {
             AppChargeAccount aca = new AppChargeAccount();
             aca.setAppId(appKey);
             aca.setPayType(model.getPayTypeCode());
-            aca.setAppId(String.valueOf(model.getAccId()));
+            aca.setAccountId(model.getAccId());
             aca.setCreatedAt(date);
             aca.setUpdatedAt(date);
             aca.setStatus(EnumStatus.Enable.getCode());

@@ -156,9 +156,11 @@ public class AppController {
             throw new BillException(UnipayError.AppNotExists);
         }
         if (appService.grantPay(appAccountIds)) {
+            return new BillApiResponse("应用支付方式授权失败");
+        }else{
             throw new BillException(5000, "支付方式授权");
         }
-        return new BillApiResponse("应用支付方式授权失败");
+
     }
 
     @ApiOperation(value = "获取有效APP", position = 17, tags = "应用管理")
