@@ -11,6 +11,9 @@ import cn.gotoil.unipay.model.mapper.AppChargeAccountMapper;
 import cn.gotoil.unipay.model.mapper.AppMapper;
 import cn.gotoil.unipay.model.mapper.ChargeConfigMapper;
 import cn.gotoil.unipay.model.mapper.ext.AppQueryMapper;
+import cn.gotoil.unipay.model.mapper.ext.CommonExtMapper;
+import cn.gotoil.unipay.utils.SqlUtil.BatchEntity;
+import cn.gotoil.unipay.utils.SqlUtil.BatchUtil;
 import cn.gotoil.unipay.web.annotation.OpLog;
 import cn.gotoil.unipay.web.message.BasePageResponse;
 import cn.gotoil.unipay.web.message.request.admin.AppListRequest;
@@ -63,6 +66,8 @@ public class AppServiceImpl implements AppService {
     AppQueryMapper appQueryMapper;
     @Resource
     ChargeConfigService chargeConfigService;
+    @Resource
+    CommonExtMapper commonExtMapper;
 
 
     /**
@@ -306,12 +311,27 @@ public class AppServiceImpl implements AppService {
 
     int addAppConfigRelation(String appKey, List<TModel> reList) {
         log.info("添加" + reList.toString());
-        return 0;
+        List<AppChargeAccount> accounts = new ArrayList<>();
+        Date date = new Date();
+        for (TModel model : reList) {
+            AppChargeAccount aca = new AppChargeAccount();
+            aca.setAppId(appKey);
+            aca.setPayType(model.getPayTypeCode());
+            aca.setAppId(String.valueOf(model.getAccId()));
+            aca.setUpdatedAt(date);
+            aca.setUpdatedAt(date);
+            aca.setStatus(EnumStatus.Enable.getCode());
+            accounts.add(aca);
+        }
+        BatchEntity batchEntity = BatchUtil.buildBatchEntity("dp_app_charge_account", AppChargeAccount.class, accounts, "id");
+        return commonExtMapper.insertBatch(batchEntity);
     }
 
     int deleteByappIdAccId(String appKey, List<Integer> accIds) {
         log.info("删除" + accIds.toString());
-        return 0;
+        AppChargeAccountExample example = new AppChargeAccountExample();
+        example.createCriteria().andAppIdEqualTo(appKey).andAccountIdIn(accIds);
+        return appChargeAccountMapper.deleteByExample(example);
     }
 
     private Map<Integer, TModel> warpAccountIds(AppAccountIds appAccountIds) {
