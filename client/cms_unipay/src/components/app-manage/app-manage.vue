@@ -379,7 +379,7 @@ export default {
     doGrant() {
       // this.newCharge.push("appKey", "aaa");
       this.$set(this.newCharge, "appKey", this.waitGrantAppId);
-      HttpService.post("/web/app/updateApp?checkName=1", this.newCharge).then(
+      HttpService.post("/web/app/grantpay", this.newCharge).then(
         res => {
           if (res.data.status === 0) {
             let _this = this;

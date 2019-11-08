@@ -24,7 +24,7 @@ public interface AppService {
      * @param app
      * @return
      */
-    int createApp(App app, AppAccountIds appAccountIds);
+    int createApp(App app);
 
     /**
      * 根据appKey找对戏
@@ -74,10 +74,9 @@ public interface AppService {
      * 更新APP
      *
      * @param app
-     * @param appAccountIds
      * @return
      */
-    int updateApp(App app, AppAccountIds appAccountIds);
+    int updateApp(App app);
 
     /**
      * 查询有效APP
@@ -93,4 +92,11 @@ public interface AppService {
      * @return
      */
     Map getByAppkey(String appkey);
+
+    /**
+     * 应用支付方式授权
+     * @param appAccountIds
+     * @return
+     */
+    boolean grantPay(AppAccountIds appAccountIds);
 }

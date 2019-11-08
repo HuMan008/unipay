@@ -10,7 +10,7 @@ import javax.validation.constraints.Size;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class AppAddRquest extends AppAccountIds {
+public class AppAddRquest{
 
     @NotNull
     @Size(max = 50)

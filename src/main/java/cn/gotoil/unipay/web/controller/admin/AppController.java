@@ -3,6 +3,7 @@ package cn.gotoil.unipay.web.controller.admin;
 import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.web.annotation.NeedLogin;
 import cn.gotoil.bill.web.message.BillApiResponse;
+import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.entity.App;
 import cn.gotoil.unipay.model.entity.AppAccountIds;
 import cn.gotoil.unipay.model.enums.EnumPayType;
@@ -85,12 +86,9 @@ public class AppController {
         if (appService.nameHasExist(appAddRquest.getAppName(), null)) {
             throw new BillException(5000, "应用名称重复");
         }
-
         App app = new App();
         BeanUtils.copyProperties(appAddRquest, app);
-        AppAccountIds appAccountIds = new AppAccountIds();
-        BeanUtils.copyProperties(appAddRquest, appAccountIds);
-        if (appService.createApp(app, appAccountIds) != 1) {
+        if (appService.createApp(app) != 1) {
             throw new BillException(5000, "新增应用失败");
         }
         return new BillApiResponse("新增应用成功");
@@ -142,12 +140,25 @@ public class AppController {
             app.setStatus(EnumStatus.Enable.getCode());
         }
         BeanUtils.copyProperties(appAddRquest, app);
-        AppAccountIds appAccountIds = new AppAccountIds();
-        BeanUtils.copyProperties(appAddRquest, appAccountIds);
-        if (appService.updateApp(app, appAccountIds) != 1) {
+        if (appService.updateApp(app) != 1) {
             throw new BillException(5000, "修改应用失败");
         }
         return new BillApiResponse("修改应用成功");
+    }
+
+
+    @ApiOperation(value = "应用支付方式授权", position = 15, tags = "应用管理")
+    @RequestMapping(value = "/grantpay", method = {RequestMethod.POST})
+    @NeedLogin
+    public Object updateAppAction(@RequestBody  AppAccountIds appAccountIds  ) {
+        App app = appService.load(appAccountIds.getAppKey());
+        if(app==null){
+            throw new BillException(UnipayError.AppNotExists);
+        }
+        if (appService.grantPay(appAccountIds)) {
+            throw new BillException(5000, "支付方式授权");
+        }
+        return new BillApiResponse("应用支付方式授权失败");
     }
 
     @ApiOperation(value = "获取有效APP", position = 17, tags = "应用管理")

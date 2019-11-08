@@ -110,7 +110,17 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
         redisHashHelper.set(key, appChargeAccount, IGNORESET);
     }
 
-
+    /**
+     * 找应用找所有的支持的支付方式关系
+     * @param appId
+     * @return
+     */
+    @Override
+    public List<AppChargeAccount> getRByAppId(String appId){
+        AppChargeAccountExample appChargeAccountExample  = new AppChargeAccountExample();
+        appChargeAccountExample.createCriteria().andAppIdEqualTo(appId);
+        return appChargeAccountMapper.selectByExample(appChargeAccountExample);
+    }
 
     /**
      * 根据appid,收款类型，找具体的收款账号对象

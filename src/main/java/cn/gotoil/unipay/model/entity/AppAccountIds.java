@@ -27,4 +27,6 @@ public class AppAccountIds {
 
      @ApiModelProperty(required = true, example = "", value = "支付宝SDK", position = 11)
      private Integer AlipaySDK;
+
+     private String appKey;
 }

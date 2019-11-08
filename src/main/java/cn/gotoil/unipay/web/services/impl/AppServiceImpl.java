@@ -2,6 +2,7 @@ package cn.gotoil.unipay.web.services.impl;
 
 
 import cn.gotoil.bill.exception.BillException;
+import cn.gotoil.bill.exception.CommonError;
 import cn.gotoil.bill.web.helper.RedisHashHelper;
 import cn.gotoil.unipay.model.entity.*;
 import cn.gotoil.unipay.model.enums.EnumPayType;
@@ -16,6 +17,11 @@ import cn.gotoil.unipay.web.message.request.admin.AppListRequest;
 import cn.gotoil.unipay.web.services.AppService;
 import cn.gotoil.unipay.web.services.ChargeConfigService;
 import com.google.common.collect.Sets;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -26,6 +32,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 应用服务实现
@@ -34,6 +41,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2019-9-20、10:48
  */
 @Service
+@Slf4j
 public class AppServiceImpl implements AppService {
 
     public static final String APPCHARGKEY = "appCharge:";
@@ -65,7 +73,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     @OpLog(desc = "新增应用")
-    public int createApp(App app, AppAccountIds appAccountIds) {
+    public int createApp(App app) {
         app.setAppSecret(RandomStringUtils.random(40, true, true));
         app.setAppKey(RandomStringUtils.random(32, true, true));
         app.setStatus(EnumStatus.Enable.getCode());
@@ -73,31 +81,7 @@ public class AppServiceImpl implements AppService {
         app.setCreatedAt(d);
         app.setUpdatedAt(d);
         redisHashHelper.set(APPKEY + app.getAppKey(), app, IGNORESET);
-        appChargeAccountMapper(app.getAppKey(), appAccountIds);
         return appMapper.insert(app);
-    }
-
-    private void appChargeAccountMapper(String appId, AppAccountIds appAccountIds) {
-        if (appAccountIds != null) {
-            created(appId, appAccountIds.getAlipaySDK(), EnumPayType.AlipaySDK.getCode());
-            created(appId, appAccountIds.getAlipayH5(), EnumPayType.AlipayH5.getCode());
-            created(appId, appAccountIds.getWechatJSAPI(), EnumPayType.WechatJSAPI.getCode());
-            created(appId, appAccountIds.getWechatSDK(), EnumPayType.WechatSDK.getCode());
-            created(appId, appAccountIds.getWechatNative(), EnumPayType.WechatNAtive.getCode());
-            created(appId, appAccountIds.getWechatH5(), EnumPayType.WechatH5.getCode());
-        }
-    }
-
-    private void created(String appid, Integer payid, String code) {
-        if (payid != null && -1 != payid) {
-            AppChargeAccount appAC = new AppChargeAccount();
-            appAC.setCreatedAt(new Date());
-            appAC.setAccountId(payid);
-            appAC.setAppId(appid);
-            appAC.setPayType(code);
-            appAC.setStatus(EnumStatus.Enable.getCode());
-            appChargeAccountMapper.insert(appAC);
-        }
     }
 
     /**
@@ -196,7 +180,15 @@ public class AppServiceImpl implements AppService {
         updateApp.setAppKey(appkey);
         updateApp.setStatus(status);
         updateApp.setUpdatedAt(new Date());
-        return appMapper.updateByPrimaryKeySelective(updateApp) == 1 ? true : false;
+
+        int x = appMapper.updateByPrimaryKeySelective(updateApp);
+        if (x == 1) {
+            old.setStatus(status);
+            redisHashHelper.set(APPKEY + appkey, old, IGNORESET);
+            return true;
+        } else {
+            throw new BillException(CommonError.SystemError);
+        }
     }
 
 
@@ -204,46 +196,17 @@ public class AppServiceImpl implements AppService {
      * 更新APP
      *
      * @param app
-     * @param appAccountIds
      * @return
      */
     @Override
     @OpLog(desc = "更新应用")
-    public int updateApp(App app, AppAccountIds appAccountIds) {
+    public int updateApp(App app) {
         app.setUpdatedAt(new Date());
         int result = appMapper.updateByPrimaryKeySelective(app);
 
-        //禁用类型
-        List<String> disable = new ArrayList<String>();
-
-        setAccount(disable, appAccountIds.getAlipaySDK(), EnumPayType.AlipaySDK.getCode(), app.getAppKey());
-        setAccount(disable, appAccountIds.getAlipayH5(), EnumPayType.AlipayH5.getCode(), app.getAppKey());
-        setAccount(disable, appAccountIds.getWechatJSAPI(), EnumPayType.WechatJSAPI.getCode(), app.getAppKey());
-        setAccount(disable, appAccountIds.getWechatSDK(), EnumPayType.WechatSDK.getCode(), app.getAppKey());
-        setAccount(disable, appAccountIds.getWechatH5(), EnumPayType.WechatH5.getCode(), app.getAppKey());
-        setAccount(disable, appAccountIds.getWechatNative(), EnumPayType.WechatNAtive.getCode(), app.getAppKey());
-
-
-        if (disable.size() > 0) {
-            //禁用关联支付帐号信息
-            HashMap param = new HashMap();
-            param.put("appid", app.getAppKey());
-            param.put("pays", disable);
-            param.put("status", EnumStatus.Disable.getCode());
-
-            appQueryMapper.updateChargeaccountStatusByType(param);
-
-            List<AppChargeAccount> acs = appQueryMapper.selectChargeaccountStatusByType(param);
-            for (AppChargeAccount ac : acs) {
-                chargeConfigService.addAppChargeAccount2Redis(ac);
-            }
-        }
         if (result == 1) {
             App appNew = appMapper.selectByPrimaryKey(app.getAppKey());
             redisHashHelper.set(APPKEY + app.getAppKey(), appNew, IGNORESET);
-            for (String t : disable) {
-                removeAppChargeAccountFromRedis(t, app.getAppKey());
-            }
         }
         return result;
     }
@@ -253,69 +216,17 @@ public class AppServiceImpl implements AppService {
         redisTemplate.opsForHash().getOperations().expire(key, 0, TimeUnit.SECONDS);
     }
 
-    private void setAccount(List<String> disable, Integer accountId, String type, String appId) {
-        if (accountId == null || accountId.compareTo(0) == 0 || "".equals(accountId)) {
-            disable.add(type);
-        } else {//启用或新增关联支付帐号信息
-            AppChargeAccountExample example = new AppChargeAccountExample();
-            example.createCriteria().andAppIdEqualTo(appId)
-                    .andPayTypeEqualTo(type)
-                    .andAccountIdEqualTo(accountId);
-            List<AppChargeAccount> chares = appChargeAccountMapper.selectByExample(example);
-
-            if (chares.size() > 0) {
-                setCharge(chares.get(0));
-            } else {
-                createAndSetStatus(appId, accountId, type);
-            }
-        }
-    }
-
-    private void setCharge(AppChargeAccount appChargeAccount) {
-        if (appChargeAccount != null && appChargeAccount.getStatus() != EnumStatus.Enable.getCode()) {
-            AppChargeAccount updateAC = new AppChargeAccount();
-            updateAC.setId(appChargeAccount.getId());
-            updateAC.setUpdatedAt(new Date());
-            updateAC.setStatus(EnumStatus.Enable.getCode());
-            appChargeAccountMapper.updateByPrimaryKeySelective(updateAC);
-            updateAC = appChargeAccountMapper.selectByPrimaryKey(updateAC.getId());
-//            redisHashHelper.set(APPCHARGKEY+updateAC.getId(),updateAC,redisExceptFieldsForApp);
-
-            Map param = new HashMap<>();
-            param.put("status", EnumStatus.Disable.getCode());
-            param.put("appid", appChargeAccount.getAppId());
-            param.put("payType", appChargeAccount.getPayType());
-            param.put("accid", appChargeAccount.getAccountId());
-            appQueryMapper.updateChargeaccountStatusById(param);
-
-            List<AppChargeAccount> acs = appQueryMapper.selectChargeaccountStatusById(param);
-            for (AppChargeAccount ac : acs) {
-//                redisHashHelper.set(APPCHARGKEY+ac.getId(),ac,redisExceptFieldsForApp);
-                chargeConfigService.addAppChargeAccount2Redis(ac);
-            }
-        }
-    }
-
-    private void createAndSetStatus(String appid, Integer accid, String type) {
-        created(appid, accid, type);
-
-        Map param = new HashMap<>();
-        param.put("status", EnumStatus.Disable.getCode());
-        param.put("appid", appid);
-        param.put("payType", type);
-        param.put("accid", accid);
-        appQueryMapper.updateChargeaccountStatusById(param);
-    }
 
     /**
      * 查询有效APP
-     * @param  includeDisabled 是否包含无效
+     *
+     * @param includeDisabled 是否包含无效
      * @return
      */
     @Override
     public List<App> getApps(boolean includeDisabled) {
         AppExample example = new AppExample();
-        if(includeDisabled){
+        if (includeDisabled) {
             example.createCriteria().andStatusEqualTo(EnumStatus.Enable.getCode());
         }
         return appMapper.selectByExample(example);
@@ -347,4 +258,101 @@ public class AppServiceImpl implements AppService {
         }
         return typeAccountId;
     }
+
+    /**
+     * 应用支付方式授权
+     *
+     * @param appAccountIds
+     * @return
+     */
+    @Override
+    public boolean grantPay(AppAccountIds appAccountIds) {
+        //支付方式添加 ，这里还需要加
+        Map<Integer, TModel> pageModelMap = warpAccountIds(appAccountIds);
+        //页面上选的accountIds
+        List<Integer> pageChoose = pageModelMap.values().stream().map(m -> m.getAccId()).collect(Collectors.toList());
+        //已设置的应用收款账号关系
+        List<AppChargeAccount> AppChargeAccountReList = chargeConfigService.getRByAppId(appAccountIds.getAppKey());
+        //页面啥都没传
+        if (pageModelMap == null || pageModelMap.size() == 0) {
+            deleteByappIdAccId(appAccountIds.getAppKey(), pageChoose);
+            return true;
+        }
+        //以前无数据
+        if (AppChargeAccountReList.isEmpty()) {
+            //直接添加关系；
+            addAppConfigRelation(appAccountIds.getAppKey(),
+                    pageModelMap.values().stream().collect(Collectors.toList()));
+            return true;
+        } else {
+            //已配置的支付方式ID
+            List<Integer> hasPay =
+                    AppChargeAccountReList.stream().map(e -> e.getAccountId()).collect(Collectors.toList());
+            //页面数据-数据库已有数据就是需要增加的
+            List<Integer> watiAddList = pageChoose;
+            watiAddList.removeAll(hasPay);
+            //数据库有的，页面没有的 就是要删除的
+            List<Integer> waitDelete = hasPay;
+            waitDelete.removeAll(pageChoose);
+            //添加
+            List<TModel> waitAddModel = watiAddList.stream().map(e -> pageModelMap.get(e)).collect(Collectors.toList());
+            addAppConfigRelation(appAccountIds.getAppKey(), waitAddModel);
+            //移除
+            deleteByappIdAccId(appAccountIds.getAppKey(), waitDelete);
+            return true;
+        }
+    }
+
+
+    int addAppConfigRelation(String appKey, List<TModel> reList) {
+        log.info("添加" + reList.toString());
+        return 0;
+    }
+
+    int deleteByappIdAccId(String appKey, List<Integer> accIds) {
+        log.info("删除" + accIds.toString());
+        return 0;
+    }
+
+    private Map<Integer, TModel> warpAccountIds(AppAccountIds appAccountIds) {
+        Map<Integer, TModel> pageModelMap = new HashMap();
+        if (appAccountIds.getAlipayH5() != 0) {
+            pageModelMap.put(appAccountIds.getAlipayH5(), new TModel(EnumPayType.AlipayH5.getCode(),
+                    appAccountIds.getAlipayH5()));
+        }
+        if (appAccountIds.getAlipaySDK() != 0) {
+            pageModelMap.put(appAccountIds.getAlipaySDK(), new TModel(EnumPayType.AlipaySDK.getCode(),
+                    appAccountIds.getAlipaySDK()));
+        }
+        if (appAccountIds.getWechatH5() != 0) {
+            pageModelMap.put(appAccountIds.getWechatH5(), new TModel(EnumPayType.WechatH5.getCode(),
+                    appAccountIds.getWechatH5()));
+        }
+        if (appAccountIds.getWechatJSAPI() != 0) {
+            pageModelMap.put(appAccountIds.getWechatJSAPI(), new TModel(EnumPayType.WechatJSAPI.getCode(),
+                    appAccountIds.getWechatJSAPI()));
+        }
+        if (appAccountIds.getWechatNative() != 0) {
+            pageModelMap.put(appAccountIds.getWechatNative(), new TModel(EnumPayType.WechatNAtive.getCode(),
+                    appAccountIds.getWechatNative()));
+        }
+        if (appAccountIds.getWechatSDK() != 0) {
+            pageModelMap.put(appAccountIds.getWechatSDK(), new TModel(EnumPayType.WechatSDK.getCode(),
+                    appAccountIds.getWechatSDK()));
+        }
+
+        return pageModelMap;
+
+
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @ToString
+    private class TModel {
+        String payTypeCode;
+        int accId;
+    }
+
 }

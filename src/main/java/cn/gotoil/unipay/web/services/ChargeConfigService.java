@@ -25,6 +25,13 @@ public interface ChargeConfigService {
     void addAppChargeAccount2Redis(AppChargeAccount appChargeAccount);
 
     /**
+     * 找应用找所有的支持的支付方式关系
+     * @param appId
+     * @return
+     */
+    List<AppChargeAccount> getRByAppId(String appId);
+
+    /**
      * 根据appid,收款类型，找具体的收款账号对象
      *
      * @param appId
