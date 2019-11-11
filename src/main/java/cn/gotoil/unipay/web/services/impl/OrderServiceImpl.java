@@ -308,6 +308,7 @@ public class OrderServiceImpl implements OrderService {
                                     .payFee(orderQueryResponse.getPayFee())
                                     .arrFee(orderQueryResponse.getPayFee())
                                     .totalRefundFee(0)
+                                    .paymentId(newOrder.getPaymentId())
                                     .asyncUrl(order.getAsyncUrl())
                                     .extraParam(order.getExtraParam())
                                     .payDate(newOrder.getOrderPayDatetime()).
@@ -433,6 +434,7 @@ public class OrderServiceImpl implements OrderService {
                         .extraParam(order.getExtraParam())
                         .payDate(order.getOrderPayDatetime())
                         .timeStamp(Instant.now().getEpochSecond())
+                        .paymentId(order.getPaymentId())
                         .sendType((byte)1)
                         .build();
         String appSecret = appService.key(order.getAppId());
