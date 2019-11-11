@@ -16,7 +16,7 @@ public class SuyjUnitTes {
     public void t1() {
         String wechat_open_id_grant_url = "http://thirdparty.guotongshiyou" + ".cn/third_party/oauth/wechat/%s" +
                 "?redirect=%s";
-        String redirectUrlP = String.format(wechat_open_id_grant_url, "wxcwefwefewefw", "https://www.baidu.com");
+        String redirectUrlP = String.format(wechat_open_id_grant_url, "wx9f2ffdd3e6afc476", "https://www.baidu.com");
         System.out.println(redirectUrlP);
     }
 

@@ -224,7 +224,7 @@ public class WechatServiceImpl implements WechatService {
                             orderQueryResponse.setStatus(EnumOrderStatus.PaySuccess.getCode());
                             orderQueryResponse.setPayDateTime(DateUtils.simpleDateTimeNoSymbolFormatter().parse(reMap.get("time_end")).getTime() / 1000);
                             orderQueryResponse.setPayFee(Integer.parseInt(reMap.get("cash_fee")));
-                            orderQueryResponse.setPayFee(Integer.parseInt(reMap.get("total_fee")));
+                            orderQueryResponse.setArrFee(Integer.parseInt(reMap.get("total_fee")));
                         } else if ("NOTPAY".equalsIgnoreCase(reMap.get("trade_state")) || "USERPAYING".equalsIgnoreCase(reMap.get("trade_state"))) {
                             Date flagDate =
                                     org.apache.commons.lang3.time.DateUtils.addMilliseconds(order.getCreatedAt(),
