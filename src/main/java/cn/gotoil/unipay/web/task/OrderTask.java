@@ -48,7 +48,7 @@ public class OrderTask {
     private ExecutorService executorService;
 
 
-//    @Scheduled(initialDelay = 8000, fixedDelay = 1000 * 60 * 5)
+    @Scheduled(initialDelay = 8000, fixedDelay = 1000 * 60 * 30)
     public void expiredOrder() {
         if (redisLockHelper.hasLock(OrderExpiredSync)) {
             return;
@@ -59,7 +59,7 @@ public class OrderTask {
             List<Order> orderList = orderQueryService.queryOrderByOut10();
             for (Order order : orderList) {
                 OrderQueryResponse orderQueryResponse = orderService.queryOrderStatusFromRemote(order);
-                if (orderQueryResponse != null && (EnumOrderStatus.Created.getCode() == orderQueryResponse.getStatus() || EnumOrderStatus.PayFailed.getCode() == orderQueryResponse.getStatus())) {
+                if (orderQueryResponse != null &&  EnumOrderStatus.PayFailed.getCode() == orderQueryResponse.getStatus()) {
                     Order newOrder = new Order();
                     newOrder.setId(order.getId());
                     newOrder.setStatus(EnumOrderStatus.PayFailed.getCode());
