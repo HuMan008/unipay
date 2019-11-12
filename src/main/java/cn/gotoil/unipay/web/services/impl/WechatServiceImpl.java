@@ -82,21 +82,21 @@ public class WechatServiceImpl implements WechatService {
             String repStr = UtilHttpClient.doPostStr(WechatService.CreateOrderUrl, UtilWechat.mapToXml(data));
             Map<String, String> reMap = processResponseXml(repStr, chargeModel.getApiKey());
             if (reMap.containsKey(RETURN_CODE) && reMap.containsKey(RESULT_CODE) && SUCCESS.equals(reMap.get(RETURN_CODE)) && SUCCESS.equals(reMap.get(RESULT_CODE))) {
-                //保存订单 todo
-//                orderService.saveOrder(order);
-
                 if (TradeType.MWEB.name().equals(reMap.get("trade_type"))) {
                     return new ModelAndView("redirect:" + reMap.get("mweb_url"));
                 }
                 ModelAndView modelAndView = new ModelAndView("wechat/jsapipay");
-                modelAndView.addAllObjects(reMap);
+
+                Map<String,String>  ssMap = new HashMap();
+                ssMap.put("appId", reMap.get("appid"));
+                ssMap.put("timeStamp",String.valueOf(Instant.now().getEpochSecond()) );
+                ssMap.put("nonceStr", UtilWechat.generateNonceStr());
+                ssMap.put("package", "prepay_id="+reMap.get("prepay_id"));
+                ssMap.put("signType",data.get("sign_type"));
+                String paySign = UtilWechat.generateSignature(ssMap, chargeModel.getApiKey(), UtilWechat.SignType.MD5);
+                ssMap.put("paySign",paySign);
+                modelAndView.addAllObjects(ssMap);
                 modelAndView.addObject("domain", domain);
-                modelAndView.addObject("appId", reMap.get("appid"));
-                modelAndView.addObject("timeStamp", Instant.now().getEpochSecond());
-                modelAndView.addObject("nonceStr", reMap.get("nonce_str"));
-                modelAndView.addObject("package","prepay_id="+reMap.get("prepay_id"));
-                modelAndView.addObject("paySign", reMap.get("sign"));
-                modelAndView.addObject("signType", data.get("sign_type"));
                 modelAndView.addObject("appOrderNo", order.getAppOrderNo());
                 modelAndView.addObject("orderId", order.getId());
                 modelAndView.addObject("cancelUrl", payRequest.getCancelUrl());

@@ -120,6 +120,7 @@ public class WebPayContoller {
                             domain + "/web/afterwechatgrant?param=" + param);
                     try {
                         //这里转发了，后面没事干了。这个时候订单还没保存
+                        orderService.saveOrder(order);
                         httpServletResponse.sendRedirect(redirectUrlP);
                         return null;
                     } catch (IOException e) {
@@ -127,7 +128,6 @@ public class WebPayContoller {
                         return new ModelAndView(UtilString.makeErrorPage(CommonError.SystemError));
                     }
                 }
-                orderService.saveOrder(order);
                 return wechatService.pagePay(payRequest, order, chargeWechatModel, httpServletRequest,
                         httpServletResponse);
             }
