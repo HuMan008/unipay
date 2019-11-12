@@ -102,7 +102,7 @@
           <div :title="item.responseContent" slot="longTextShow_response" slot-scope="item">
             <p class="longtext" style="max-width:180px">  {{item.responseContent}}</p>
           </div>
-          <div slot="sendType" slot-scope="text">{{text==='0'?"自动":'手动'}}</div>
+          <div slot="sendType" slot-scope="text">{{text===0?"自动":'手动'}}</div>
         </a-table>
       </a-modal>
     </a-layout-content>
