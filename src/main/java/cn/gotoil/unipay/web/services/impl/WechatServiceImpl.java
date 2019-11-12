@@ -98,7 +98,7 @@ public class WechatServiceImpl implements WechatService {
                 modelAndView.addObject("paySign", reMap.get("sign"));
                 modelAndView.addObject("signType", data.get("sign_type"));
                 modelAndView.addObject("appOrderNo", order.getAppOrderNo());
-                modelAndView.addObject("orderId", order.getAppOrderNo());
+                modelAndView.addObject("orderId", order.getId());
                 modelAndView.addObject("cancelUrl", payRequest.getCancelUrl());
                 modelAndView.addObject("backUrl", payRequest.getBackUrl());
                 modelAndView.addObject("successUrl", payRequest.getSyncUrl());

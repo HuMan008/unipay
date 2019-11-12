@@ -115,7 +115,7 @@ public class WebPayContoller {
                                 ChargeWechatModel.class);
                 //未传递Openid
                 if (StringUtils.isEmpty(payRequest.getPaymentUserID())) {
-                    String param = UtilBase64.encode(ObjectHelper.jsonString(payRequest).getBytes());
+                    String param = UtilBase64.encode(ObjectHelper.jsonString(payRequest).getBytes()).replaceAll("\\+","GT680");
                     String redirectUrlP = String.format(wechat_open_id_grant_url, chargeWechatModel.getAppID(),
                             domain + "/web/afterwechatgrant?param=" + param);
                     try {
@@ -168,7 +168,7 @@ public class WebPayContoller {
     public Object t3(@RequestParam String param,
                      @RequestParam String open_id, HttpServletRequest httpServletRequest,
                      HttpServletResponse httpServletResponse) throws Exception {
-        param = new String(UtilBase64.decode(param));
+        param = new String(UtilBase64.decode(param.replaceAll("GT680","+")));
 
         try {
             param = URLDecoder.decode(param, Charsets.UTF_8.name());
