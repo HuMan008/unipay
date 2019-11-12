@@ -170,7 +170,7 @@ public class WebPayContoller {
     @RequestMapping("afterwechatgrant")
     @NeedLogin(value = false)
     @ApiIgnore
-    public Object t3(HttpRequest request, HttpResponse response, @RequestParam String param,
+    public Object t3(@RequestParam String param,
                      @RequestParam String open_id, HttpServletRequest httpServletRequest,
                      HttpServletResponse httpServletResponse) throws Exception {
         param = new String(UtilBase64.decode(param));
