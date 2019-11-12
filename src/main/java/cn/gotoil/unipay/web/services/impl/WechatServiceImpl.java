@@ -83,11 +83,12 @@ public class WechatServiceImpl implements WechatService {
             Map<String, String> reMap = processResponseXml(repStr, chargeModel.getApiKey());
             if (reMap.containsKey(RETURN_CODE) && reMap.containsKey(RESULT_CODE) && SUCCESS.equals(reMap.get(RETURN_CODE)) && SUCCESS.equals(reMap.get(RESULT_CODE))) {
                 //保存订单 todo
+//                orderService.saveOrder(order);
 
                 if (TradeType.MWEB.name().equals(reMap.get("trade_type"))) {
                     return new ModelAndView("redirect:" + reMap.get("mweb_url"));
                 }
-                ModelAndView modelAndView = new ModelAndView("/wechat/jsapipay");
+                ModelAndView modelAndView = new ModelAndView("wechat/jsapipay");
                 modelAndView.addAllObjects(reMap);
                 modelAndView.addObject("domain", domain);
                 modelAndView.addObject("appOrderNo", order.getAppOrderNo());

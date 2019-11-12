@@ -148,8 +148,7 @@ public class WebPayContoller {
     @RequestMapping(value = "error")
     @ApiIgnore
     public ModelAndView error(String errorCode, String errorMsg) {
-
-        ModelAndView modelAndView = new ModelAndView("/error/error");
+        ModelAndView modelAndView = new ModelAndView("error/error");
         modelAndView.addObject("errorCode", errorCode);
         modelAndView.addObject("errorMsg", errorMsg);
         return modelAndView;
@@ -160,10 +159,6 @@ public class WebPayContoller {
     @RequestMapping(value = "error1")
     public ModelAndView error1(String errorCode, String errorMsg) {
         return new ModelAndView(UtilString.makeErrorPage(399, "aaaa--be"));
-        //        ModelAndView modelAndView =  new ModelAndView("/error/error");
-        //        modelAndView.addObject("errorCode",errorCode);
-        //        modelAndView.addObject("errorMsg",errorMsg);
-        //        return modelAndView;
     }
 
 
@@ -180,7 +175,7 @@ public class WebPayContoller {
             PayRequest payRequest = JSONObject.toJavaObject(JSONObject.parseObject(param), PayRequest.class);
             //校验请求
             payRequest.setPaymentUserID(open_id);
-            orderService.checkPayRequest(payRequest);
+//            orderService.checkPayRequest(payRequest);
             //填充请求 有些参数请求里没传的
             orderService.fillPayRequest(payRequest);
             //创建订单（不持久化）
