@@ -53,7 +53,7 @@
           dp_order
         <where>
             data_version=0 AND pay_fee=0
-            AND DATE_ADD(created_at ,INTERVAL (expired_time_minute+10) MINUTE) >=NOW()
+            AND DATE_ADD(created_at ,INTERVAL (expired_time_minute+30) MINUTE) >=NOW()
             AND NOW()>=DATE_ADD(created_at ,INTERVAL (1) MINUTE)
             AND STATUS=1
         </where>
@@ -66,7 +66,7 @@
         dp_order
         <where>
             data_version=0 AND pay_fee=0
-            AND NOW()>DATE_ADD(created_at ,INTERVAL (expired_time_minute+10) MINUTE)
+            AND NOW()>DATE_ADD(created_at ,INTERVAL (expired_time_minute+35) MINUTE)
             AND STATUS=1
         </where>
         order by created_at

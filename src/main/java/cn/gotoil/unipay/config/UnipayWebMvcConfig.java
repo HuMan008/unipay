@@ -7,11 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 
-//@Configuration
+@Configuration
 public class UnipayWebMvcConfig extends BillWebMvcConfig {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");
+//        registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");
+        registry.addResourceHandler("/*.txt").addResourceLocations("classpath:/");
         super.addResourceHandlers(registry);
     }
 

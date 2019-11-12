@@ -199,7 +199,7 @@ public class AlipayServiceImpl implements AlipayService {
 
             } else if ("40004".equals(alipayTradeQueryResponse.getCode()) && "ACQ.TRADE_NOT_EXIST".equals(alipayTradeQueryResponse.getSubCode())) {
                 // 在用户输入正确的支付密码前，订单都是不存在 那么 就应该判断是否真过期
-                Date flagDate  = DateUtils.addMilliseconds(order.getCreatedAt(),order.getExpiredTimeMinute()+15);
+                Date flagDate  = DateUtils.addMilliseconds(order.getCreatedAt(),order.getExpiredTimeMinute()+30);
                 if(flagDate.getTime()<System.currentTimeMillis()){
                     return OrderQueryResponse.builder().unionOrderID(order.getId()).appOrderNO(order.getAppOrderNo()).paymentId(alipayTradeQueryResponse.getOutTradeNo()).orderFee(0).payFee(0).thirdStatus(alipayTradeQueryResponse.getTradeStatus()).thirdCode(alipayTradeQueryResponse.getCode()).status(EnumOrderStatus.PayFailed.getCode()).thirdMsg(alipayTradeQueryResponse.getMsg()).build();
                 }else{

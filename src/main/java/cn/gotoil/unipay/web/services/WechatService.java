@@ -8,14 +8,19 @@ package cn.gotoil.unipay.web.services;
  */
 public interface WechatService extends BasePayService {
 
-    public static final String FAIL = "FAIL";
-    public static final String SUCCESS = "SUCCESS";
+    String FAIL = "FAIL";
+    String SUCCESS = "SUCCESS";
 
-    public static final String RETURN_CODE = "return_code";
-    public static final String RESULT_CODE = "result_code";
+    String RETURN_CODE = "return_code";
+    String RESULT_CODE = "result_code";
 
     //下单请求地址
     String CreateOrderUrl = "https://api.mch.weixin.qq.com/pay/unifiedorder";
+
+    //订单状态查询
+    String QueryOrderUrl ="https://api.mch.weixin.qq.com/pay/orderquery";
+
+
 
     enum TradeType {
         /**

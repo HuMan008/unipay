@@ -20,6 +20,8 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.time.Instant;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -80,16 +82,23 @@ public class WechatServiceImpl implements WechatService {
             String repStr = UtilHttpClient.doPostStr(WechatService.CreateOrderUrl, UtilWechat.mapToXml(data));
             Map<String, String> reMap = processResponseXml(repStr, chargeModel.getApiKey());
             if (reMap.containsKey(RETURN_CODE) && reMap.containsKey(RESULT_CODE) && SUCCESS.equals(reMap.get(RETURN_CODE)) && SUCCESS.equals(reMap.get(RESULT_CODE))) {
-                //保存订单 todo
-
                 if (TradeType.MWEB.name().equals(reMap.get("trade_type"))) {
                     return new ModelAndView("redirect:" + reMap.get("mweb_url"));
                 }
-                ModelAndView modelAndView = new ModelAndView("/wechat/jsapipay");
-                modelAndView.addAllObjects(reMap);
+                ModelAndView modelAndView = new ModelAndView("wechat/jsapipay");
+
+                Map<String,String>  ssMap = new HashMap();
+                ssMap.put("appId", reMap.get("appid"));
+                ssMap.put("timeStamp",String.valueOf(Instant.now().getEpochSecond()) );
+                ssMap.put("nonceStr", UtilWechat.generateNonceStr());
+                ssMap.put("package", "prepay_id="+reMap.get("prepay_id"));
+                ssMap.put("signType",data.get("sign_type"));
+                String paySign = UtilWechat.generateSignature(ssMap, chargeModel.getApiKey(), UtilWechat.SignType.MD5);
+                ssMap.put("paySign",paySign);
+                modelAndView.addAllObjects(ssMap);
                 modelAndView.addObject("domain", domain);
                 modelAndView.addObject("appOrderNo", order.getAppOrderNo());
-                modelAndView.addObject("orderId", order.getAppOrderNo());
+                modelAndView.addObject("orderId", order.getId());
                 modelAndView.addObject("cancelUrl", payRequest.getCancelUrl());
                 modelAndView.addObject("backUrl", payRequest.getBackUrl());
                 modelAndView.addObject("successUrl", payRequest.getSyncUrl());
@@ -147,12 +156,35 @@ public class WechatServiceImpl implements WechatService {
         try {
             String repStr = UtilHttpClient.doPostStr(WechatService.CreateOrderUrl, UtilWechat.mapToXml(data));
             Map<String, String> reMap = processResponseXml(repStr, chargeModel.getApiKey());
-            return ObjectHelper.jsonString(reMap);
+            if(reMap.containsKey(RESULT_CODE)  &&  reMap.get(RESULT_CODE).equals(SUCCESS) && SUCCESS.equals(reMap.getOrDefault(RETURN_CODE,""))){
+                return ObjectHelper.jsonString(createAppParam(reMap,((ChargeWechatModel) chargeConfig).getApiKey()));
+            }else{
+                return ObjectHelper.jsonString(reMap);
+            }
         } catch (Exception e) {
             log.error("微信APP支付订单创建出错{}", e.getMessage());
             return "";
         }
+    }
 
+    // 根据下单响应 创建吊起支付请求
+    private  Map<String,String>  createAppParam (Map<String,String> reMap,String apiKey){
+        Map<String,String> xx  = new HashMap<>( ) ;
+        xx.put("appid",reMap.getOrDefault("appid","appid"));
+        xx.put("partnerid",reMap.getOrDefault("mch_id","mch_id"));
+        xx.put("prepayid",reMap.getOrDefault("prepay_id","prepay_id"));
+        xx.put("package","Sign=WXPay");
+        xx.put("noncestr",UtilWechat.generateNonceStr());
+        xx.put("timestamp",     String.valueOf(Instant.now().getEpochSecond()));
+        String sign = "";
+        try {
+            sign = UtilWechat.generateSignature(xx, apiKey);
+        } catch (Exception e) {
+            log.error("微信加签错误", e.getMessage());
+            return xx;
+        }
+        xx.put(UtilWechat.FIELD_SIGN, sign);
+        return xx;
     }
 
     /**
@@ -174,7 +206,7 @@ public class WechatServiceImpl implements WechatService {
             map.put("nonce_str", UtilWechat.generateNonceStr());
             String sign = UtilWechat.generateSignature(map, chargeWechatModel.getApiKey());
             map.put(UtilWechat.FIELD_SIGN, sign); //加签
-            String repStr = UtilHttpClient.doPostStr(WechatService.CreateOrderUrl, UtilWechat.mapToXml(map));
+            String repStr = UtilHttpClient.doPostStr(WechatService.QueryOrderUrl, UtilWechat.mapToXml(map));
             reMap = processResponseXml(repStr, chargeWechatModel.getApiKey());
 
 
@@ -182,18 +214,9 @@ public class WechatServiceImpl implements WechatService {
 
                 if (SUCCESS.equalsIgnoreCase(reMap.get(RETURN_CODE))) {
                     if (SUCCESS.equalsIgnoreCase(reMap.get("result_code"))) {
-                        OrderQueryResponse orderQueryResponse = OrderQueryResponse.builder()
-                                .unionOrderID(reMap.get("out_trade_no"))
-                                .appOrderNO(order.getAppOrderNo())
-                                .paymentId(reMap.get("transaction_id"))
-                                .paymentUid(reMap.get("openid"))
-                                .payDateTime(DateUtils.simpleDateTimeNoSymbolFormatter().parse(reMap.get("time_end")).getTime() / 1000)
-                                .orderFee(Integer.parseInt(reMap.get("total_fee")))
-                                .payFee(Integer.parseInt(reMap.get("cash_fee")))
-                                .arrFee(Integer.parseInt(reMap.get("total_fee")))
-                                .thirdStatus(reMap.get("trade_state"))
-                                .thirdCode(reMap.get("result_code"))
-                                .thirdMsg(reMap.get("err_code") + "#" + reMap.get("err_code_des")).build();
+                        OrderQueryResponse orderQueryResponse = OrderQueryResponse.builder().unionOrderID(reMap.get(
+                                "out_trade_no")).appOrderNO(order.getAppOrderNo()).paymentId(reMap.get(
+                                        "transaction_id")).paymentUid(reMap.get("openid")).payDateTime(0).orderFee(Integer.parseInt(reMap.get("total_fee"))).payFee(0).arrFee(0).thirdStatus(reMap.get("trade_state")).thirdCode(reMap.get("result_code")).thirdMsg(reMap.get("err_code") + "#" + reMap.get("err_code_des")).build();
                         ;
                   /*      SUCCESS—支付成功
                         REFUND—转入退款
@@ -206,8 +229,25 @@ public class WechatServiceImpl implements WechatService {
                         //支付状态成功
                         if (SUCCESS.equalsIgnoreCase(reMap.get("trade_state"))) {
                             orderQueryResponse.setStatus(EnumOrderStatus.PaySuccess.getCode());
+                            orderQueryResponse.setPayDateTime(DateUtils.simpleDateTimeNoSymbolFormatter().parse(reMap.get("time_end")).getTime() / 1000);
+                            orderQueryResponse.setPayFee(Integer.parseInt(reMap.get("cash_fee")));
+                            orderQueryResponse.setArrFee(Integer.parseInt(reMap.get("total_fee")));
                         } else if ("NOTPAY".equalsIgnoreCase(reMap.get("trade_state")) || "USERPAYING".equalsIgnoreCase(reMap.get("trade_state"))) {
-                            orderQueryResponse.setStatus(EnumOrderStatus.Created.getCode());
+                            Date flagDate =
+                                    org.apache.commons.lang3.time.DateUtils.addMilliseconds(order.getCreatedAt(),
+                                            order.getExpiredTimeMinute() + 30);
+                            if (flagDate.getTime() < System.currentTimeMillis()) {
+                                //                                orderQueryResponse.setStatus(EnumOrderStatus
+                                // .PayFailed.getCode());
+                                return OrderQueryResponse.builder().unionOrderID(order.getId()).appOrderNO(order.getAppOrderNo()).paymentId(order.getPaymentId()).orderFee(0).payFee(0).thirdStatus(orderQueryResponse.getThirdStatus()).thirdCode(orderQueryResponse.getThirdCode()).status(EnumOrderStatus.PayFailed.getCode()).thirdMsg(orderQueryResponse.getThirdMsg()).build();
+                            } else {
+                                orderQueryResponse.setStatus(EnumOrderStatus.Created.getCode());
+                                //                                return OrderQueryResponse.builder().unionOrderID
+                                // (order.getId()).appOrderNO(order.getAppOrderNo()).paymentId(order.getPaymentId())
+                                // .orderFee(0).payFee(0).thirdStatus(orderQueryResponse.getThirdStatus()).thirdCode
+                                // (orderQueryResponse.getThirdCode()).status(EnumOrderStatus.Created.getCode())
+                                // .thirdMsg(orderQueryResponse.getThirdMsg()).build();
+                            }
                         } else if ("PAYERROR".equalsIgnoreCase(reMap.get("trade_state")) || "CLOSED".equalsIgnoreCase(reMap.get("trade_state"))) {
                             orderQueryResponse.setStatus(EnumOrderStatus.PayFailed.getCode());
                         }
@@ -215,18 +255,12 @@ public class WechatServiceImpl implements WechatService {
                     } else {
                         log.error("执行【{}】微信订单状态查询出错{}", order.getId(), JSON.toJSONString(reMap));
                         return OrderQueryResponse.builder().appOrderNO(order.getAppOrderNo()).thirdCode(reMap.get(
-                                "result_code")).thirdMsg(reMap.get(
-                                "err_code") + reMap.get("err_code_des")).build();
+                                "result_code")).thirdMsg(reMap.get("err_code") + reMap.get("err_code_des")).build();
                     }
-
                 } else {
                     log.error("执行【{}】微信订单状态查询出错{}", order.getId(), JSON.toJSONString(reMap));
-                    return OrderQueryResponse.builder().appOrderNO(order.getAppOrderNo()).thirdCode(reMap.get(RETURN_CODE)).thirdMsg(reMap.get(
-                            "return_msg")).build();
-
+                    return OrderQueryResponse.builder().appOrderNO(order.getAppOrderNo()).thirdCode(reMap.get(RETURN_CODE)).thirdMsg(reMap.get("return_msg")).build();
                 }
-
-
             } else {
                 log.error("执行【{}】微信订单状态查询出错{}", order.getId(), reMap == null ? "查询响应为空" : JSON.toJSONString(reMap));
                 return OrderQueryResponse.builder().appOrderNO(order.getAppOrderNo()).thirdCode(reMap == null ? "5000"

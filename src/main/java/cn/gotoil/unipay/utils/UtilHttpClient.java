@@ -293,6 +293,7 @@ public class UtilHttpClient {
             HttpPost httpPost = new HttpPost(url);
             StringEntity entity = new StringEntity(str, Charsets.UTF_8);
             httpPost.setEntity(entity);
+            log.debug("POST {}{}",url,EntityUtils.toString(entity));
             response = client.execute(httpPost);
             if (HttpStatus.SC_OK == response.getStatusLine().getStatusCode() && response.getEntity() != null) {
                 return EntityUtils.toString(response.getEntity(), Charsets.UTF_8);

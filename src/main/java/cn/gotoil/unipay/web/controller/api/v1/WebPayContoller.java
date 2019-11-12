@@ -115,11 +115,12 @@ public class WebPayContoller {
                                 ChargeWechatModel.class);
                 //未传递Openid
                 if (StringUtils.isEmpty(payRequest.getPaymentUserID())) {
-                    String param = UtilBase64.encode(ObjectHelper.jsonString(payRequest).getBytes());
+                    String param = UtilBase64.encode(ObjectHelper.jsonString(payRequest).getBytes()).replaceAll("\\+","GT680");
                     String redirectUrlP = String.format(wechat_open_id_grant_url, chargeWechatModel.getAppID(),
                             domain + "/web/afterwechatgrant?param=" + param);
                     try {
                         //这里转发了，后面没事干了。这个时候订单还没保存
+                        orderService.saveOrder(order);
                         httpServletResponse.sendRedirect(redirectUrlP);
                         return null;
                     } catch (IOException e) {
@@ -127,7 +128,6 @@ public class WebPayContoller {
                         return new ModelAndView(UtilString.makeErrorPage(CommonError.SystemError));
                     }
                 }
-                orderService.saveOrder(order);
                 return wechatService.pagePay(payRequest, order, chargeWechatModel, httpServletRequest,
                         httpServletResponse);
             }
@@ -148,8 +148,7 @@ public class WebPayContoller {
     @RequestMapping(value = "error")
     @ApiIgnore
     public ModelAndView error(String errorCode, String errorMsg) {
-
-        ModelAndView modelAndView = new ModelAndView("/error/error");
+        ModelAndView modelAndView = new ModelAndView("error/error");
         modelAndView.addObject("errorCode", errorCode);
         modelAndView.addObject("errorMsg", errorMsg);
         return modelAndView;
@@ -160,27 +159,23 @@ public class WebPayContoller {
     @RequestMapping(value = "error1")
     public ModelAndView error1(String errorCode, String errorMsg) {
         return new ModelAndView(UtilString.makeErrorPage(399, "aaaa--be"));
-        //        ModelAndView modelAndView =  new ModelAndView("/error/error");
-        //        modelAndView.addObject("errorCode",errorCode);
-        //        modelAndView.addObject("errorMsg",errorMsg);
-        //        return modelAndView;
     }
 
 
     @RequestMapping("afterwechatgrant")
     @NeedLogin(value = false)
     @ApiIgnore
-    public Object t3(HttpRequest request, HttpResponse response, @RequestParam String param,
+    public Object t3(@RequestParam String param,
                      @RequestParam String open_id, HttpServletRequest httpServletRequest,
                      HttpServletResponse httpServletResponse) throws Exception {
-        param = new String(UtilBase64.decode(param));
+        param = new String(UtilBase64.decode(param.replaceAll("GT680","+")));
 
         try {
             param = URLDecoder.decode(param, Charsets.UTF_8.name());
             PayRequest payRequest = JSONObject.toJavaObject(JSONObject.parseObject(param), PayRequest.class);
             //校验请求
             payRequest.setPaymentUserID(open_id);
-            orderService.checkPayRequest(payRequest);
+//            orderService.checkPayRequest(payRequest);
             //填充请求 有些参数请求里没传的
             orderService.fillPayRequest(payRequest);
             //创建订单（不持久化）

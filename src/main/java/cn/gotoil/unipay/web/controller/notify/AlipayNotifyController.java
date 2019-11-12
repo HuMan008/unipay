@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.Instant;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 支付宝通知
@@ -81,7 +82,7 @@ public class AlipayNotifyController {
                 notifyAccept.setResponstr("error:处理中");
                 httpServletResponse.getOutputStream().print("error");
             }
-            redisLockHelper.addLock(RedisLockHelper.Key.Notify + orderId, false, 0, null);
+            redisLockHelper.addLock(RedisLockHelper.Key.Notify + orderId, false, 0,null);
             //订单查询
             Order order = orderService.loadByOrderID(orderId);
             if (order == null) {
