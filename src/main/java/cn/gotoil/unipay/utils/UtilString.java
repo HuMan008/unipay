@@ -1,9 +1,12 @@
 package cn.gotoil.unipay.utils;
 
 import cn.gotoil.bill.exception.BillError;
+import com.google.common.base.Charsets;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
+import java.net.URLEncoder;
 
 /**
  * 字符串工具类
@@ -23,17 +26,29 @@ public class UtilString {
         }
     }
 
+    public static String toUtf8(String msg){
+        String xx = "";
+        try {
+            xx =URLEncoder.encode(msg,
+                    Charsets.UTF_8.name());
+        } catch (UnsupportedEncodingException e) {
+
+        }
+        return xx;
+    }
+
 
     public static String makeErrorPage(BillError billError) {
-        return "redirect:/web/error?errorCode=" + billError.getCode() + "&errorMsg=" + billError.getMessage();
+        return "redirect:/web/error?errorCode=" + billError.getCode() + "&errorMsg=" + toUtf8(billError.getMessage());
     }
 
     public static String makeErrorPage(String errorCode, String errorMsg) {
-        return "redirect:/web/error?errorCode=" + errorCode + "&errorMsg=" + errorMsg;
+
+        return "redirect:/web/error?errorCode=" + errorCode + "&errorMsg=" + toUtf8(errorMsg);
     }
 
-    public static String makeErrorPage(int errorCode, String errorMsg) {
-        return "redirect:/web/error?errorCode=" + errorCode + "&errorMsg=" + errorMsg;
+    public static String makeErrorPage(int errorCode, String errorMsg)  {
+        return "redirect:/web/error?errorCode=" + errorCode + "&errorMsg=" + toUtf8(errorMsg) ;
     }
 
     public synchronized static boolean checkObjFieldIsNull(Object obj) {
