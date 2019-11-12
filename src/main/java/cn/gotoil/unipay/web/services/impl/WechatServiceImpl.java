@@ -244,11 +244,11 @@ public class WechatServiceImpl implements WechatService {
                                     org.apache.commons.lang3.time.DateUtils.addMilliseconds(order.getCreatedAt(),
                                             order.getExpiredTimeMinute() + 30);
                             if (flagDate.getTime() < System.currentTimeMillis()) {
-                                //                                orderQueryResponse.setStatus(EnumOrderStatus
-                                // .PayFailed.getCode());
-                                return OrderQueryResponse.builder().unionOrderID(order.getId()).appOrderNO(order.getAppOrderNo()).paymentId(order.getPaymentId()).orderFee(0).payFee(0).thirdStatus(orderQueryResponse.getThirdStatus()).thirdCode(orderQueryResponse.getThirdCode()).status(EnumOrderStatus.PayFailed.getCode()).thirdMsg(orderQueryResponse.getThirdMsg()).build();
+                                                                orderQueryResponse.setStatus(EnumOrderStatus
+                                 .Created.getCode());
+//                                return OrderQueryResponse.builder().unionOrderID(order.getId()).appOrderNO(order.getAppOrderNo()).paymentId(order.getPaymentId()).orderFee(0).payFee(0).thirdStatus(orderQueryResponse.getThirdStatus()).thirdCode(orderQueryResponse.getThirdCode()).status(EnumOrderStatus.PayFailed.getCode()).thirdMsg(orderQueryResponse.getThirdMsg()).build();
                             } else {
-                                orderQueryResponse.setStatus(EnumOrderStatus.Created.getCode());
+                                orderQueryResponse.setStatus(EnumOrderStatus.PayFailed.getCode());
                                 //                                return OrderQueryResponse.builder().unionOrderID
                                 // (order.getId()).appOrderNO(order.getAppOrderNo()).paymentId(order.getPaymentId())
                                 // .orderFee(0).payFee(0).thirdStatus(orderQueryResponse.getThirdStatus()).thirdCode
