@@ -1,5 +1,5 @@
 server:
-  port: 80
+  port: 30003
 spring:
   main:
     allow-bean-definition-overriding: true
@@ -50,8 +50,8 @@ wechat_open_id_grant_url: "http://thirdparty.guotongshiyou.cn/third_party/oauth/
 
 
 bill:
-  #  defaultAuthenticationType: Signature
-  defaultAuthenticationType: NONE
+  defaultAuthenticationType: Signature
+#  defaultAuthenticationType: NONE
   keyOfHashCompareAuthenticationPathPrefix: "/api/v1/"
   apiResponseAroundControllerPackagesExecution: "execution(* cn.gotoil.unipay.controller..*.*Action(..))"
   keyOfHashCompareAuthenticationProviderClass: "cn.gotoil.unipay.classes.HashCompareAuthenticationKeyProvider"
