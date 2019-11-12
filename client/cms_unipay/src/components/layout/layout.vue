@@ -44,6 +44,7 @@
             </span>
             <a-menu-item key="11" @click="routerChange('AppManage')">应用管理</a-menu-item>
             <a-menu-item key="12" @click="routerChange('ChargeConfig')">收款账号管理</a-menu-item>
+            <a-menu-item key="13" @click="routerChange('OplogQuery')">日志列表</a-menu-item>
           </a-sub-menu>
 
            <a-sub-menu key="sub2" class="mySubMenu">

@@ -8,6 +8,7 @@ import AppManage from '@/components/app-manage/app-manage';
 import ChargeConfig from '@/components/charge-manage/chargeConfigManage';
 import OrderManage from '@/components/order-manage/order-manage';
 import PayingOrder from '@/components/order-manage/payingOrder';
+import OplogQuery from '@/components/oplog-manage/oplogQuery';
 
 Vue.use(Router)
 
@@ -50,6 +51,10 @@ export default new Router({
           path: '/main/PayingOrder',
           name: 'PayingOrder',
           component: PayingOrder
+        }, {
+          path: '/main/OplogQuery',
+          name: 'OplogQuery',
+          component: OplogQuery
         }
       ]
     }
