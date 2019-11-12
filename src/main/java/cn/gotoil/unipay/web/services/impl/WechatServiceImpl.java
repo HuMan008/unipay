@@ -11,6 +11,7 @@ import cn.gotoil.unipay.utils.*;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.message.response.OrderRefundQueryResponse;
+import cn.gotoil.unipay.web.services.OrderService;
 import cn.gotoil.unipay.web.services.WechatService;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.Instant;
@@ -37,6 +39,11 @@ import java.util.TreeMap;
 public class WechatServiceImpl implements WechatService {
     @Value("${domain}")
     String domain;
+
+
+    @Resource
+    OrderService orderService ;
+
 
     /**
      * 页面支付
@@ -86,7 +93,7 @@ public class WechatServiceImpl implements WechatService {
                     return new ModelAndView("redirect:" + reMap.get("mweb_url"));
                 }
                 ModelAndView modelAndView = new ModelAndView("wechat/jsapipay");
-
+                orderService.saveOrder(order);
                 Map<String,String>  ssMap = new HashMap();
                 ssMap.put("appId", reMap.get("appid"));
                 ssMap.put("timeStamp",String.valueOf(Instant.now().getEpochSecond()) );
@@ -111,7 +118,7 @@ public class WechatServiceImpl implements WechatService {
                 return new ModelAndView(UtilString.makeErrorPage(5001, reMap.getOrDefault("return_msg", "微信支付出错")));
             }
         } catch (Exception e) {
-            log.error("微信APP支付订单创建出错{}", e.getMessage());
+            log.error("微信JSAPI支付订单创建出错{}", e.getMessage());
             return new ModelAndView(UtilString.makeErrorPage(5000, e.getMessage()));
         }
     }

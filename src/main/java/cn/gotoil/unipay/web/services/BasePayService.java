@@ -28,7 +28,7 @@ import java.util.Optional;
 public interface BasePayService<T extends ChargeAccount> {
 
     @Resource
-    OrderService orderService = null;
+    OrderService orderService =null ;
 
     /**
      * 页面支付
@@ -62,7 +62,6 @@ public interface BasePayService<T extends ChargeAccount> {
      */
     OrderRefundQueryResponse orderRefundQuery(String orderId, T chargeConfig);
     //    OrderNotifyBean orderQuery(String appOrderNo, String appId);
-
     default OrderQueryResponse orderQuery(String appOrderNo, String appId) {
         Order order = orderService.loadByAppOrderNo(appOrderNo, appId);
         Optional.ofNullable(order).map(app1 -> app1).orElseThrow(() -> new BillException(UnipayError.OrderNotExists));
