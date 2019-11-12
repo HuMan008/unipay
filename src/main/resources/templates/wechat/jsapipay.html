@@ -7,7 +7,7 @@
     <title>微信支付</title>
     <!--<link href="https://cdn.bootcss.com/weui/1.1.2/style/weui.css" rel="stylesheet">-->
     <link href="https://cdn.bootcss.com/weui/1.1.2/style/weui.min.css" rel="stylesheet">
-    <!--<link th:href="@{domain+'/wechat/example.css'}" rel="stylesheet">-->
+    <link th:href="@{domain+'/wechat/example.css'}" rel="stylesheet">
 
 </head>
 <style>
@@ -33,12 +33,13 @@
 <input type="hidden" name="appId" th:value="${appId}" id="appId"/>
 <input type="hidden" name="timeStamp" th:value="${timeStamp}" id="timeStamp"/>
 <input type="hidden" name="nonceStr" th:value="${nonceStr}" id="nonceStr"/>
-<input type="hidden" name="prepay_id" th:value="${prepay_id}" id="prepay_id"/>
+<input type="hidden" name="package" th:value="${package}" id="prepay_id"/>
 <input type="hidden" name="paySign" th:value="${paySign}" id="paySign"/>
-<input type="hidden" name="appOrderNo" th:value="${respn}" id="appOrderNo"/>
-<input type="hidden" name="backUrl" th:value="${backUrl}" id="backUrl"/>
-<input type="hidden" name="cancelUrl" th:value="${cancelUrl}" id="cancelUrl"/>
 <input type="hidden" name="signType" th:value="${signType}" id="signType"/>
+<input type="hidden" name="appOrderNo" th:value="${appOrderNo}" id="appOrderNo"/>
+<input type="hidden" name="orderId" th:value="${orderId}" id="orderId"/>
+<input type="hidden" name="cancelUrl" th:value="${cancelUrl}" id="cancelUrl"/>
+<input type="hidden" name="backUrl" th:value="${backUrl}" id="backUrl"/>
 <input type="hidden" name="successUrl" th:value="${successUrl}" id="successUrl"/>
 
 
@@ -114,7 +115,7 @@
 
     var nonceStr = document.getElementById("nonceStr").value;
 
-    var prepay_id = document.getElementById("prepay_id").value;
+    var prepay_id = document.getElementById("package").value;
 
     var paySign = document.getElementById("paySign").value;
     var backUrl = document.getElementById("backUrl").value;
