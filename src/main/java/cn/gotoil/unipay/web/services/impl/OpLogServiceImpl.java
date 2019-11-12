@@ -1,6 +1,5 @@
 package cn.gotoil.unipay.web.services.impl;
 
-import cn.gotoil.unipay.model.entity.App;
 import cn.gotoil.unipay.model.entity.OpLog;
 import cn.gotoil.unipay.model.entity.OpLogExample;
 import cn.gotoil.unipay.model.mapper.OpLogMapper;
@@ -40,11 +39,11 @@ public class OpLogServiceImpl implements OpLogService {
         OpLogExample.Criteria criteria = example.createCriteria();
         Map<String, Object> params = oplogListRequest.getParams();
         if (params.containsKey("name") && StringUtils.isNotEmpty((String) params.get("name"))) {
-            criteria.andOpUserNameEqualTo(String.valueOf(params.get("name")));
+            criteria.andOpUserNameLike(String.valueOf(params.get("name")) + "%");
         }
 
         if (params.containsKey("descp") && StringUtils.isNotEmpty((String) params.get("descp"))) {
-            criteria.andDescpEqualTo(String.valueOf(params.get("descp")));
+            criteria.andDescpLike(String.valueOf(params.get("descp")) + "%");
         }
         List<OpLog> lists = opLogMapper.selectByExample(example);
         pageResponse.setTotal(lists.isEmpty() ? 0 : lists.size());
