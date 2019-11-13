@@ -94,8 +94,21 @@ public class OrderDeadMessageListener {
             noticeLog.setCreatedAt(new Date(notifyBean.getTimeStamp() * 1000));
 
             //把参数post提交到异步通知地址里去
-            String responStr = UtilHttpClient.notifyPost(notifyBean.getAsyncUrl(), ObjectHelper.introspect(notifyBean));
-            noticeLog.setResponseContent(responStr);
+            String responStr = "";
+            try {
+                responStr = UtilHttpClient.notifyPost(notifyBean.getAsyncUrl(), ObjectHelper.introspect(notifyBean));
+                noticeLog.setResponseContent(responStr);
+            } catch (UnknownHostException uhe) {
+                noticeLog.setResponseContent("通知地址不可到达");
+                log.error("通知地址不可到达【】..{},\t异常：{}", message.getBody(), uhe);
+            } catch (ClientProtocolException cpe) {
+                noticeLog.setResponseContent("通知地址协议错误");
+                log.error("通知地址协议错误【】..{},\t异常：{}", message.getBody(), cpe);
+            } catch (IOException io) {
+                log.error("{}", io);
+                noticeLog.setResponseContent(io.getMessage());
+            }
+
             if (!"success".equalsIgnoreCase(responStr)) {
                 //对方未响应success
                 message.getMessageProperties().getExpiration();
@@ -118,15 +131,6 @@ public class OrderDeadMessageListener {
             // 不管什么情况 ，我都要消费掉他。
             channel.basicAck(tag, true);
             return;
-        } catch (UnknownHostException uhe) {
-            noticeLog.setResponseContent("通知地址不可到达");
-            log.error("通知地址不可到达【】..{},\t异常：{}", message.getBody(), uhe);
-        } catch (ClientProtocolException cpe) {
-            noticeLog.setResponseContent("通知地址协议错误");
-            log.error("通知地址协议错误【】..{},\t异常：{}", message.getBody(), cpe);
-        } catch (IOException io) {
-            noticeLog.setResponseContent(io.getMessage());
-            log.error("{}", io);
         } catch (Exception e) {
             noticeLog.setResponseContent(e.getMessage());
             log.error("{}", e);

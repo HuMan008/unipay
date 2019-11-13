@@ -11,6 +11,7 @@ import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.message.response.OrderRefundQueryResponse;
 import cn.gotoil.unipay.web.services.AlipayService;
+import cn.gotoil.unipay.web.services.OrderService;
 import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
@@ -28,6 +29,7 @@ import com.google.common.base.Charsets;
 import com.google.common.net.UrlEscapers;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
@@ -47,6 +49,9 @@ public class AlipayServiceImpl implements AlipayService {
 
     @Value("${domain}")
     String domain;
+
+    @Autowired
+    OrderService orderService;
 
     /**
      * 退款状态查询 远程查

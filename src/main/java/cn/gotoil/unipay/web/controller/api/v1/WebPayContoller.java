@@ -22,8 +22,6 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -78,68 +76,71 @@ public class WebPayContoller {
 
     public ModelAndView createOrder(PayRequest payRequest,
                                     //    public ModelAndView createOrder(@Valid @RequstBody PayRequest payRequest,
-                                    HttpServletRequest httpServletRequest,
-                                    HttpServletResponse httpServletResponse) {
+                                    HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         //校验SIGN
-//        appId+appOrderNo+payType+fee+appKey
+        //        appId+appOrderNo+payType+fee+appKey
         if (!isDebug) {
             String signStr =
                     payRequest.getAppId() + payRequest.getAppOrderNo() + payRequest.getPayType() + payRequest.getFee() + appService.key(payRequest.getAppId());
-            if (StringUtils.isEmpty(payRequest.getSign()) || !payRequest.getSign().equals(Hash.md5(signStr).toUpperCase
-                    ())) {
+            if (StringUtils.isEmpty(payRequest.getSign()) || !payRequest.getSign().equals(Hash.md5(signStr).toUpperCase())) {
                 return new ModelAndView(UtilString.makeErrorPage(UnipayError.IllegalRequest));
             }
         }
+        try {
 
-
-        //校验请求
-        orderService.checkPayRequest(payRequest);
-        //填充请求 有些参数请求里没传的
-        orderService.fillPayRequest(payRequest);
-        //创建订单（不持久化）
-        Order order = orderService.warpPayRequest2UnionOrder(payRequest);
-        EnumPayType payType = EnumUtils.getEnum(EnumPayType.class, payRequest.getPayType());
-        ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(payRequest.getAppId(), payType.getCode());
-        switch (payType) {
-            case WechatH5: {
-                ChargeWechatModel chargeWechatModel =
-                        JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
-                                ChargeWechatModel.class);
-                orderService.saveOrder(order);
-                return wechatService.pagePay(payRequest, order, chargeWechatModel, httpServletRequest,
-                        httpServletResponse);
-            }
-            case WechatJSAPI: {
-                ChargeWechatModel chargeWechatModel =
-                        JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
-                                ChargeWechatModel.class);
-                //未传递Openid
-                if (StringUtils.isEmpty(payRequest.getPaymentUserID())) {
-                    String param = UtilBase64.encode(ObjectHelper.jsonString(payRequest).getBytes()).replaceAll("\\+","GT680");
-                    String redirectUrlP = String.format(wechat_open_id_grant_url, chargeWechatModel.getAppID(),
-                            domain + "/web/afterwechatgrant?param=" + param);
-                    try {
-                        //这里转发了，后面没事干了。这个时候订单还没保存
-                        orderService.saveOrder(order);
-                        httpServletResponse.sendRedirect(redirectUrlP);
-                        return null;
-                    } catch (IOException e) {
-                        log.error("获取微信OPEI跳转过程中出错{}", e.getMessage());
-                        return new ModelAndView(UtilString.makeErrorPage(CommonError.SystemError));
-                    }
+            //校验请求
+            orderService.checkPayRequest(payRequest);
+            //填充请求 有些参数请求里没传的
+            orderService.fillPayRequest(payRequest);
+            //创建订单（不持久化）
+            Order order = orderService.warpPayRequest2UnionOrder(payRequest);
+            EnumPayType payType = EnumUtils.getEnum(EnumPayType.class, payRequest.getPayType());
+            ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(payRequest.getAppId(),
+                    payType.getCode());
+            switch (payType) {
+                case WechatH5: {
+                    ChargeWechatModel chargeWechatModel =
+                            JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
+                                    ChargeWechatModel.class);
+                    return wechatService.pagePay(payRequest, order, chargeWechatModel, httpServletRequest,
+                            httpServletResponse);
                 }
-                return wechatService.pagePay(payRequest, order, chargeWechatModel, httpServletRequest,
-                        httpServletResponse);
+                case WechatJSAPI: {
+                    ChargeWechatModel chargeWechatModel =
+                            JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
+                                    ChargeWechatModel.class);
+                    //未传递Openid
+                    if (StringUtils.isEmpty(payRequest.getPaymentUserID())) {
+                        String param = UtilBase64.encode(ObjectHelper.jsonString(payRequest).getBytes()).replaceAll(
+                                "\\+", "GT680");
+                        String redirectUrlP = String.format(wechat_open_id_grant_url, chargeWechatModel.getAppID(),
+                                domain + "/web/afterwechatgrant?param=" + param);
+                        try {
+                            //这里转发了，后面没事干了。这个时候订单还没保存
+                            httpServletResponse.sendRedirect(redirectUrlP);
+                            return null;
+                        } catch (IOException e) {
+                            log.error("获取微信OPEI跳转过程中出错{}", e.getMessage());
+                            return new ModelAndView(UtilString.makeErrorPage(CommonError.SystemError));
+                        }
+                    }
+                    return wechatService.pagePay(payRequest, order, chargeWechatModel, httpServletRequest,
+                            httpServletResponse);
+                }
+                case AlipayH5:
+                    ChargeAlipayModel chargeAlipayModel =
+                            JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
+                                    ChargeAlipayModel.class);
+                    orderService.saveOrder(order);
+                    return alipayService.pagePay(payRequest, order, chargeAlipayModel, httpServletRequest,
+                            httpServletResponse);
+                default:
+                    throw new BillException(UnipayError.PayTypeNotImpl);
             }
-            case AlipayH5:
-                ChargeAlipayModel chargeAlipayModel =
-                        JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
-                                ChargeAlipayModel.class);
-                orderService.saveOrder(order);
-                return alipayService.pagePay(payRequest, order, chargeAlipayModel, httpServletRequest,
-                        httpServletResponse);
-            default:
-                throw new BillException(UnipayError.PayTypeNotImpl);
+        } catch (BillException e) {
+            return new ModelAndView(UtilString.makeErrorPage(e.getTickcode(),e.getMessage()));
+        }catch (Exception e){
+            return new ModelAndView(UtilString.makeErrorPage(5000,"系统错误，请重试！"));
         }
     }
 
@@ -157,7 +158,7 @@ public class WebPayContoller {
     @NeedLogin(value = false)
     @ApiIgnore
     @RequestMapping(value = "error1")
-    public ModelAndView error1(String errorCode, String errorMsg) {
+    public ModelAndView error1(String errorCode, String errorMsg){
         return new ModelAndView(UtilString.makeErrorPage(399, "aaaa--be"));
     }
 
@@ -165,17 +166,16 @@ public class WebPayContoller {
     @RequestMapping("afterwechatgrant")
     @NeedLogin(value = false)
     @ApiIgnore
-    public Object t3(@RequestParam String param,
-                     @RequestParam String open_id, HttpServletRequest httpServletRequest,
+    public Object t3(@RequestParam String param, @RequestParam String open_id, HttpServletRequest httpServletRequest,
                      HttpServletResponse httpServletResponse) throws Exception {
-        param = new String(UtilBase64.decode(param.replaceAll("GT680","+")));
+        param = new String(UtilBase64.decode(param.replaceAll("GT680", "+")));
 
         try {
             param = URLDecoder.decode(param, Charsets.UTF_8.name());
             PayRequest payRequest = JSONObject.toJavaObject(JSONObject.parseObject(param), PayRequest.class);
             //校验请求
             payRequest.setPaymentUserID(open_id);
-//            orderService.checkPayRequest(payRequest);
+            //            orderService.checkPayRequest(payRequest);
             //填充请求 有些参数请求里没传的
             orderService.fillPayRequest(payRequest);
             //创建订单（不持久化）
