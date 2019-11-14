@@ -2,22 +2,16 @@
 ## 角色参考 ConstsRole中的常量 用逗号分隔
 userconfig:
   users:
-    code1:
-      code: code1
-      pwd: pwd1
-      roleStr: "ADMIN,ORDER,FINANCE"
+    admin:
+      code: "admin"
+      pwd: "a123456"
+      roleStr: "ADMIN"
       permissionStr: aaaa
-    code2:
-      code: code2
-      pwd: pwd1
-      roleStr: "ADMIN,FINANCE"
-#tt: ab
-#users:
-#  code1:
-#    code: code1
-#    pwd: pwd1
-#    roleStr: "admin,ademi2"
-#  code2:
-#    code: code2
-#    pwd: pwd1
-#    roleStr: "admin,ademi3"
+    order:
+      code: "order"
+      pwd: "a123456"
+      roleStr: "ORDER"
+    dev:
+      code: "dev"
+      pwd: "a123456"
+      roleStr: "ORDER,ADMIN"
