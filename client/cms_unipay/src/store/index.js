@@ -43,11 +43,8 @@ const store = new Vuex.Store({
     authenticated(state) {
       return state.user && state.user.token
     },
-    hasRole(state, roleCode) {
-      return state.user.roleSet.lengh > 0 && state.user.roleSet.indexof(roleCode) !== -1
-    },
-    hasPermission(state, optCode) {
-      return state.user.permissionSet.lengh > 0 && state.user.permissionSet.indexof(optCode) !== -1
+    roleSet(state) {
+      return state.user.roleSet;
     }
   },
   actions: {

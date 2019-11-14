@@ -150,6 +150,7 @@ public class WebPayContoller {
     @ApiIgnore
     public ModelAndView error(String errorCode, String errorMsg) {
         ModelAndView modelAndView = new ModelAndView("error/error");
+        modelAndView.addObject("domain", domain);
         modelAndView.addObject("errorCode", errorCode);
         modelAndView.addObject("errorMsg", errorMsg);
         return modelAndView;

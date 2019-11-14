@@ -108,7 +108,7 @@ public class WechatServiceImpl implements WechatService {
                 modelAndView.addObject("orderId", order.getId());
                 modelAndView.addObject("cancelUrl", payRequest.getCancelUrl());
                 modelAndView.addObject("backUrl", payRequest.getBackUrl());
-                modelAndView.addObject("successUrl", payRequest.getSyncUrl());
+                modelAndView.addObject("successUrl", domain+"/payment/wechat/return/"+order.getId());
                 modelAndView.addObject("subject", order.getSubjects());
                 modelAndView.addObject("descp", order.getDescp());
                 modelAndView.addObject("orderFeeY", UtilMoney.fenToYuan(order.getFee(), true));
