@@ -42,8 +42,8 @@
               <a-icon type="user" />
               <span>系统管理</span>
             </span>
-            <a-menu-item key="11" @click="routerChange('AppManage')" v-hasRole="['ADMIN']">应用管理</a-menu-item>
-            <a-menu-item key="12" @click="routerChange('ChargeConfig')"  v-hasRole="['ADMIN']">收款账号管理</a-menu-item>
+            <a-menu-item key="11" @click="routerChange('AppManage')" v-hasRole="['Admin']">应用管理</a-menu-item>
+            <a-menu-item key="12" @click="routerChange('ChargeConfig')"  v-hasRole="['Admin']">收款账号管理</a-menu-item>
             <a-menu-item key="13" @click="routerChange('OplogQuery')" >日志列表</a-menu-item>
           </a-sub-menu>
 
@@ -52,8 +52,8 @@
               <a-icon type="user" />
               <span>订单管理</span>
             </span>
-            <a-menu-item key="21" @click="routerChange('OrderManage')"  v-hasRole="['ADMIN','ORDER']">订单列表</a-menu-item>
-            <a-menu-item key="22" @click="routerChange('PayingOrder')" v-hasRole="['ADMIN','ORDER']">支付中订单</a-menu-item>
+            <a-menu-item key="21" @click="routerChange('OrderManage')"  v-hasRole="['Admin','Order']">订单列表</a-menu-item>
+            <a-menu-item key="22" @click="routerChange('PayingOrder')" v-hasRole="['Admin','Order']">支付中订单</a-menu-item>
           </a-sub-menu>
 
         </a-menu>

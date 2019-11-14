@@ -24,6 +24,7 @@ Http.interceptors.request.use(config => {
 
 Http.interceptors.response.use(
   response => {
+    console.log(response)
     // if (response.config.autoLoading !== false) {
     //   store.dispatch('busy', false)
     // }
@@ -53,6 +54,7 @@ Http.interceptors.response.use(
     return response
   },
   err => {
+    console.log(err)
     if (err.response) {
       switch (err.response.status) {
         case 401:

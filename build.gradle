@@ -34,7 +34,7 @@ repositories {
 
 dependencies {
 //    compile 'cn.gotoil:bill:2.1.8-RELEASE'
-    compile('cn.gotoil:bill:2.1.0_201910231745-SNAPSHOT') { changing = true }
+    compile('cn.gotoil:bill:2.1.0_201911141753-SNAPSHOT') { changing = true }
 
     compile group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
     compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'

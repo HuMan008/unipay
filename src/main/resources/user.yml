@@ -5,13 +5,13 @@ userconfig:
     admin:
       code: "admin"
       pwd: "a123456"
-      roleStr: "ADMIN"
+      roleStr: "Admin"
       permissionStr: aaaa
     order:
       code: "order"
       pwd: "a123456"
-      roleStr: "ORDER"
+      roleStr: "Order"
     dev:
       code: "dev"
       pwd: "a123456"
-      roleStr: "ORDER,ADMIN"
+      roleStr: "Admin,Order"

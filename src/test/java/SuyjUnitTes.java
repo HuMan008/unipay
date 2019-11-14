@@ -2,7 +2,13 @@ import cn.gotoil.bill.tools.ObjectHelper;
 import cn.gotoil.unipay.model.OrderNotifyBean;
 import cn.gotoil.unipay.utils.UtilHttpClient;
 import com.alibaba.fastjson.JSON;
+import com.google.common.base.Splitter;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 苏亚江测试1
@@ -44,5 +50,12 @@ public class SuyjUnitTes {
         }
 
         ;
+    }
+
+    @Test
+    public  void t4(){
+        String roleStr =  "ADMIN";
+        Set<String> roles = new HashSet(Splitter.on(",").omitEmptyStrings().splitToList(roleStr));
+        System.out.println(roles);
     }
 }
