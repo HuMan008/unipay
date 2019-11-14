@@ -36,6 +36,18 @@
         :pagination="pagination"
         @change="pageList"
       >
+      <a-table
+          :bordered="true"
+          slot="expandedRowRender"
+          slot-scope="record"
+          :columns="innerColumns"
+          :dataSource="record.innerData"
+          :pagination="false"
+        >
+          <div slot="longTextShow" slot-scope="item" :title="item.methodReturn">
+            <p class="longText">{{item.methodReturn}}</p>
+          </div>
+        </a-table>
       </a-table>
     </a-layout-content>
   </div>
@@ -57,9 +69,16 @@ export default {
         { title: "用户名", width: 100, dataIndex: "opUserName" },
         { title: "描述", width: 150, dataIndex: "descp" },
         { title: "方法", width: 150, dataIndex: "callMethod" },
-        { title: "参数", width: 200, dataIndex: "methodArgs" },
         { title: "返回值", width: 100, dataIndex: "methodReturn" },
         { title: "创建于", width: 190, dataIndex: "createdAt" }
+      ],
+      innerColumns: [
+        { title: "列名", width: 180, dataIndex: "desp" },
+        {
+          title: "值",
+          key: "val",
+          dataIndex: "val"
+        }
       ],
       searchInfo: {
         page: 1,
@@ -116,9 +135,15 @@ export default {
               opUserName: listData[i].opUserName,
               descp: listData[i].descp,
               callMethod: listData[i].callMethod,
-              methodArgs: listData[i].methodArgs,
               methodReturn: listData[i].methodReturn,
-              createdAt: listData[i].createdAt
+              createdAt: listData[i].createdAt,
+              innerData: [
+                {
+                  key: "row" + i + listData[i].methodArgs,
+                  desp: "参数",
+                  val: listData[i].methodArgs
+                }
+              ]
             });
           }
         } else {
