@@ -24,7 +24,6 @@ Http.interceptors.request.use(config => {
 
 Http.interceptors.response.use(
   response => {
-    console.log(response)
     // if (response.config.autoLoading !== false) {
     //   store.dispatch('busy', false)
     // }

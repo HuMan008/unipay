@@ -1,6 +1,7 @@
 package cn.gotoil.unipay.config.properties;
 
 import cn.gotoil.bill.model.BaseAdminUser;
+import com.google.common.base.Splitter;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -23,7 +24,7 @@ public class UserDefine extends BaseAdminUser {
 
     public static void fill(UserDefine userDefine) {
         userDefine.setUpwd(userDefine.getPwd());
-        userDefine.setRoles(new HashSet<>(Arrays.asList(userDefine.getRoleStr().split(","))));
-        userDefine.setPermissions(new HashSet<>(Arrays.asList(userDefine.getPermissionStr().split(","))));
+        userDefine.setRoles(new HashSet<>(Splitter.on(",").omitEmptyStrings().splitToList(userDefine.getRoleStr())));
+        userDefine.setPermissions(new HashSet<>(Splitter.on(",").omitEmptyStrings().splitToList(userDefine.getPermissionStr())));
     }
 }
