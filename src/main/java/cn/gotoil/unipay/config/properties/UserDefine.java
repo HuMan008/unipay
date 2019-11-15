@@ -4,6 +4,7 @@ import cn.gotoil.bill.model.BaseAdminUser;
 import com.google.common.base.Splitter;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -24,7 +25,15 @@ public class UserDefine extends BaseAdminUser {
 
     public static void fill(UserDefine userDefine) {
         userDefine.setUpwd(userDefine.getPwd());
-        userDefine.setRoles(new HashSet<>(Splitter.on(",").omitEmptyStrings().splitToList(userDefine.getRoleStr())));
-        userDefine.setPermissions(new HashSet<>(Splitter.on(",").omitEmptyStrings().splitToList(userDefine.getPermissionStr())));
+        if(StringUtils.isNotEmpty(userDefine.getRoleStr())){
+            userDefine.setRoles(new HashSet<>(Splitter.on(",").omitEmptyStrings().splitToList(userDefine.getRoleStr())));
+        }else{
+            userDefine.setRoles(new HashSet<>());
+        }
+        if(StringUtils.isNotEmpty(userDefine.getPermissionStr())){
+            userDefine.setPermissions(new HashSet<>(Splitter.on(",").omitEmptyStrings().splitToList(userDefine.getPermissionStr())));
+        }else{
+            userDefine.setPermissions(new HashSet<>());
+        }
     }
 }

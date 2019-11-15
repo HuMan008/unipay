@@ -77,8 +77,7 @@ public class AppController {
 
     @ApiOperation(value = "收款账号类型", position = 3, tags = "应用管理")
     @RequestMapping(value = "getAccountTypes", method = RequestMethod.GET)
-    @NeedLogin     @HasRole(value = ConstsRole.ADMIN)
-
+    @NeedLogin
     public Object getAccountTypesAction() {
         return  BaseComboResponse.getPayTypeCombo();
     }
