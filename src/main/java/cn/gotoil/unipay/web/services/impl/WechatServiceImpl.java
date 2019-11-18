@@ -61,7 +61,8 @@ public class WechatServiceImpl implements WechatService {
         data.put("appid", chargeModel.getAppID());
         data.put("mch_id", chargeModel.getMerchID());
         data.put("nonce_str", UtilWechat.generateNonceStr());
-        data.put("body", UtilString.getLongString("[" + order.getSubjects() + "]" + order.getDescp(), 128));
+        data.put("body", UtilString.getLongString( order.getSubjects(), 128));
+        data.put("detail", UtilString.getLongString( order.getDescp(), 128));
         data.put("sign_type", UtilWechat.SignType.MD5.name());
         data.put("openid", payRequest.getPaymentUserID());
         data.put("out_trade_no", order.getId());
@@ -138,7 +139,8 @@ public class WechatServiceImpl implements WechatService {
         data.put("appid", chargeModel.getAppID());
         data.put("mch_id", chargeModel.getMerchID());
         data.put("nonce_str", UtilWechat.generateNonceStr());
-        data.put("body", UtilString.getLongString("[" + order.getSubjects() + "]" + order.getDescp(), 128));
+        data.put("body", UtilString.getLongString( order.getSubjects(), 128));
+        data.put("detail", UtilString.getLongString( order.getDescp(), 128));
         data.put("sign_type", UtilWechat.SignType.MD5.name());
         data.put("out_trade_no", order.getId());
         data.put("total_fee", String.valueOf(order.getFee()));
