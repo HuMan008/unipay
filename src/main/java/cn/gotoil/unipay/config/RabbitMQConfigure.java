@@ -14,8 +14,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * rabbitmq动态配置
@@ -61,8 +64,10 @@ public class RabbitMQConfigure {
         Queue deadQueue = new Queue(DEADQUEUENAME4ORDER);
         rabbitAdmin(connectionFactory).declareQueue(deadQueue);
         rabbitAdmin(connectionFactory).declareBinding(BindingBuilder.bind(deadQueue).to(deadExchange).with(ConstsRabbitMQ.ORDERROUTINGKEY));
+        List<MessageQueueDefine> defineList  =
+                payNotifyConfig.getMessageQueues().stream().sorted(Comparator.comparing(MessageQueueDefine::getTtl).thenComparing(MessageQueueDefine::getQueueName)).collect(Collectors.toList());//根据ttl + 名字升序
         for (int i = 0; i < payNotifyConfig.getMessageQueues().size(); i++) {
-            MessageQueueDefine define = payNotifyConfig.getMessageQueues().get(i);
+            MessageQueueDefine define = defineList.get(i);
             if (i == 0) {
                 //设置第一个发送队列的名称
                 ConstsRabbitMQ.ORDERFIRSTEXCHANGENAME = define.getExchangeName();
@@ -77,6 +82,7 @@ public class RabbitMQConfigure {
             rabbitAdmin(connectionFactory).declareQueue(n1);
             rabbitAdmin(connectionFactory).declareBinding(BindingBuilder.bind(n1).to(e1).with(define.getRouteKey()));
         }
+        System.out.println(ConstsRabbitMQ.ORDERQUEUEINDEX);
 
     }
 

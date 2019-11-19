@@ -1,8 +1,10 @@
 package cn.gotoil.unipay.web.controller.admin;
 
 import cn.gotoil.bill.exception.BillException;
+import cn.gotoil.bill.web.annotation.HasRole;
 import cn.gotoil.bill.web.annotation.NeedLogin;
 import cn.gotoil.bill.web.message.BillApiResponse;
+import cn.gotoil.unipay.config.consts.ConstsRole;
 import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.model.enums.EnumOrderStatus;
@@ -42,20 +44,20 @@ ExtOrderQueryMapper extOrderQueryMapper;
 
     @ApiOperation(value = "订单查询", position = 1, tags = "订单管理")
     @RequestMapping(value = "queryOrder", method = RequestMethod.POST)
-    @NeedLogin
+    @NeedLogin  @HasRole(values = {ConstsRole.ADMIN,ConstsRole.ORDER})
     public Object queryOrderAction(@RequestBody OrderQueryListRequest orderQueryListRequest) {
         return orderQueryService.queryOrder(orderQueryListRequest);
     }
 
 //   /* @ApiOperation(value = "支付中订单查询", position = 3, tags = "订单管理")
     @RequestMapping(value = "queryPayingOrder", method = RequestMethod.POST)
-    @NeedLogin
+    @NeedLogin  @HasRole(values = {ConstsRole.ADMIN,ConstsRole.ORDER})
     public Object queryPayingOrderAction(@RequestBody OrderQueryPayingListRequest orderQueryPayingListRequest){
         return orderQueryService.queryPayingOrder(orderQueryPayingListRequest);
     }
 
     @RequestMapping(value = "doSyncOrder", method = RequestMethod.POST)
-    @NeedLogin
+    @NeedLogin  @HasRole(values = {ConstsRole.ADMIN,ConstsRole.ORDER})
     public Object doSyncOrderrAction(@RequestBody OrderQueryPayingListRequest orderQueryPayingListRequest){
         Map<String,Object> params =  new HashMap<>();
         params.put("status", EnumOrderStatus.Created.getCode());
@@ -74,7 +76,7 @@ ExtOrderQueryMapper extOrderQueryMapper;
 
     @ApiOperation(value = "查询订单状态，退款状态", position = 5, tags = "订单管理")
     @RequestMapping(value = "queryOrderStatus", method = RequestMethod.GET)
-    @NeedLogin
+    @NeedLogin  @HasRole(values = {ConstsRole.ADMIN,ConstsRole.ORDER})
     public Object queryOrderStatusAction(@ApiParam(value = "appkey") @RequestParam String appkey, @ApiParam(value = "订单号") @RequestParam String orderId,
                                          @ApiParam(value = " localStatus/remoteStatus 本地/远程查询订单状态, " + "localRefund/remoteRefund 本地/远程查询退款状态",
                                            allowableValues = "localStatus,remoteStatus,localRefund,remoteRefund", example = "localStatus") @RequestParam(defaultValue = "localStatus") String type) {
@@ -101,13 +103,14 @@ ExtOrderQueryMapper extOrderQueryMapper;
     }
 
     @RequestMapping(value = "getNotifyLog/{orderId:^\\d{21}$}", method = RequestMethod.GET)
-    @NeedLogin
+    @NeedLogin     @HasRole(values = {ConstsRole.ADMIN,ConstsRole.ORDER})
+
     public Object getNotifyLogListAction(@PathVariable String orderId){
         return noticeLogService.listByOrderId(orderId);
     }
 
     @RequestMapping(value = "doNotify/{orderId:^\\d{21}$}", method = RequestMethod.GET)
-    @NeedLogin
+    @NeedLogin  @HasRole(values = {ConstsRole.ADMIN,ConstsRole.ORDER})
     public Object sendNotifyAction(@PathVariable String orderId){
         Order order = orderService.loadByOrderID(orderId);
         if(order==null){

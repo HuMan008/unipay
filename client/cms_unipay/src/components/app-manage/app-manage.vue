@@ -75,6 +75,7 @@
       :confirmLoading="confirmLoading"
     >
       <template v-for="item in selectList">
+        <!-- <a-card :key="item.cateName">{{item.cateName}} -->
         <a-divider orientation="left" style="font-color:red" :key="item.cateName">{{item.cateName}}</a-divider>
         <a-form-item
           :label-col="{ span: 4}"
@@ -85,7 +86,7 @@
           :key="item.payType"
         >
           <a-select
-            style="width: 380px"
+            style="width: 300px;margin-left:20px"
             :defaultValue="item.selected"
             @change="chargeChange($event,item.payType)"
           >
@@ -97,6 +98,7 @@
             >{{configItem.name }}</a-select-option>
           </a-select>
         </a-form-item>
+        <!-- </a-card> -->
       </template>
     </a-modal>
 
@@ -703,5 +705,11 @@ textarea {
 .serchItem {
   margin-left: 10px;
   margin-right: 18px;
+}
+
+.ant-divider-inner-text {
+    font-weight: bolder;
+    display: inline-block;
+    padding: 0 24px;
 }
 </style>

@@ -1,8 +1,10 @@
 package cn.gotoil.unipay.web.controller.admin;
 
 import cn.gotoil.bill.exception.BillException;
+import cn.gotoil.bill.web.annotation.HasRole;
 import cn.gotoil.bill.web.annotation.NeedLogin;
 import cn.gotoil.bill.web.message.BillApiResponse;
+import cn.gotoil.unipay.config.consts.ConstsRole;
 import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.entity.App;
 import cn.gotoil.unipay.model.entity.AppAccountIds;
@@ -39,7 +41,8 @@ public class AppController {
 
     @ApiOperation(value = "收款账号", position = 1, tags = "应用管理")
     @RequestMapping(value = "getAccounts", method = RequestMethod.GET)
-    @NeedLogin
+    @NeedLogin     @HasRole(value = ConstsRole.ADMIN)
+
     public Object getAccountsAction(@ApiParam(value = "appkey") @RequestParam String appkey) {
         ArrayList<PaytypeResponse> paytypeList = new ArrayList<>();
         Map<String,Integer> map = appService.getByAppkey(appkey);
@@ -67,7 +70,7 @@ public class AppController {
 
     @ApiOperation(value = "状态类型", position = 2, tags = "应用管理")
     @RequestMapping(value = "getStatus", method = RequestMethod.GET)
-    @NeedLogin
+    @NeedLogin     @HasRole(value = ConstsRole.ADMIN)
     public Object getStatusAction() {
         return BaseComboResponse.getEnumsStatusCombo();
     }
@@ -81,7 +84,8 @@ public class AppController {
 
     @ApiOperation(value = "新增APP", position = 5, tags = "应用管理")
     @RequestMapping(value = "/addApp", method = {RequestMethod.POST})
-    @NeedLogin
+    @NeedLogin     @HasRole(value = ConstsRole.ADMIN)
+
     public Object addAccountAction(@RequestBody AppAddRquest appAddRquest) {
         if (appService.nameHasExist(appAddRquest.getAppName(), null)) {
             throw new BillException(5000, "应用名称重复");
@@ -97,14 +101,15 @@ public class AppController {
 
     @ApiOperation(value = "查询APP", position = 7, tags = "应用管理")
     @RequestMapping(value = "/queryApp", method = {RequestMethod.POST})
-    @NeedLogin
+    @NeedLogin     @HasRole(value = ConstsRole.ADMIN)
     public Object queryAppAction(@Valid @RequestBody AppListRequest appListRequest) {
         return appService.queryApps(appListRequest);
     }
 
     @ApiOperation(value = "修改APP状态", position = 9, tags = "应用管理")
     @RequestMapping(value = "/updateStatus", method = {RequestMethod.GET})
-    @NeedLogin
+    @NeedLogin    @HasRole(value = ConstsRole.ADMIN)
+
     public Object updateStatusAction(@ApiParam(value = "APPKEY") @RequestParam String appkey, @ApiParam(value = "新状态 0启用 " +
             "1禁用", allowableValues = "0,1", example = "0") @RequestParam Integer status) {
         return appService.updateStatus(appkey, status.byteValue());
@@ -112,7 +117,8 @@ public class AppController {
 
     @ApiOperation(value = "检查APP名称是否重复", position = 11, tags = "应用管理")
     @RequestMapping(value = "/checkAppName", method = {RequestMethod.GET})
-    @NeedLogin
+    @NeedLogin     @HasRole(value = ConstsRole.ADMIN)
+
     public Object checkAppNameAction(@ApiParam(value = "名称") @RequestParam String appName,
                                      @ApiParam(value = "APPKEY") @RequestParam String appKey) {
         return appService.nameHasExist(appName, appKey);
@@ -127,7 +133,8 @@ public class AppController {
 
     @ApiOperation(value = "修改APP", position = 15, tags = "应用管理")
     @RequestMapping(value = "/updateApp", method = {RequestMethod.POST})
-    @NeedLogin
+    @NeedLogin     @HasRole(value = ConstsRole.ADMIN)
+
     public Object updateAppAction(@RequestBody AppAddRquest appAddRquest, @RequestParam(required = false,
             defaultValue = "0") String checkName, HttpServletRequest request) {
         if ("0".equals(checkName)) {
@@ -149,7 +156,7 @@ public class AppController {
 
     @ApiOperation(value = "应用支付方式授权", position = 15, tags = "应用管理")
     @RequestMapping(value = "/grantpay", method = {RequestMethod.POST})
-    @NeedLogin
+    @NeedLogin     @HasRole(value = ConstsRole.ADMIN)
     public Object updateAppAction(@RequestBody  AppAccountIds appAccountIds  ) {
         App app = appService.load(appAccountIds.getAppKey());
         if(app==null){

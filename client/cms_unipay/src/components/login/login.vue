@@ -92,7 +92,7 @@ export default {
               };
               this.$store.commit("SET_USER", user);
               setTimeout(() => {
-                this.$router.push("/main/Dashboards");
+                this.$router.push("/main/OrderManage");
               }, 2000);
             } else {
               this.$message.error(r.message);

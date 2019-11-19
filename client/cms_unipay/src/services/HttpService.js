@@ -53,6 +53,7 @@ Http.interceptors.response.use(
     return response
   },
   err => {
+    console.log(err)
     if (err.response) {
       switch (err.response.status) {
         case 401:

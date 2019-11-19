@@ -61,7 +61,8 @@ public class WechatServiceImpl implements WechatService {
         data.put("appid", chargeModel.getAppID());
         data.put("mch_id", chargeModel.getMerchID());
         data.put("nonce_str", UtilWechat.generateNonceStr());
-        data.put("body", UtilString.getLongString("[" + order.getSubjects() + "]" + order.getDescp(), 128));
+        data.put("body", UtilString.getLongString( order.getSubjects(), 128));
+        data.put("detail", UtilString.getLongString( order.getDescp(), 128));
         data.put("sign_type", UtilWechat.SignType.MD5.name());
         data.put("openid", payRequest.getPaymentUserID());
         data.put("out_trade_no", order.getId());
@@ -108,7 +109,7 @@ public class WechatServiceImpl implements WechatService {
                 modelAndView.addObject("orderId", order.getId());
                 modelAndView.addObject("cancelUrl", payRequest.getCancelUrl());
                 modelAndView.addObject("backUrl", payRequest.getBackUrl());
-                modelAndView.addObject("successUrl", payRequest.getSyncUrl());
+                modelAndView.addObject("successUrl", domain+"/payment/wechat/return/"+order.getId());
                 modelAndView.addObject("subject", order.getSubjects());
                 modelAndView.addObject("descp", order.getDescp());
                 modelAndView.addObject("orderFeeY", UtilMoney.fenToYuan(order.getFee(), true));
@@ -138,7 +139,8 @@ public class WechatServiceImpl implements WechatService {
         data.put("appid", chargeModel.getAppID());
         data.put("mch_id", chargeModel.getMerchID());
         data.put("nonce_str", UtilWechat.generateNonceStr());
-        data.put("body", UtilString.getLongString("[" + order.getSubjects() + "]" + order.getDescp(), 128));
+        data.put("body", UtilString.getLongString( order.getSubjects(), 128));
+        data.put("detail", UtilString.getLongString( order.getDescp(), 128));
         data.put("sign_type", UtilWechat.SignType.MD5.name());
         data.put("out_trade_no", order.getId());
         data.put("total_fee", String.valueOf(order.getFee()));
@@ -223,7 +225,7 @@ public class WechatServiceImpl implements WechatService {
                     if (SUCCESS.equalsIgnoreCase(reMap.get("result_code"))) {
                         OrderQueryResponse orderQueryResponse = OrderQueryResponse.builder().unionOrderID(reMap.get(
                                 "out_trade_no")).appOrderNO(order.getAppOrderNo()).paymentId(reMap.get(
-                                        "transaction_id")).paymentUid(reMap.get("openid")).payDateTime(0).orderFee(Integer.parseInt(reMap.get("total_fee"))).payFee(0).arrFee(0).thirdStatus(reMap.get("trade_state")).thirdCode(reMap.get("result_code")).thirdMsg(reMap.get("err_code") + "#" + reMap.get("err_code_des")).build();
+                                        "transaction_id")).paymentUid(reMap.get("openid")).payDateTime(0).orderFee(order.getFee()).payFee(0).arrFee(0).thirdStatus(reMap.get("trade_state")).thirdCode(reMap.get("result_code")).thirdMsg(reMap.get("err_code") + "#" + reMap.get("err_code_des")).build();
                         ;
                   /*      SUCCESS—支付成功
                         REFUND—转入退款
@@ -241,14 +243,14 @@ public class WechatServiceImpl implements WechatService {
                             orderQueryResponse.setArrFee(Integer.parseInt(reMap.get("total_fee")));
                         } else if ("NOTPAY".equalsIgnoreCase(reMap.get("trade_state")) || "USERPAYING".equalsIgnoreCase(reMap.get("trade_state"))) {
                             Date flagDate =
-                                    org.apache.commons.lang3.time.DateUtils.addMilliseconds(order.getCreatedAt(),
+                                    org.apache.commons.lang3.time.DateUtils.addMinutes(order.getCreatedAt(),
                                             order.getExpiredTimeMinute() + 30);
                             if (flagDate.getTime() < System.currentTimeMillis()) {
                                                                 orderQueryResponse.setStatus(EnumOrderStatus
-                                 .Created.getCode());
+                                 .PayFailed.getCode());
 //                                return OrderQueryResponse.builder().unionOrderID(order.getId()).appOrderNO(order.getAppOrderNo()).paymentId(order.getPaymentId()).orderFee(0).payFee(0).thirdStatus(orderQueryResponse.getThirdStatus()).thirdCode(orderQueryResponse.getThirdCode()).status(EnumOrderStatus.PayFailed.getCode()).thirdMsg(orderQueryResponse.getThirdMsg()).build();
                             } else {
-                                orderQueryResponse.setStatus(EnumOrderStatus.PayFailed.getCode());
+                                orderQueryResponse.setStatus(EnumOrderStatus.Created.getCode());
                                 //                                return OrderQueryResponse.builder().unionOrderID
                                 // (order.getId()).appOrderNO(order.getAppOrderNo()).paymentId(order.getPaymentId())
                                 // .orderFee(0).payFee(0).thirdStatus(orderQueryResponse.getThirdStatus()).thirdCode

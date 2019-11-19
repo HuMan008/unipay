@@ -7,7 +7,8 @@
     <title>出错啦</title>
     <!--<link href="https://cdn.bootcss.com/weui/1.1.2/style/weui.css" rel="stylesheet">-->
     <link href="https://cdn.bootcss.com/weui/1.1.2/style/weui.min.css" rel="stylesheet">
-    <link th:href="@{domain+'/wechat/example.css'}" rel="stylesheet">
+    <link th:href="@{domain+'wechat/example.css'}" rel="stylesheet">
+
 
 </head>
 <style>
@@ -33,7 +34,8 @@
 
 <div class="container">
     <div class="page__hd">
-                    <span style="text-align: center">
+                    <span style="text-align: center" th:text="${domain +'/wechat/example.css'}">
+                        aa
                       <!--系统错误-->
                     </span>
         <!--<h2>订单金额 <h1 th:text="'￥'+${orderFeeY}+'元'">￥0.01元</h1></h2>-->
