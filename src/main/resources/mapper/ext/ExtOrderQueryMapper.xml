@@ -17,10 +17,10 @@
             and o.pay_type = #{payType}
         </if>
         <if test="beginTime != null and beginTime != ''">
-            and DATE_FORMAT(o.created_at,'%Y-%m-%d') >= #{beginTime}
+            and DATE_FORMAT(o.created_at,'%Y-%m-%d %H:%i:%s') >= #{beginTime}
         </if>
         <if test="endTime != null and endTime != ''">
-            and DATE_FORMAT(o.created_at,'%Y-%m-%d') <![CDATA[ <= ]]> #{endTime}
+            and DATE_FORMAT(o.created_at,'%Y-%m-%d %H:%i:%s') <![CDATA[ <= ]]> #{endTime}
         </if>
     </sql>
 
