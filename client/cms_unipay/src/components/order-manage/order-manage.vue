@@ -37,6 +37,18 @@
             >{{item.label}}</a-select-option>
           </a-select>
         </a-form-item>
+        <br>
+        <a-form-item label="下单时间" class="serchItem row">
+          <a-range-picker
+            :disabledDate="disabledDate"
+            @change="onDickerChange"
+            :showTime="{
+              hideDisabledOptions: true,
+              defaultValue: [moment('00:00:00', 'HH:mm:ss'), moment('23:59:59', 'HH:mm:ss')]
+            }"
+            format="YYYY-MM-DD HH:mm:ss"
+          />
+        </a-form-item>
         <a-form-item label="支付方式" class="serchItem row">
           <a-select v-model="searchForm.payType" style="width:150px">
             <a-select-option value>全部</a-select-option>
@@ -180,6 +192,8 @@ export default {
         current: 1
       },
       searchForm: {
+        endTime: "",
+        beginTime: "",
         appId: "",
         queryId: "",
         status: "",
@@ -234,6 +248,35 @@ export default {
     }, 300);
   },
   methods: {
+    disabledDate(current) {
+      // 必须选今天之前的时间
+      return current && current >= moment().endOf("day");
+    },
+    onDickerChange(date, dateString) {
+      this.searchForm.beginTime = dateString[0];
+      this.searchForm.endTime = dateString[1];
+    },
+    range(start, end) {
+      const result = [];
+      for (let i = start; i < end; i++) {
+        result.push(i);
+      }
+      return result;
+    },
+    disabledRangeTime(_, type) {
+      if (type === "start") {
+        return {
+          disabledHours: () => this.range(0, 60).splice(4, 20),
+          disabledMinutes: () => this.range(30, 60),
+          disabledSeconds: () => [55, 56]
+        };
+      }
+      return {
+        disabledHours: () => this.range(0, 60).splice(20, 4),
+        disabledMinutes: () => this.range(0, 31),
+        disabledSeconds: () => [55, 56]
+      };
+    },
     chargeChange(newValue, chargeType) {
       // this.newCharge.push({ payType: chargeType, select: newValue });
       this.$set(this.newCharge, chargeType, newValue);
@@ -252,6 +295,8 @@ export default {
           appId: this.searchForm.appId,
           queryId: this.searchForm.queryId,
           status: this.searchForm.status,
+          beginTime: this.searchForm.beginTime,
+          endTime: this.searchForm.endTime,
           payType: this.searchForm.payType
         }
       };
@@ -562,7 +607,9 @@ textarea {
   margin-left: 10px;
   margin-right: 18px;
 }
-
+.row{
+  flex-wrap: wrap;
+}
 .longText{
   max-width: 200px;
   white-space: nowrap;

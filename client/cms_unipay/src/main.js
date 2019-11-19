@@ -2,7 +2,7 @@
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
 import store from './store'
-import { Button, Layout, message, Icon, Breadcrumb, Form, Input, DatePicker, notification, Select, Divider } from 'ant-design-vue'
+import { Button, Layout, message, Icon, Breadcrumb, Form, Input, DatePicker, notification, Select, Divider, Card } from 'ant-design-vue'
 import 'ant-design-vue/dist/antd.less'
 import Menu from 'ant-design-vue/lib/menu'
 // import Antd from 'ant-design-vue'
@@ -29,6 +29,7 @@ Vue.use(Menu)
 Vue.use(Icon)
 Vue.use(Breadcrumb)
 Vue.use(Divider)
+Vue.use(Card)
 Vue.use(hasRole)
 Vue.config.productionTip = false
 
