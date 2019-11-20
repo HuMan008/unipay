@@ -1,7 +1,6 @@
 package cn.gotoil.unipay.config.properties;
 
 import cn.gotoil.unipay.config.YamlPropertySourceFactory;
-import com.sun.org.glassfish.gmbal.Description;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
