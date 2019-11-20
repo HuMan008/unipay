@@ -4,6 +4,7 @@ import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.model.BaseAdminUser;
 import cn.gotoil.unipay.UnipayApplication;
 import cn.gotoil.unipay.exceptions.UnipayError;
+import cn.gotoil.unipay.model.entity.AdminUser;
 import cn.gotoil.unipay.web.services.MyAdminUserService;
 
 /**
@@ -21,6 +22,7 @@ public class BillWebAuthenticationProvider {
         if (dd == null) {
             throw new BillException(UnipayError.WebUserError_UserPwdError);
         }
+        dd.setUpwd(((AdminUser) dd).getPwd());
         return dd;
     }
 }
