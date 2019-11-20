@@ -76,7 +76,7 @@
     >
       <template v-for="item in selectList">
         <!-- <a-card :key="item.cateName">{{item.cateName}} -->
-        <a-divider orientation="left" style="font-color:red" :key="item.cateName">{{item.cateName}}</a-divider>
+        <a-divider orientation="left" :key="item.cateName" style="font-weight:bold;">{{item.cateName}}</a-divider>
         <a-form-item
           :label-col="{ span: 4}"
           :wrapper-col="{ span: 6 }"
