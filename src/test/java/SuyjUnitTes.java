@@ -33,13 +33,14 @@ public class SuyjUnitTes {
     }
 
     @Test
+    @SuppressWarnings("all")
     public void t3() {
-        String str = new String("{\"appId\":\"AQhPkDihNxljLFpsBUdelgIP\"," +
-                "\"appOrderNO\":\"10752467826376704\",\"asyncUrl\":\"http://bole.guotongshiyou" +
-                ".cn/payment/notify/bal/MaxAlipay\",\"doCount\":1,\"extraParam\":\"\",\"method\":\"PAY\"," +
-                "\"orderFee\":1,\"payDate\":1571904454,\"payFee\":1,\"paymentId\":\"2019102422001491801403471107\"," +
-                "\"refundFee\":0,\"sendType\":0,\"sign\":\"471811eb49016921bc48cb172785c7b0\",\"status\":0," +
-                "\"timeStamp\":1571904467,\"totalRefundFee\":0,\"unionOrderID\":\"201910241607249411769\"}");
+        String str = "{\"appId\":\"AQhPkDihNxljLFpsBUdelgIP\"," + "\"appOrderNO\":\"10752467826376704\"," +
+                "\"asyncUrl\":\"http://bole.guotongshiyou" + ".cn/payment/notify/bal/MaxAlipay\",\"doCount\":1," +
+                "\"extraParam\":\"\",\"method\":\"PAY\"," + "\"orderFee\":1,\"payDate\":1571904454,\"payFee\":1," +
+                "\"paymentId\":\"2019102422001491801403471107\"," + "\"refundFee\":0,\"sendType\":0," +
+                "\"sign\":\"471811eb49016921bc48cb172785c7b0\",\"status\":0," + "\"timeStamp\":1571904467," +
+                "\"totalRefundFee\":0,\"unionOrderID\":\"201910241607249411769\"}";
         OrderNotifyBean oo = JSON.parseObject(str, OrderNotifyBean.class);
         try {
             String yyy = UtilHttpClient.notifyPost("http://bole.guotongshiyou.cn/payment/notify/bal/MaxAlipay",

@@ -1,6 +1,7 @@
 package cn.gotoil.unipay.config.properties;
 
 import cn.gotoil.unipay.config.YamlPropertySourceFactory;
+import com.sun.org.glassfish.gmbal.Description;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -15,8 +16,10 @@ import java.util.Map;
  *
  * @author think <syj247@qq.com>、
  * @date 2019-9-26、10:27
+ *
  */
 @Component
+@Deprecated
 @ConfigurationProperties(prefix = "userconfig")
 @PropertySource(value = "classpath:user.yml", factory = YamlPropertySourceFactory.class)
 @Setter

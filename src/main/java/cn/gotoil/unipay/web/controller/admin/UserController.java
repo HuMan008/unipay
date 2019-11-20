@@ -7,6 +7,9 @@ import cn.gotoil.bill.web.services.AdminUserService;
 import cn.gotoil.unipay.config.properties.UserConfig;
 import cn.gotoil.unipay.config.properties.UserDefine;
 import cn.gotoil.unipay.exceptions.UnipayError;
+import cn.gotoil.unipay.model.entity.AdminUser;
+import cn.gotoil.unipay.model.entity.AdminUserExample;
+import cn.gotoil.unipay.web.services.MyAdminUserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 @RestController
 @RequestMapping("web/user")
@@ -25,10 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 public class UserController {
 
     @Autowired
-    AdminUserService adminUserService;
-
-    @Autowired
-    UserConfig userConfig;
+    MyAdminUserService adminUserService;
 
     @ApiOperation(value = "登录接口", position = 5, tags = "用户")
     @RequestMapping(value = "/login", method = {RequestMethod.POST})
@@ -36,18 +37,7 @@ public class UserController {
     public Object loginAction(@ApiParam(value = "用户名") @RequestParam String code,
                               @ApiParam(value = "密码") @RequestParam String pwd, HttpServletRequest request,
                               HttpServletResponse response) {
-        UserDefine dd = userConfig.getUsers().get(code);
-        if (null == dd) {
-            throw new BillException(UnipayError.WebUserError_UserPwdError);
-        }
-        if (dd.getPwd().equals(pwd)) {
-            UserDefine.fill(dd);
-            String token = adminUserService.afterLogin(dd, code, pwd);
-            dd.setToken(token);
-            return new BillApiResponse(dd);
-        } else {
-            throw new BillException(UnipayError.WebUserError_UserPwdError);
-
-        }
+       return adminUserService.doLogin(code,pwd);
     }
+
 }
