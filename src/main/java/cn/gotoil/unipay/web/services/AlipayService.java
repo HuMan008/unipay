@@ -14,7 +14,10 @@ public interface AlipayService extends BasePayService {
 
     Logger logger = LoggerFactory.getLogger(AlipayServiceImpl.class);
 
+    // 正式
     String GATEWAYURL = "https://openapi.alipay.com/gateway.do";
+    // 沙箱
+//    String GATEWAYURL = "https://openapi.alipaydev.com/gateway.do";
     String FORMAT = "json";
     String SIGNTYPE = "RSA2";
 }
