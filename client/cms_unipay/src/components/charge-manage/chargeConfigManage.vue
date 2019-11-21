@@ -438,7 +438,7 @@ export default {
       const id = form.getFieldValue("id") === undefined ? '' : form.getFieldValue("id");
       const acallback = callback;
       HttpService.get(
-        "web/account/checkAccountName?appName=" + value + "&id=" + id
+        "/web/account/checkAccountName?appName=" + value + "&id=" + id
       ).then(res => {
         if (res.data.data) {
           acallback("收款账户名称重复");

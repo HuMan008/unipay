@@ -631,7 +631,7 @@ export default {
       const id = form.getFieldValue("appKey") === undefined ? '' : form.getFieldValue("appKey");
       const acallback = callback;
       HttpService.get(
-        "web/app/checkAppName?appName=" + value + "&appKey=" + id
+        "/web/app/checkAppName?appName=" + value + "&appKey=" + id
       ).then(res => {
         if (res.data.data) {
           acallback("应用名称重复");
