@@ -39,10 +39,10 @@ spring:
 logging:
   level:
     org.springframework.web: DEBUG
-    cn.gotoil.unipay.model.mapper: DEBUG
+    cn.gotoil.unipay.model.mapper: ERROR
   path: logs
 
-isDebug: true
+isDebug: false
 
 #本机域名或者IP 必须能外网访问的
 domain: "http://punipay.guotongshiyou.cn"
