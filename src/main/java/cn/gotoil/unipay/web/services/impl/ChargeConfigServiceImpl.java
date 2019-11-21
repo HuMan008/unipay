@@ -265,9 +265,9 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
 
         List list = chargeConfigMapper.selectByExample(example);
         if (list != null && list.size() > 0) {
-            return false;
-        } else {
             return true;
+        } else {
+            return false;
         }
     }
 

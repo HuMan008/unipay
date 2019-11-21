@@ -112,7 +112,9 @@
             maxlength="48"
             v-decorator="[
           'name',
-          {rules: [{ required: true, message: '请输入收款账号名称' }]}
+          {rules: [{ required: true, message: '请输入收款账号名称' },{
+                validator: chargeNameValidator,
+              }]}
         ]"
           />
         </a-form-item>
@@ -427,6 +429,21 @@ export default {
           });
         } else {
           this.$notification.warning({ message: res.data.message });
+        }
+      });
+    },
+    // 收款账号名称检查
+    chargeNameValidator(rule, value, callback) {
+      const form = this.form;
+      const id = form.getFieldValue("id") === undefined ? '' : form.getFieldValue("id");
+      const acallback = callback;
+      HttpService.get(
+        "web/account/checkAccountName?appName=" + value + "&id=" + id
+      ).then(res => {
+        if (res.data.data) {
+          acallback("收款账户名称重复");
+        } else {
+          acallback();
         }
       });
     },

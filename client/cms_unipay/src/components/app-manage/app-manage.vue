@@ -76,7 +76,11 @@
     >
       <template v-for="item in selectList">
         <!-- <a-card :key="item.cateName">{{item.cateName}} -->
-        <a-divider orientation="left" :key="item.cateName" style="font-weight:bold;">{{item.cateName}}</a-divider>
+        <a-divider
+          orientation="left"
+          :key="item.cateName"
+          style="font-weight:bold;"
+        >{{item.cateName}}</a-divider>
         <a-form-item
           :label-col="{ span: 4}"
           :wrapper-col="{ span: 6 }"
@@ -141,7 +145,9 @@
             maxlength="48"
             v-decorator="[
           'appName',
-          {rules: [{ required: true, message: '请输入应用名称' }]}
+          {rules: [{ required: true, message: '请输入应用名称' },{
+                validator: appNameValidator,
+              }]}
         ]"
           />
         </a-form-item>
@@ -381,23 +387,21 @@ export default {
     doGrant() {
       // this.newCharge.push("appKey", "aaa");
       this.$set(this.newCharge, "appKey", this.waitGrantAppId);
-      HttpService.post("/web/app/grantpay", this.newCharge).then(
-        res => {
-          if (res.data.status === 0) {
-            let _this = this;
-            this.grantModelVisible = false;
-            this.$notification.success({
-              message: "操作成功",
-              duration: 3,
-              onClose: () => {
-                _this.getList();
-              }
-            });
-          } else {
-            this.$notification.warning({ message: res.data.message });
-          }
+      HttpService.post("/web/app/grantpay", this.newCharge).then(res => {
+        if (res.data.status === 0) {
+          let _this = this;
+          this.grantModelVisible = false;
+          this.$notification.success({
+            message: "操作成功",
+            duration: 3,
+            onClose: () => {
+              _this.getList();
+            }
+          });
+        } else {
+          this.$notification.warning({ message: res.data.message });
         }
-      );
+      });
     },
     // 分页取
     pageList(pagination) {
@@ -621,6 +625,21 @@ export default {
         }
       });
     },
+    // 应用名称检查
+    appNameValidator(rule, value, callback) {
+      const form = this.form;
+      const id = form.getFieldValue("appKey") === undefined ? '' : form.getFieldValue("appKey");
+      const acallback = callback;
+      HttpService.get(
+        "web/app/checkAppName?appName=" + value + "&appKey=" + id
+      ).then(res => {
+        if (res.data.data) {
+          acallback("应用名称重复");
+        } else {
+          acallback();
+        }
+      });
+    },
     moment
   },
   components: {
@@ -708,8 +727,8 @@ textarea {
 }
 
 .ant-divider-inner-text {
-    font-weight: bolder;
-    display: inline-block;
-    padding: 0 24px;
+  font-weight: bolder;
+  display: inline-block;
+  padding: 0 24px;
 }
 </style>

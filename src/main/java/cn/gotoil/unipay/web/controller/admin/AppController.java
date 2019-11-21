@@ -120,7 +120,7 @@ public class AppController {
     @NeedLogin     @HasRole(value = ConstsRole.ADMIN)
 
     public Object checkAppNameAction(@ApiParam(value = "名称") @RequestParam String appName,
-                                     @ApiParam(value = "APPKEY") @RequestParam String appKey) {
+                                     @ApiParam(value = "APPKEY") @RequestParam(required = false) String appKey) {
         return appService.nameHasExist(appName, appKey);
     }
 
