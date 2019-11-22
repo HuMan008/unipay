@@ -86,7 +86,7 @@
                 </div>
             </div>
 
-            <div class="weui-cell" style="padding: 14px 28px;">
+            <div th:if="${not #strings.isEmpty(descp)}" class="weui-cell" style="padding: 14px 28px;">
                 <div class="weui-cell__bd">
                     <p style="color: #666666">商品描述</p>
                 </div>
