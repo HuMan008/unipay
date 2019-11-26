@@ -371,7 +371,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = loadByOrderID(orderId);
         if (order == null) {
-            return new ModelAndView(UtilString.makeErrorPage(UnipayError.OrderNotExists));
+            return new ModelAndView(UtilString.makeErrorPage(UnipayError.OrderNotExists,""));
         } else if (StringUtils.isEmpty(order.getSyncUrl())) {
             //未设置同步地址
             ModelAndView modelAndView = new ModelAndView("payresult");

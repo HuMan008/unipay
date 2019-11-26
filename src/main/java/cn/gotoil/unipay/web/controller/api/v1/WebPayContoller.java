@@ -30,12 +30,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import springfox.documentation.annotations.ApiIgnore;
+import sun.plugin.com.Utils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 
 /**
  * 页面支付入口
@@ -83,7 +85,7 @@ public class WebPayContoller {
             String signStr =
                     payRequest.getAppId() + payRequest.getAppOrderNo() + payRequest.getPayType() + payRequest.getFee() + appService.key(payRequest.getAppId());
             if (StringUtils.isEmpty(payRequest.getSign()) || !payRequest.getSign().equals(Hash.md5(signStr).toUpperCase())) {
-                return new ModelAndView(UtilString.makeErrorPage(UnipayError.IllegalRequest));
+                return new ModelAndView(UtilString.makeErrorPage(UnipayError.IllegalRequest,payRequest.getBackUrl()));
             }
         }
         try {
@@ -121,7 +123,7 @@ public class WebPayContoller {
                             return null;
                         } catch (IOException e) {
                             log.error("获取微信OPEI跳转过程中出错{}", e.getMessage());
-                            return new ModelAndView(UtilString.makeErrorPage(CommonError.SystemError));
+                            return new ModelAndView(UtilString.makeErrorPage(CommonError.SystemError,payRequest.getBackUrl()));
                         }
                     }
                     return wechatService.pagePay(payRequest, order, chargeWechatModel, httpServletRequest,
@@ -138,9 +140,9 @@ public class WebPayContoller {
                     throw new BillException(UnipayError.PayTypeNotImpl);
             }
         } catch (BillException e) {
-            return new ModelAndView(UtilString.makeErrorPage(e.getTickcode(),e.getMessage()));
+            return new ModelAndView(UtilString.makeErrorPage(e.getTickcode(),e.getMessage(),payRequest.getBackUrl()));
         }catch (Exception e){
-            return new ModelAndView(UtilString.makeErrorPage(5000,"系统错误，请重试！"));
+            return new ModelAndView(UtilString.makeErrorPage(CommonError.SystemError,payRequest.getBackUrl()));
         }
     }
 
@@ -148,20 +150,15 @@ public class WebPayContoller {
     @NeedLogin(value = false)
     @RequestMapping(value = "error")
     @ApiIgnore
-    public ModelAndView error(String errorCode, String errorMsg) {
+    public ModelAndView error(String errorCode, String errorMsg,String backUrl) {
         ModelAndView modelAndView = new ModelAndView("error/error");
         modelAndView.addObject("domain", domain);
         modelAndView.addObject("errorCode", errorCode);
-        modelAndView.addObject("errorMsg", errorMsg);
+        modelAndView.addObject("errorMsg",errorMsg );
+        modelAndView.addObject("backUrl", backUrl);
         return modelAndView;
     }
 
-    @NeedLogin(value = false)
-    @ApiIgnore
-    @RequestMapping(value = "error1")
-    public ModelAndView error1(String errorCode, String errorMsg){
-        return new ModelAndView(UtilString.makeErrorPage(399, "aaaa--be"));
-    }
 
 
     @RequestMapping("afterwechatgrant")

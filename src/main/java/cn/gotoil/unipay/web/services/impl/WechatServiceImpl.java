@@ -83,7 +83,7 @@ public class WechatServiceImpl implements WechatService {
             sign = UtilWechat.generateSignature(data, chargeModel.getApiKey());
         } catch (Exception e) {
             log.error("微信加签错误", e.getMessage());
-            return new ModelAndView(UtilString.makeErrorPage(5000, "微信加签错误"));
+            return new ModelAndView(UtilString.makeErrorPage(5000, "微信加签错误",payRequest.getBackUrl()));
         }
         data.put("sign", sign);
         try {
@@ -116,11 +116,12 @@ public class WechatServiceImpl implements WechatService {
                 return modelAndView;
 
             } else {
-                return new ModelAndView(UtilString.makeErrorPage(5001, reMap.getOrDefault("return_msg", "微信支付出错")));
+                return new ModelAndView(UtilString.makeErrorPage(5001, reMap.getOrDefault("return_msg", "微信支付出错"),
+                        payRequest.getBackUrl()));
             }
         } catch (Exception e) {
             log.error("微信JSAPI支付订单创建出错{}", e.getMessage());
-            return new ModelAndView(UtilString.makeErrorPage(5000, e.getMessage()));
+            return new ModelAndView(UtilString.makeErrorPage(5000, e.getMessage(),payRequest.getBackUrl()));
         }
     }
 

@@ -38,17 +38,14 @@ public class UtilString {
     }
 
 
-    public static String makeErrorPage(BillError billError) {
-        return "redirect:/web/error?errorCode=" + billError.getCode() + "&errorMsg=" + toUtf8(billError.getMessage());
+    public static String makeErrorPage(BillError billError,String errorBackUrl) {
+        return "redirect:/web/error?errorCode=" + billError.getCode() + "&errorMsg=" + toUtf8(billError.getMessage())+"&backUrl="+toUtf8(errorBackUrl);
     }
 
-    public static String makeErrorPage(String errorCode, String errorMsg) {
 
-        return "redirect:/web/error?errorCode=" + errorCode + "&errorMsg=" + toUtf8(errorMsg);
-    }
 
-    public static String makeErrorPage(int errorCode, String errorMsg)  {
-        return "redirect:/web/error?errorCode=" + errorCode + "&errorMsg=" + toUtf8(errorMsg) ;
+    public static String makeErrorPage(int errorCode, String errorMsg,String errorBackUrl)  {
+        return "redirect:/web/error?errorCode=" + errorCode + "&errorMsg=" + toUtf8(errorMsg)+"&backUrl="+toUtf8(errorBackUrl) ;
     }
 
     public synchronized static boolean checkObjFieldIsNull(Object obj) {
