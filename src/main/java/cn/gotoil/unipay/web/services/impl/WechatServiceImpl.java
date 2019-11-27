@@ -14,7 +14,10 @@ import cn.gotoil.unipay.web.message.response.OrderRefundQueryResponse;
 import cn.gotoil.unipay.web.services.OrderService;
 import cn.gotoil.unipay.web.services.WechatService;
 import com.alibaba.fastjson.JSON;
+import com.google.common.base.Charsets;
+import com.google.common.net.UrlEscapers;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
@@ -91,7 +94,13 @@ public class WechatServiceImpl implements WechatService {
             Map<String, String> reMap = processResponseXml(repStr, chargeModel.getApiKey());
             if (reMap.containsKey(RETURN_CODE) && reMap.containsKey(RESULT_CODE) && SUCCESS.equals(reMap.get(RETURN_CODE)) && SUCCESS.equals(reMap.get(RESULT_CODE))) {
                 if (TradeType.MWEB.name().equals(reMap.get("trade_type"))) {
-                    return new ModelAndView("redirect:" + reMap.get("mweb_url"));
+                    String mwebUrl = new String("redirect:"+reMap.get("mweb_url"));
+                    //同步地址作为页面返回地址
+                    if(StringUtils.isNotEmpty(payRequest.getSyncUrl())){
+                        mwebUrl=
+                                mwebUrl+ "&redirect_url="+ UrlEscapers.urlFormParameterEscaper().escape(payRequest.getSyncUrl());
+                    }
+                    return new ModelAndView(mwebUrl);
                 }
                 ModelAndView modelAndView = new ModelAndView("wechat/jsapipay");
                 orderService.saveOrder(order);

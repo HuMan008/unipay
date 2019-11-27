@@ -1,11 +1,16 @@
 import cn.gotoil.bill.tools.ObjectHelper;
 import cn.gotoil.unipay.model.OrderNotifyBean;
 import cn.gotoil.unipay.utils.UtilHttpClient;
+import cn.gotoil.unipay.utils.UtilString;
 import com.alibaba.fastjson.JSON;
+import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
+import com.google.common.net.UrlEscapers;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -58,5 +63,21 @@ public class SuyjUnitTes {
         String roleStr =  "ADMIN";
         Set<String> roles = new HashSet(Splitter.on(",").omitEmptyStrings().splitToList(roleStr));
         System.out.println(roles);
+    }
+
+    @Test
+    public void t5(){
+        String x ="http://www.baiudu.com?q=ABC&e=苏亚江好帅";
+        System.out.println(UtilString.toUtf8(x));
+        try {
+            System.out.println(URLEncoder.encode(x, Charsets.UTF_8.name()));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(Charsets.UTF_8.encode(x));
+        System.out.println( UrlEscapers.urlFormParameterEscaper().escape(x));
+        System.out.println( UrlEscapers.urlFragmentEscaper().escape(x));
+        System.out.println( UrlEscapers.urlPathSegmentEscaper().escape(x));
     }
 }
