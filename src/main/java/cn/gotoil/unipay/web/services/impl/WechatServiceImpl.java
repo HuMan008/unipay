@@ -129,7 +129,7 @@ public class WechatServiceImpl implements WechatService {
                         payRequest.getBackUrl()));
             }
         } catch (Exception e) {
-            log.error("微信JSAPI支付订单创建出错{}", e.getMessage());
+            log.error("微信支付订单创建出错{}", e.getMessage());
             return new ModelAndView(UtilString.makeErrorPage(5000, e.getMessage(),payRequest.getBackUrl()));
         }
     }
