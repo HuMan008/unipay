@@ -213,7 +213,7 @@ export default {
     },
     getInfo() {
       this.nickName = JSON.parse(
-        window.sessionStorage.getItem("gt_user_info")
+        window.localStorage.getItem("gt_user_info")
       ).nickName;
     },
     logOut() {

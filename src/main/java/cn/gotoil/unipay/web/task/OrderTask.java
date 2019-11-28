@@ -50,6 +50,7 @@ public class OrderTask {
 
     @Scheduled(initialDelay = 8000, fixedDelay = 1000 * 60 * 30)
     public void expiredOrder() {
+        log.info("过期订单检查定时任务");
         if (redisLockHelper.hasLock(OrderExpiredSync)) {
             return;
         }
@@ -83,6 +84,7 @@ public class OrderTask {
     @Scheduled(initialDelay = 5000, fixedDelay = 1000 * 60 * 3)
     @Async
     public void getOrderStatus() {
+        log.info("订单状态检查定时任务");
         if (redisLockHelper.hasLock(OrderStatusSync)) {
             return;
         }

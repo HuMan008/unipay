@@ -186,7 +186,7 @@ export default {
   mounted() {
     this.uploadUrl = serverApi.upload
     this.uploadHeader = {
-      authorization: JSON.parse(window.sessionStorage.getItem('gt_bike_user')).token
+      authorization: JSON.parse(window.localStorage.getItem('gt_bike_user')).token
     }
     this.getList()
   },

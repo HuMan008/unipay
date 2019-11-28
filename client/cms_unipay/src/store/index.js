@@ -26,7 +26,7 @@ const store = new Vuex.Store({
       // state.user.roleSet = user.roleSet
       // state.user.permissionSet = user.permissionSet
       try {
-        window.sessionStorage.setItem(CACHE_KEY_USER, JSON.stringify(user))
+        window.localStorage.setItem(CACHE_KEY_USER, JSON.stringify(user))
       } catch (error) {
       }
     },
@@ -34,7 +34,7 @@ const store = new Vuex.Store({
     CLEAN_USER(state) {
       state.user = {}
       try {
-        window.sessionStorage.clear(CACHE_KEY_USER)
+        window.localStorage.clear(CACHE_KEY_USER)
       } catch (error) {
       }
     }
@@ -57,7 +57,7 @@ const store = new Vuex.Store({
   }
 })
 try {
-  const user = JSON.parse(window.sessionStorage.getItem(CACHE_KEY_USER))
+  const user = JSON.parse(window.localStorage.getItem(CACHE_KEY_USER))
   if (user) {
     store.commit('SET_USER', user)
   }
