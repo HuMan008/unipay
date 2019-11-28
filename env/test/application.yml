@@ -40,7 +40,7 @@ logging:
   level:
     org.springframework.web: ERROR
     cn.gotoil.unipay.model.mapper: ERROR
-    cn.gotoil: INFO
+    cn.gotoil: DEBUG
   path: logs
 
 isDebug: false
