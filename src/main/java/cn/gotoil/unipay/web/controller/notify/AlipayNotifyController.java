@@ -73,7 +73,7 @@ public class AlipayNotifyController {
                             @PathVariable String orderId) throws UnsupportedEncodingException, AlipayApiException {
         Map<String, String> params = UtilRequest.request2Map(request);
         NotifyAccept notifyAccept = NotifyAcceptService.createDefault(request, EnumOrderMessageType.PAY, orderId);
-        log.debug("支付宝异步通知{}", params);
+        log.debug("支付宝异步通知【{}】\n",orderId, JSONObject.toJSONString(params));
         try {
             //判断是否正在处理这个订单
             if (redisLockHelper.hasLock(RedisLockHelper.Key.Notify + orderId)) {

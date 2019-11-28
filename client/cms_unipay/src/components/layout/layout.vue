@@ -26,7 +26,7 @@
             >
               <a-form id="modifyPwdForm" :form="modifyPwdForm" @submit="uppwd">
                 <a-form-item :label-col="{span:5}" :wrapper-col="{span:16}" label="旧密码">
-                  <a-input
+                  <a-input maxlength="30"
                     placeholder="请输入当前登录用户密码"
                     v-decorator="[
           'oldPwd',
@@ -43,7 +43,7 @@
                   />
                 </a-form-item>
                 <a-form-item :label-col="{ span: 5 }" :wrapper-col="{ span: 16 }" label="请密码">
-                  <a-input
+                  <a-input maxlength="30"
                     placeholder="请输入新密码"
                     v-decorator="[
           'newPwd',
@@ -63,7 +63,7 @@
                   />
                 </a-form-item>
                 <a-form-item :label-col="{ span: 5 }" :wrapper-col="{ span:16 }" label="确认新密码">
-                  <a-input
+                  <a-input maxlength="30"
                     placeholder="请再输入一次新密码"
                     v-decorator="[
           'confirm',

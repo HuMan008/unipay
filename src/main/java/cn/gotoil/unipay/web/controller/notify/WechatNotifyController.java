@@ -63,7 +63,7 @@ public class WechatNotifyController {
     @NeedLogin(value = false)
     public void asyncNotify(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
                               @PathVariable String orderId) throws Exception {
-        log.info("微信异步通知");
+
         httpServletResponse.setCharacterEncoding(Charsets.ISO_8859_1.name());
         String requestBodyXml = "";//响应xml
         Map<String, String> mm = new HashMap<>();
@@ -85,6 +85,7 @@ public class WechatNotifyController {
             notifyAccept.setParams(requestBodyXml);
             //响应XML转成Map
             Map<String, String> reMap = UtilWechat.xmlToMap(requestBodyXml);
+            log.info("微信异步通知【{}】\n{}",orderId,JSONObject.toJSONString(reMap));
             if (reMap.containsKey(WechatService.RETURN_CODE) && WechatService.SUCCESS.equals(reMap.get(WechatService.RETURN_CODE).toString())) {
                 //路径里的订单号不等于通知内容里的商户订单号，直接返回处理失败
                 if (!orderId.equals(reMap.get("out_trade_no"))) {
