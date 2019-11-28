@@ -38,8 +38,9 @@ spring:
     cache: false
 logging:
   level:
-    org.springframework.web: DEBUG
+    org.springframework.web: ERROR
     cn.gotoil.unipay.model.mapper: ERROR
+    cn.gotoil: INFO
   path: logs
 
 isDebug: false
