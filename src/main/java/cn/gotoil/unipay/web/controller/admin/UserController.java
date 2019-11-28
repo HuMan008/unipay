@@ -9,18 +9,17 @@ import cn.gotoil.unipay.config.properties.UserDefine;
 import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.entity.AdminUser;
 import cn.gotoil.unipay.model.entity.AdminUserExample;
+import cn.gotoil.unipay.web.message.request.admin.ModifyPwdRequest;
 import cn.gotoil.unipay.web.services.MyAdminUserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -38,6 +37,15 @@ public class UserController {
                               @ApiParam(value = "密码") @RequestParam String pwd, HttpServletRequest request,
                               HttpServletResponse response) {
        return adminUserService.doLogin(code,pwd);
+    }
+
+
+    @ApiOperation(value = "修改密码", position = 5, tags = "用户")
+    @RequestMapping(value = "/uppwd", method = {RequestMethod.POST})
+    @NeedLogin(value = true)
+    public Object upPwdAction(@Valid @RequestBody ModifyPwdRequest modifyPwdRequest, HttpServletRequest request,
+                              HttpServletResponse response) {
+        return adminUserService.uppwd(request,modifyPwdRequest.getOldPwd(),modifyPwdRequest.getNewPwd());
     }
 
 }
