@@ -1,4 +1,4 @@
-FROM registry.petroun.com/base/java11:latest
+FROM registry.petroun.com/base/java8:latest
 
 LABEL maintainer="s@petroun.com"
 
