@@ -4,6 +4,7 @@ import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.exception.CommonError;
 import cn.gotoil.bill.tools.ObjectHelper;
 import cn.gotoil.bill.tools.encoder.Hash;
+import cn.gotoil.bill.tools.encoder.Hmac;
 import cn.gotoil.bill.web.annotation.NeedLogin;
 import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.ChargeAlipayModel;
@@ -35,7 +36,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLDecoder;
+import java.time.Instant;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * 页面支付入口
@@ -67,6 +73,10 @@ public class WebPayContoller {
     String domain;
     @Value("${wechat_open_id_grant_url}")
     String wechat_open_id_grant_url;
+    @Value("${wechat_open_id_grant_id}")
+    String wechat_open_id_grant_id;
+    @Value("${wechat_open_id_grant_key}")
+    String wechat_open_id_grant_key;
     @Value("${isDebug}")
     private boolean isDebug;
 
@@ -83,7 +93,7 @@ public class WebPayContoller {
             String signStr =
                     payRequest.getAppId() + payRequest.getAppOrderNo() + payRequest.getPayType() + payRequest.getFee() + appService.key(payRequest.getAppId());
             if (StringUtils.isEmpty(payRequest.getSign()) || !payRequest.getSign().equals(Hash.md5(signStr).toUpperCase())) {
-                return new ModelAndView(UtilString.makeErrorPage(UnipayError.IllegalRequest,payRequest.getBackUrl()));
+                return new ModelAndView(UtilString.makeErrorPage(UnipayError.IllegalRequest, payRequest.getBackUrl()));
             }
         }
         try {
@@ -113,15 +123,32 @@ public class WebPayContoller {
                     if (StringUtils.isEmpty(payRequest.getPaymentUserID())) {
                         String param = UtilBase64.encode(ObjectHelper.jsonString(payRequest).getBytes()).replaceAll(
                                 "\\+", "GT680");
+                        long time = Instant.now().getEpochSecond();
+                        String path = "";
+                        try {
+                            URL url = new URL(wechat_open_id_grant_url);
+                            path = url.getPath();
+                        } catch (MalformedURLException E) {
+                            log.error("无效的jump地址");
+                        }
+                        Map<String, String> map = new TreeMap<>();
+                        map.put("redirect", domain + "/web/afterwechatgrant?param=" + param);
+                        map.put("app_id", wechat_open_id_grant_id);
+                        map.put("s_time", String.valueOf(time));
+                        String paramString = JSONObject.toJSONString(map);
+                        String signStr = path + "|" + wechat_open_id_grant_id + "|" + time + "|" + paramString;
+                        String sign = Hmac.SHA1(signStr, wechat_open_id_grant_key);
+
                         String redirectUrlP = String.format(wechat_open_id_grant_url, chargeWechatModel.getAppID(),
-                                domain + "/web/afterwechatgrant?param=" + param);
+                                domain + "/web/afterwechatgrant?param=" + param, sign, time);
                         try {
                             //这里转发了，后面没事干了。这个时候订单还没保存
                             httpServletResponse.sendRedirect(redirectUrlP);
                             return null;
                         } catch (IOException e) {
                             log.error("获取微信OPEI跳转过程中出错{}", e.getMessage());
-                            return new ModelAndView(UtilString.makeErrorPage(CommonError.SystemError,payRequest.getBackUrl()));
+                            return new ModelAndView(UtilString.makeErrorPage(CommonError.SystemError,
+                                    payRequest.getBackUrl()));
                         }
                     }
                     return wechatService.pagePay(payRequest, order, chargeWechatModel, httpServletRequest,
@@ -138,9 +165,9 @@ public class WebPayContoller {
                     throw new BillException(UnipayError.PayTypeNotImpl);
             }
         } catch (BillException e) {
-            return new ModelAndView(UtilString.makeErrorPage(e.getTickcode(),e.getMessage(),payRequest.getBackUrl()));
-        }catch (Exception e){
-            return new ModelAndView(UtilString.makeErrorPage(CommonError.SystemError,payRequest.getBackUrl()));
+            return new ModelAndView(UtilString.makeErrorPage(e.getTickcode(), e.getMessage(), payRequest.getBackUrl()));
+        } catch (Exception e) {
+            return new ModelAndView(UtilString.makeErrorPage(CommonError.SystemError, payRequest.getBackUrl()));
         }
     }
 
@@ -148,24 +175,35 @@ public class WebPayContoller {
     @NeedLogin(value = false)
     @RequestMapping(value = "error")
     @ApiIgnore
-    public ModelAndView error(String errorCode, String errorMsg,String backUrl) {
+    public ModelAndView error(String errorCode, String errorMsg, String backUrl) {
         ModelAndView modelAndView = new ModelAndView("error/error");
         modelAndView.addObject("domain", domain);
         modelAndView.addObject("errorCode", errorCode);
-        modelAndView.addObject("errorMsg",errorMsg );
+        modelAndView.addObject("errorMsg", errorMsg);
         modelAndView.addObject("backUrl", backUrl);
         return modelAndView;
     }
 
 
-
     @RequestMapping("afterwechatgrant")
     @NeedLogin(value = false)
     @ApiIgnore
-    public Object t3(@RequestParam String param, @RequestParam String open_id, HttpServletRequest httpServletRequest,
-                     HttpServletResponse httpServletResponse) throws Exception {
+    public Object afterwechatgrant(@RequestParam String param, @RequestParam String open_id,
+                                   HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
+                                   @RequestParam String nickname, @RequestParam String avatar,
+                                   @RequestParam String unionid, @RequestParam String s_time, String sign) throws Exception {
         param = new String(UtilBase64.decode(param.replaceAll("GT680", "+")));
-
+        Map<String, String> map = new TreeMap<>();
+        map.put("open_id", open_id);
+        map.put("nickname", nickname);
+        map.put("avatar", avatar);
+        map.put("unionid", unionid);
+        String playLoadStr =
+                httpServletRequest.getRequestURI() + "|" + wechat_open_id_grant_id + "|" + s_time + JSONObject.toJSONString(map);
+        String mySign = Hmac.SHA1(playLoadStr, wechat_open_id_grant_key);
+        if (!mySign.equals(sign)) {
+            return new ModelAndView(UtilString.makeErrorPage(5000, "Jump验签失败", ""));
+        }
         try {
             param = URLDecoder.decode(param, Charsets.UTF_8.name());
             PayRequest payRequest = JSONObject.toJavaObject(JSONObject.parseObject(param), PayRequest.class);

@@ -48,8 +48,9 @@ isDebug: false
 #本机域名或者IP 必须能外网访问的
 domain: "http://punipay.guotongshiyou.cn"
 #微信授权域名 勇哥那的地址 第一个占位符是wxappid 第二个占位符是跳转的地址
-wechat_open_id_grant_url: "http://thirdparty.guotongshiyou.cn/third_party/oauth/wechat/%s?redirect=%s"
-
+wechat_open_id_grant_url: "http://thirdparty.guotongshiyou.cn/third_party/oauth/wechat/%s?redirect=%s&sign=%s&s_time=%s"
+wechat_open_id_grant_id: "unipay"
+wechat_open_id_grant_key: "ljofjdfjdsf324234"
 
 bill:
   defaultAuthenticationType: Signature
