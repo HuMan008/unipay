@@ -11,7 +11,7 @@ variables:
 before_script:
   - docker info
   - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-  - docker pull gradle:5.6.1-jdk11
+  - docker pull gradle:4.10-jdk8
 
 
 build-master:
