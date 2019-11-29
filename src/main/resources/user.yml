@@ -1,0 +1,20 @@
+# 系统用户配置
+## 角色参考 ConstsRole中的常量 用逗号分隔
+
+##  改从数据库里取，不再读配置文件 2019年11月20日09:04:33
+
+userconfig:
+  users:
+    admin:
+      code: "admin"
+      pwd: "a123456"
+      roleStr: "Admin"
+      permissionStr: aaaa
+    order:
+      code: "order"
+      pwd: "a123456"
+      roleStr: "Order"
+    dev:
+      code: "dev"
+      pwd: "a123456"
+      roleStr: "Admin,Order"

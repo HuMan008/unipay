@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <title>微信支付</title>
+    <!--<link href="https://cdn.bootcss.com/weui/1.1.2/style/weui.css" rel="stylesheet">-->
+    <link href="https://cdn.bootcss.com/weui/1.1.2/style/weui.min.css" rel="stylesheet">
+    <link th:href="@{domain+'/wechat/example.css'}" rel="stylesheet">
+
+</head>
+<style>
+
+    .title1 {
+        font-family: PingFangSC-Regular;
+        font-size: 15px;
+        color: #333333;
+        letter-spacing: 0;
+        line-height: 15px;
+    }
+
+    .title2 {
+        font-family: PingFangSC-Medium;
+        font-size: 35px;
+        color: #000000;
+        letter-spacing: 0;
+        line-height: 35px;
+    }
+</style>
+<body style="background-color: white">
+
+<input type="hidden" name="appId" th:value="${appId}" id="appId"/>
+<input type="hidden" name="timeStamp" th:value="${timeStamp}" id="timeStamp"/>
+<input type="hidden" name="nonceStr" th:value="${nonceStr}" id="nonceStr"/>
+<input type="hidden" name="package" th:value="${package}" id="package"/>
+<input type="hidden" name="paySign" th:value="${paySign}" id="paySign"/>
+<input type="hidden" name="signType" th:value="${signType}" id="signType"/>
+<input type="hidden" name="appOrderNo" th:value="${appOrderNo}" id="appOrderNo"/>
+<input type="hidden" name="orderId" th:value="${orderId}" id="orderId"/>
+<input type="hidden" name="cancelUrl" th:value="${cancelUrl}" id="cancelUrl"/>
+<input type="hidden" name="backUrl" th:value="${backUrl}" id="backUrl"/>
+<input type="hidden" name="successUrl" th:value="${successUrl}" id="successUrl"/>
+
+
+<div class="container">
+    <div class="page__hd">
+                    <span style="text-align: center">
+                        <div style="margin-top: 35pt;text-align: center ;" class="title1">
+                            订单金额
+                        </div>
+                        <div style="font-weight:bold ;margin-top: 5pt;text-align:center ;" class="title2"
+                             th:text="'￥'+${orderFeeY}">
+                            ￥0.03
+                        </div>
+                    </span>
+        <!--<h2>订单金额 <h1 th:text="'￥'+${orderFeeY}+'元'">￥0.01元</h1></h2>-->
+
+    </div>
+    <div class="page__bd" style="margin-top: 35pt">
+        <div class="weui-cells">
+            <div class="weui-cell" style="padding: 14px 28px;">
+                <div class="weui-cell__bd">
+                    <p style="color: #666666">订单号</p>
+                </div>
+                <div class="weui-cell__ft">
+                    <p style="color: #000000" th:text="${appOrderNo}"></p>
+                </div>
+            </div>
+
+            <div class="weui-cell" style="padding: 14px 28px;">
+                <div class="weui-cell__bd">
+                    <p style="color: #666666">支付订单号</p>
+                </div>
+                <div class="weui-cell__ft">
+                    <p style="color: #000000" th:text="${orderId}"></p>
+                </div>
+            </div>
+
+            <div class="weui-cell" style="padding: 14px 28px;">
+                <div class="weui-cell__bd">
+                    <p style="color: #666666">商品名称</p>
+                </div>
+                <div class="weui-cell__ft">
+                    <p style="color: #000000" th:text="${subject}"></p>
+                </div>
+            </div>
+
+            <div th:if="${not #strings.isEmpty(descp)}" class="weui-cell" style="padding: 14px 28px;">
+                <div class="weui-cell__bd">
+                    <p style="color: #666666">商品描述</p>
+                </div>
+                <div class="weui-cell__ft">
+                    <p style="color: #000000" th:text="${descp}"></p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="page__ft" style="margin-top: 20pt;padding: 10px 24px;">
+        <input type="button" class="weui-btn weui-btn_primary" onclick="callPay()" value="确认支付">
+    </div>
+
+</div>
+</body>
+
+<script type="text/javascript">
+
+
+    var appId = document.getElementById("appId").value;
+
+
+    var timeStamp = document.getElementById("timeStamp").value;
+
+    var nonceStr = document.getElementById("nonceStr").value;
+
+    var package = document.getElementById("package").value;
+
+    var paySign = document.getElementById("paySign").value;
+    var backUrl = document.getElementById("backUrl").value;
+    var appOrderNo = document.getElementById("appOrderNo").value;
+    var cancelUrl = document.getElementById("cancelUrl").value;
+    var signType = document.getElementById("signType").value;
+    var successUrl = document.getElementById("successUrl").value;
+
+
+    function onBridgeReady() {
+
+        WeixinJSBridge.invoke(
+            'getBrandWCPayRequest', {
+                "appId": appId,     //公众号名称，由商户传入
+                "timeStamp": timeStamp,         //时间戳，自1970年以来的秒数
+                "nonceStr": nonceStr, //随机串
+                "package": package,
+                "signType": signType,         //微信签名方式：
+                "paySign": paySign //微信签名
+            },
+            function (data) {
+                // var str = JSON.stringify(data);
+                switch (data.err_msg) {
+                    case 'get_brand_wcpay_request:cancel':
+                        if (cancelUrl) {
+                            window.location.href = cancelUrl;
+                            break;
+                        } else {
+                            // window.history.back();
+                            break;
+                        }
+
+                    case 'get_brand_wcpay_request:fail':
+                        alert("支付失败")
+                        break;
+                    case 'get_brand_wcpay_request:ok':
+                        // if (backUrl && appOrderNo){
+                        //     alert(backUrl+appOrderNo);
+                        //     window.location.href = backUrl + appOrderNo;
+                        //     break;
+                        // }
+                        if(successUrl){
+                            window.location.href = successUrl;
+                        }
+                        break;
+                }
+                window._ajax = null;
+            }
+        );
+
+    }
+
+    function callPay() {
+        if (typeof WeixinJSBridge == "undefined") {
+            if (document.addEventListener) {
+                document.addEventListener('WeixinJSBridgeReady', onBridgeReady, false);
+            } else if (document.attachEvent) {
+                document.attachEvent('WeixinJSBridgeReady', onBridgeReady);
+                document.attachEvent('onWeixinJSBridgeReady', onBridgeReady);
+            }
+        } else {
+            onBridgeReady();
+        }
+
+    }
+
+
+</script>
+</html>

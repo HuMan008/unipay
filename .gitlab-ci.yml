@@ -1,0 +1,29 @@
+
+image: docker:stable
+
+services:
+  - name: docker:18.09.6-dind
+
+variables:
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_DRIVER: overlay2
+
+before_script:
+  - docker info
+  - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  - docker pull gradle:4.10-jdk8
+
+
+build-master:
+  stage: build
+  variables:
+    REPO_URL: "registry.petroun.com/petroun-release/unipay"
+  script:
+    - docker run --rm -u root --add-host nexus.petroun.com:10.0.0.6 -v "$PWD":/home/gradle/project -w /home/gradle/project gradle:5.6.1-jdk11 gradle bootJar
+    - ls build/libs
+    - docker build -t $REPO_URL:$CI_COMMIT_SHORT_SHA .
+    - docker push $REPO_URL:$CI_COMMIT_SHORT_SHA
+    - docker tag $REPO_URL:$CI_COMMIT_SHORT_SHA $REPO_URL:latest
+    - docker push $REPO_URL:latest
+  only:
+    - master

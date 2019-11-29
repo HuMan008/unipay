@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.gotoil.unipay.model.mapper.ext.AppQueryMapper">
+    <resultMap id="BaseResultMap" type="cn.gotoil.unipay.model.entity.AppChargeAccount">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="app_id" jdbcType="CHAR" property="appId"/>
+        <result column="pay_type" jdbcType="VARCHAR" property="payType"/>
+        <result column="status" jdbcType="TINYINT" property="status"/>
+        <result column="account_id" jdbcType="INTEGER" property="accountId"/>
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
+        <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt"/>
+    </resultMap>
+
+    <!--更新支付帐号关联状态-->
+    <update id="updateChargeaccountStatusById" parameterType="map">
+    update dp_app_charge_account set status=#{status} where app_id=#{appid} and pay_type=#{payType}
+    and account_id != #{accid}
+  </update>
+
+    <!--查询支付帐号关联-->
+    <select id="selectChargeaccountStatusById" parameterType="map" resultMap="BaseResultMap">
+    select * from dp_app_charge_account where app_id=#{appid} and pay_type=#{payType}
+    and account_id != #{accid}
+  </select>
+
+    <!--更新支付帐号关联状态-->
+    <update id="updateChargeaccountStatusByType" parameterType="map">
+        update dp_app_charge_account set status=#{status} where app_id=#{appid}
+        and pay_type in
+        <foreach collection="pays" item="pay" index="index"
+                 open="(" close=")" separator=",">
+            #{pay}
+        </foreach>
+    </update>
+
+    <select id="selectChargeaccountStatusByType" parameterType="map" resultMap="BaseResultMap">
+        select * from dp_app_charge_account where app_id=#{appid}
+        and pay_type in
+        <foreach collection="pays" item="pay" index="index"
+                 open="(" close=")" separator=",">
+            #{pay}
+        </foreach>
+    </select>
+
+</mapper>

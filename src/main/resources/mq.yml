@@ -1,0 +1,19 @@
+###  通知消息自配置
+# 订单通知配置（支付、退款通知）
+ordermessageconfig:
+  messageQueues:
+  - queueName: "unipay.order.queue.ttl0" #队列名称
+    exchangeName: "unipay.order.exchange.ttl0"
+    ttl: 0 # 延迟时间 单位毫秒 1000 =1秒
+  - queueName: "unipay.order.queue.ttl1"
+    exchangeName: "unipay.order.exchange.ttl1"
+    ttl: 30000 #30s 30000
+  - queueName: "unipay.order.queue.ttl2"
+    exchangeName: "unipay.order.exchange.tt2"
+    ttl: 300000 # 300s 5分钟 300000
+  - queueName: "unipay.order.queue.ttl3"
+    exchangeName: "unipay.order.exchange.tt3"
+    ttl: 1800000 # 30分钟 1800000
+  - queueName: "unipay.order.queue.ttl4"
+    exchangeName: "unipay.order.exchange.tt4"
+    ttl: 72000000 # 2小时 72000000

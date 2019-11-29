@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>支付结果</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0, user-scalable=0">
+    <meta name="format-detection" content="telephone=no, email=no">
+</head>
+<body onload="fetch()">
+<div style="display: none">
+    <input id="payStatus" name="payStatus" th:value="${status}">
+
+</div>
+<div class="page oil-result-page">
+    <div class="status-ct">
+
+        <p class="success" th:if="${status==0}">
+            <img class="icon"
+                 src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyNpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTQwIDc5LjE2MDQ1MSwgMjAxNy8wNS8wNi0wMTowODoyMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIChNYWNpbnRvc2gpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjMzQTAzMTMxRTdDNTExRTdBN0U5QUYwMzM3NjVBMDE1IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjMzQTAzMTMyRTdDNTExRTdBN0U5QUYwMzM3NjVBMDE1Ij4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6MzNBMDMxMkZFN0M1MTFFN0E3RTlBRjAzMzc2NUEwMTUiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MzNBMDMxMzBFN0M1MTFFN0E3RTlBRjAzMzc2NUEwMTUiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4BxKPfAAALs0lEQVR42uxdDbBV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"
+                 width="60" height="60">
+            支付成功！
+        </p>
+        <p class="fail" th:if="${status==2}">
+            <img class="icon"
+                 src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyhpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTM4IDc5LjE1OTgyNCwgMjAxNi8wOS8xNC0wMTowOTowMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTcgKE1hY2ludG9zaCkiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6N0UzQjhBMjhERDk1MTFFN0JDNTFDRDk3NTI3NDk1NjEiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6N0UzQjhBMjlERDk1MTFFN0JDNTFDRDk3NTI3NDk1NjEiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpBREIyNjI4QkREOTQxMUU3QkM1MUNEOTc1Mjc0OTU2MSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpBREIyNjI4Q0REOTQxMUU3QkM1MUNEOTc1Mjc0OTU2MSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pm4pSmMAAAn3SURBVHja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"
+                 width="60" height="60">
+            支付失败！
+        </p>
+        <p class="unknown" th:if="${status==1}">
+            <img class="icon"
+                 src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyNpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTQwIDc5LjE2MDQ1MSwgMjAxNy8wNS8wNi0wMTowODoyMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIChNYWNpbnRvc2gpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjMzQTAzMTMxRTdDNTExRTdBN0U5QUYwMzM3NjVBMDE1IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjMzQTAzMTMyRTdDNTExRTdBN0U5QUYwMzM3NjVBMDE1Ij4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6MzNBMDMxMkZFN0M1MTFFN0E3RTlBRjAzMzc2NUEwMTUiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MzNBMDMxMzBFN0M1MTFFN0E3RTlBRjAzMzc2NUEwMTUiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4BxKPfAAALs0lEQVR42uxdDbBV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"
+                 width="60" height="60">
+            Sorry,支付结果未知
+            <span class="txt">请查询第三方支付平台的账单信息后再核对交易结果!</span><br>
+            <span class="txt" id="rv"></span>
+        </p>
+    </div>
+
+    <ul class="trade-item">
+
+        <li><span class="cell">订单号:</span>
+            <p class="cell" th:text="${orderId}"></p></li>
+        <li th:if="${status==0}"><span class="cell">支付号:</span>
+            <p class="cell" th:text="${paymentId}"
+               style="font-size: 14px">1756
+                张</p></li>
+        <li><span class="cell">订单金额:</span>
+            <p class="cell" th:text="${feeY}"></p></li>
+        <li th:if="${status==0}"><span class="cell">支付金额:</span>
+            <p class="cell" th:text="${payFeeY}"></p></li>
+
+    </ul>
+    <!-- <p class="btn-ct btn-pair-ct">
+         <a href="#" class="btn btn-fail-bor">查看加油码记录</a><a href="#" class="btn btn-fail ">返回首页</a>
+     </p>-->
+
+</div>
+</body>
+<script>
+    var x = 30;
+
+    function fetch() {
+        var payStatus = document.getElementById("payStatus").value;
+        if (payStatus == 1) {
+
+            setInterval(function () {
+                document.getElementById("rv").innerText = x + "秒后重新获取支付结果！";
+                x = x - 1;
+                if (x == 0) {
+                    window.location.reload(true);
+                }
+            }, 1000)
+
+
+        } else {
+            return;
+        }
+    }
+
+</script>
+<style type="text/css">
+
+
+    .status-ct {
+        font-size: 18px;
+        padding: 45px 0 35px;
+        text-align: center;
+    }
+
+    .status-ct .success,
+    .status-ct .fail {
+        color: #e21b10;
+    }
+
+    .status-ct .unknown {
+        color: #d78209;
+    }
+
+    .status-ct .icon {
+        margin: 0 auto 20px;
+        display: block;
+    }
+
+    .status-ct .txt {
+        display: block;
+        width: 72.22222222222222%;
+        margin: 15px auto 0;
+        color: #666;
+        font-size: 14px;
+    }
+
+    .trade-item {
+        margin: 0 20px;
+        padding: 20px 0;
+        /*border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5;*/
+    }
+
+    .trade-item li {
+        width: 100%;
+        display: table;
+        margin-bottom: 20px;
+    }
+
+    .trade-item li:last-child {
+        margin-bottom: 0;
+    }
+
+    .trade-item .hot {
+        color: #ed2c2c
+    }
+
+    .trade-item .cell {
+        display: table-cell;
+        padding-left: 5px
+    }
+
+    .trade-item .cell:last-child {
+        padding-right: 5px;
+        text-align: right;
+    }
+
+    .oil-result-page {
+        min-height: 100%;
+        background: #fff;
+    }
+
+    body {
+        position: relative;
+        height: 100%;
+    }
+
+    body {
+        color: #333;
+        line-height: 1;
+        font: normal 100% sans-serif;
+        background: #f5f5f5;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0)
+    }
+</style>
+</html>
