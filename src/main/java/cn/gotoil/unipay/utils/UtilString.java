@@ -27,6 +27,9 @@ public class UtilString {
     }
 
     public static String toUtf8(String msg){
+        if(StringUtils.isEmpty(msg)){
+            return "";
+        }
         String xx = "";
         try {
             xx =URLEncoder.encode(msg,

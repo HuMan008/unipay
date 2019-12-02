@@ -28,7 +28,7 @@ public class AccountController {
     @NeedLogin
     @HasRole(value = ConstsRole.ADMIN)
     public Object addAccountAction(@RequestBody AccountAddRequest accountAddRequest) {
-        if (!configService.checkName(accountAddRequest.getName(), null)) {
+        if (configService.checkName(accountAddRequest.getName(), null)) {
             throw new BillException(5000, "名称重复");
         }
         ChargeConfig chargeConfig = new ChargeConfig();

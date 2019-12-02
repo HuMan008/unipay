@@ -43,7 +43,7 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter-web:${springBootVersion}")
     compile("org.springframework.boot:spring-boot-starter-data-redis:${springBootVersion}")
     compile("org.springframework.boot:spring-boot-starter-thymeleaf:${springBootVersion}")
-    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.8'
+    compile group: 'org.projectlombok', name: 'lombok', version: '1.18.8'
     compile('com.alibaba:fastjson:1.2.21')
 
     //支付宝

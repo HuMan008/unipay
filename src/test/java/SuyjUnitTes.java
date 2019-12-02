@@ -6,10 +6,15 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.net.UrlEscapers;
+import com.sun.jndi.toolkit.url.UrlUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.internal.util.DomainNameUtil;
 import org.junit.Test;
+import sun.net.util.URLUtil;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -79,5 +84,21 @@ public class SuyjUnitTes {
         System.out.println( UrlEscapers.urlFormParameterEscaper().escape(x));
         System.out.println( UrlEscapers.urlFragmentEscaper().escape(x));
         System.out.println( UrlEscapers.urlPathSegmentEscaper().escape(x));
+    }
+
+
+    @Test
+    public void t6(){
+        String x =  "http://thirdparty.guotongshiyou.cn/third_party/oauth/wechat/%s?redirect=%s&sign=%s&time=%s";
+//        DomainNameUtil.isValidDomainAddress();
+        URL url = null;
+        try {
+            url = new URL(x);
+            System.out.println(URLUtil.urlNoFragString(url));
+            System.out.println(url.getPath());
+
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
     }
 }
