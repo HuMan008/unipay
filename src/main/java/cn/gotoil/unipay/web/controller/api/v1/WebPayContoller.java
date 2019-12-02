@@ -14,6 +14,7 @@ import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.utils.UtilBase64;
 import cn.gotoil.unipay.utils.UtilMySign;
+import cn.gotoil.unipay.utils.UtilRequest;
 import cn.gotoil.unipay.utils.UtilString;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.services.*;
@@ -197,13 +198,7 @@ public class WebPayContoller {
                                    HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
                                    @RequestParam String nickname, @RequestParam String avatar,
                                    @RequestParam String unionid, @RequestParam String s_time, String sign) throws Exception {
-        TreeMap<String, String> map = new TreeMap<>();
-        map.put("open_id", open_id);
-        map.put("nickname", nickname);
-        map.put("param",param);
-        map.put("avatar", avatar);
-        map.put("unionid", unionid);
-        map.put("s_time",s_time);
+        TreeMap<String, String> map = new TreeMap<>(UtilRequest.request2Map(httpServletRequest));
         String playLoadStr =
                 httpServletRequest.getRequestURI() + "|" + wechat_open_id_grant_id + "|" + s_time + "|{" +UtilMySign.makeSignStr(map)+
                         "}";
