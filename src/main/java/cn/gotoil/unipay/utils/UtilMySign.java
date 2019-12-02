@@ -37,6 +37,25 @@ public class UtilMySign {
         return sign;
     }
 
+    public static String makeSignStr(TreeMap<String, String> treeMap) {
+        //签名明文组装不包含sign字段
+        if (treeMap.containsKey("sign")) {
+            treeMap.remove("sign");
+        }
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, String> entry : treeMap.entrySet()) {
+            if (entry.getValue() != null && entry.getValue().length() > 0) {
+                sb.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
+            }
+        }
+        if(sb.toString().endsWith("&")){
+            return sb.substring(0,sb.length()-1);
+        }
+        //记得是md5编码的加签
+        return sb.toString();
+    }
+
+
 
     @SuppressWarnings("unchecked")
     public static String sign(OrderNotifyBean orderNotifyBean, String appKey) {

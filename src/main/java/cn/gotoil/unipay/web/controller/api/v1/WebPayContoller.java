@@ -13,6 +13,7 @@ import cn.gotoil.unipay.model.entity.ChargeConfig;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.utils.UtilBase64;
+import cn.gotoil.unipay.utils.UtilMySign;
 import cn.gotoil.unipay.utils.UtilString;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.services.*;
@@ -23,6 +24,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.aspectj.weaver.SignatureUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -131,12 +133,13 @@ public class WebPayContoller {
                         } catch (MalformedURLException E) {
                             log.error("无效的jump地址");
                         }
-                        Map<String, String> map = new TreeMap<>();
+                        TreeMap<String, String> map = new TreeMap<>();
                         map.put("redirect", domain + "/web/afterwechatgrant?param=" + param);
                         map.put("app_id", wechat_open_id_grant_id);
                         map.put("s_time", String.valueOf(time));
-                        String paramString = JSONObject.toJSONString(map);
-                        String signStr = path + "|" + wechat_open_id_grant_id + "|" + time + "|" + paramString;
+                        String paramString = UtilMySign.makeSignStr(map);
+                        String signStr =
+                                String.format(path,chargeWechatModel.getAppID()) + "|" + wechat_open_id_grant_id + "|" + time + "|" + paramString;
                         String sign = Hmac.SHA1(signStr, wechat_open_id_grant_key);
 //                        wechat_open_id_grant_url: "http://thirdparty.guotongshiyou.cn/third_party/oauth/wechat/%s?app_id=%s&sign=%s&s_time=%s&redirect=%s"
                         String redirectUrlP = String.format(wechat_open_id_grant_url,
