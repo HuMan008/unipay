@@ -138,8 +138,9 @@ public class WebPayContoller {
                         String paramString = JSONObject.toJSONString(map);
                         String signStr = path + "|" + wechat_open_id_grant_id + "|" + time + "|" + paramString;
                         String sign = Hmac.SHA1(signStr, wechat_open_id_grant_key);
-//                        http://thirdparty.guotongshiyou.cn/third_party/oauth/wechat/%s?&sign=%s&s_time=%s&redirect=%s
-                        String redirectUrlP = String.format(wechat_open_id_grant_url, chargeWechatModel.getAppID(),
+//                        wechat_open_id_grant_url: "http://thirdparty.guotongshiyou.cn/third_party/oauth/wechat/%s?app_id=%s&sign=%s&s_time=%s&redirect=%s"
+                        String redirectUrlP = String.format(wechat_open_id_grant_url,
+                               chargeWechatModel.getAppID(),wechat_open_id_grant_id,
                                 sign, time,domain + "/web/afterwechatgrant?param=" + param);
                         try {
                             //这里转发了，后面没事干了。这个时候订单还没保存
