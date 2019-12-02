@@ -44,7 +44,7 @@ public class UtilMySign {
         }
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, String> entry : treeMap.entrySet()) {
-            if (entry.getValue() != null && entry.getValue().length() > 0) {
+            if (entry.getValue() != null) {
                 sb.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
             }
         }
