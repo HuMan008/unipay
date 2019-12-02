@@ -205,7 +205,7 @@ public class WebPayContoller {
         String mySign = Hmac.SHA1(playLoadStr, wechat_open_id_grant_key);
 
         if (!mySign.equals(sign)) {
-            return new ModelAndView(UtilString.makeErrorPage(5000, "Jump验签失败", ""));
+            return new ModelAndView(UtilString.makeErrorPage(5000, "Jumper验签失败", ""));
         }
         try {
             param = new String(UtilBase64.decode(param.replaceAll("GT680", "+")));
