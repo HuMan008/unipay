@@ -139,7 +139,8 @@ public class WebPayContoller {
                         map.put("s_time", String.valueOf(time));
                         String paramString = UtilMySign.makeSignStr(map);
                         String signStr =
-                                String.format(path,chargeWechatModel.getAppID()) + "|" + wechat_open_id_grant_id + "|" + time + "|" + paramString;
+                                String.format(path,chargeWechatModel.getAppID()) + "|" + wechat_open_id_grant_id +
+                                        "|" + time + "|{" + paramString+"}";
                         String sign = Hmac.SHA1(signStr, wechat_open_id_grant_key);
 //                        wechat_open_id_grant_url: "http://thirdparty.guotongshiyou.cn/third_party/oauth/wechat/%s?app_id=%s&sign=%s&s_time=%s&redirect=%s"
                         String redirectUrlP = String.format(wechat_open_id_grant_url,
