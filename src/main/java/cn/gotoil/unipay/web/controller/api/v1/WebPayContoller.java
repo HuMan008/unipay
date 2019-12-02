@@ -197,19 +197,23 @@ public class WebPayContoller {
                                    HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
                                    @RequestParam String nickname, @RequestParam String avatar,
                                    @RequestParam String unionid, @RequestParam String s_time, String sign) throws Exception {
-        param = new String(UtilBase64.decode(param.replaceAll("GT680", "+")));
-        Map<String, String> map = new TreeMap<>();
+        TreeMap<String, String> map = new TreeMap<>();
         map.put("open_id", open_id);
         map.put("nickname", nickname);
+        map.put("param",param);
         map.put("avatar", avatar);
         map.put("unionid", unionid);
+        map.put("s_time",s_time);
         String playLoadStr =
-                httpServletRequest.getRequestURI() + "|" + wechat_open_id_grant_id + "|" + s_time + JSONObject.toJSONString(map);
+                httpServletRequest.getRequestURI() + "|" + wechat_open_id_grant_id + "|" + s_time + "|{" +UtilMySign.makeSignStr(map)+
+                        "}";
         String mySign = Hmac.SHA1(playLoadStr, wechat_open_id_grant_key);
+
         if (!mySign.equals(sign)) {
             return new ModelAndView(UtilString.makeErrorPage(5000, "Jump验签失败", ""));
         }
         try {
+            param = new String(UtilBase64.decode(param.replaceAll("GT680", "+")));
             param = URLDecoder.decode(param, Charsets.UTF_8.name());
             PayRequest payRequest = JSONObject.toJavaObject(JSONObject.parseObject(param), PayRequest.class);
             //校验请求
