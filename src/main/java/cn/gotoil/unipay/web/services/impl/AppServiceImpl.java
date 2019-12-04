@@ -80,7 +80,7 @@ public class AppServiceImpl implements AppService {
     @OpLog(desc = "新增应用")
     public int createApp(App app) {
         app.setAppSecret(RandomStringUtils.random(40, true, true));
-        app.setAppKey(RandomStringUtils.random(32, true, true));
+        app.setAppKey(RandomStringUtils.random(24, true, true));
         app.setStatus(EnumStatus.Enable.getCode());
         Date d = new Date();
         app.setCreatedAt(d);

@@ -9,6 +9,7 @@ buildscript {
     repositories {
         maven {
             url "http://nexus.petroun.com:8081/repository/maven-public/"
+//            url "http://nexus.pgt:8081/repository/pgtmaven/"
         }
     }
     dependencies {
@@ -26,12 +27,15 @@ sourceCompatibility = 1.8
 repositories {
     maven {
         url "http://nexus.petroun.com:8081/repository/maven-public/"
+//        url "http://nexus.pgt:8081/repository/pgtmaven/"
+
     }
 }
 
 dependencies {
 //    compile 'cn.gotoil:bill:2.1.8-RELEASE'
-    compile('cn.gotoil:bill:2.1.0_201911291232') { changing = true }
+//    compile('cn.gotoil:bill:2.1.0_201911291232') { changing = true }
+    compile('cn.gotoil:bill:2.1.0_201912041408') { changing = true }
 
     compile group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
     compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
