@@ -106,7 +106,10 @@
 
 <script type="text/javascript">
 
-
+    var back = false;
+    setTimeout(function () {
+        back = true;
+    }, 1000);
     var appId = document.getElementById("appId").value;
 
 
@@ -122,6 +125,15 @@
     var cancelUrl = document.getElementById("cancelUrl").value;
     var signType = document.getElementById("signType").value;
     var successUrl = document.getElementById("successUrl").value;
+
+
+    if (backUrl.length > 0) {
+        history.pushState({}, "title 1", "#");
+        window.history.pushState(state, "title", "#");
+        window.onpopstate = function (event) {
+            location.href = backUrl;
+        };
+    }
 
 
     function onBridgeReady() {
@@ -156,7 +168,7 @@
                         //     window.location.href = backUrl + appOrderNo;
                         //     break;
                         // }
-                        if(successUrl){
+                        if (successUrl) {
                             window.location.href = successUrl;
                         }
                         break;
