@@ -20,6 +20,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -154,8 +155,10 @@ public class WechatNotifyController {
                             mm.put("return_msg", "LocationUpdateFail");
                             notifyAccept.setResponstr("FAIL:本地订单状态更新失败");
                             httpServletResponse.getOutputStream().print( UtilWechat.mapToXml(mm));
+                            log.info("微信订单【{}】异步通知处理，订单状态更新失败", orderId);
                             return;
                         } else {
+                            log.info("微信订单【{}】异步通知处理，订单状态更新成功", orderId);
                             OrderNotifyBean orderNotifyBean =
                                     OrderNotifyBean.builder()
                                             .unionOrderID(order.getId())
@@ -183,6 +186,7 @@ public class WechatNotifyController {
                             mm.put("return_msg", "OK");
                             notifyAccept.setResponstr("OK:并发送通知");
                             httpServletResponse.getOutputStream().print( UtilWechat.mapToXml(mm));
+                            log.info("微信支付订单【{}】异步通知完成并返回SUCCESS,消息加入队列", orderId);
                             return ;
                         }
                     } else {
@@ -228,7 +232,7 @@ public class WechatNotifyController {
         log.info("微信同步通知");
         //稍微等一下异步通知
         try {
-            Thread.sleep(1000);
+            Thread.sleep(RandomUtils.nextInt(500, 1200));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

@@ -11,9 +11,11 @@ import cn.gotoil.unipay.classes.HashCompareAuthenticationKeyProvider;
 import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.ChargeAlipayModel;
 import cn.gotoil.unipay.model.ChargeWechatModel;
+import cn.gotoil.unipay.model.entity.App;
 import cn.gotoil.unipay.model.entity.ChargeConfig;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.model.enums.EnumPayType;
+import cn.gotoil.unipay.model.enums.EnumStatus;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.services.AlipayService;
@@ -29,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Optional;
 
 /**
  * api入口
@@ -108,16 +111,13 @@ public class APIPayController {
     @ApiOperation(value = "订单支付状态 远程", position = 10)
     public Object queryOrderFromRemoteAction(@PathVariable String oid) {
         Order o = orderService.loadByOrderID(oid);
-        if (o == null) {
-            throw new BillException(UnipayError.OrderNotExists);
-        }
-        if (!o.getAppId().equals(ServletRequestHelper.XU())) {
-            throw new BillException(UnipayError.OrderAppMatchError);
-        }
+
+        Optional.ofNullable(o).orElseThrow(() -> new BillException(UnipayError.OrderNotExists));
+        Optional.of(o).filter(c ->o.getAppId().equals(ServletRequestHelper.XU())).orElseThrow(() -> new BillException(UnipayError.OrderAppMatchError));
+
         OrderQueryResponse orderQueryResponse = orderService.queryOrderStatusFromRemote(o);
-        if (orderQueryResponse == null || orderQueryResponse.getStatus() == -127) {
-            throw new BillException(UnipayError.PayTypeNotImpl);
-        }
+        orderQueryResponse =Optional.ofNullable(orderQueryResponse).filter(r -> r != null && r.getStatus() != -127).orElseThrow(() -> new BillException(UnipayError.PayTypeNotImpl));
+
         return orderQueryResponse;
     }
 
@@ -125,9 +125,10 @@ public class APIPayController {
     @ApiOperation(value = "订单支付状态 本地", position = 10)
     public Object queryOrderAction(@PathVariable String appOrderNo) {
         Order order = orderService.loadByAppOrderNo(appOrderNo, ServletRequestHelper.XU());
-        if (order == null) {
-            throw new BillException(UnipayError.OrderNotExists);
-        }
-        return OrderQueryResponse.warpOrderToOrderQuyerResponse(order);
+//        if (order == null) {
+//            throw new BillException(UnipayError.OrderNotExists);
+//        }
+        return Optional.ofNullable(order).map(e->OrderQueryResponse.warpOrderToOrderQuyerResponse(e)).orElseThrow(()->new BillException(UnipayError.OrderNotExists));
+
     }
 }

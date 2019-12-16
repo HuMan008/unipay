@@ -132,6 +132,7 @@ public class AlipayNotifyController {
                             notifyAccept.setResponstr("error:更新订单状态失败");
                             httpServletResponse.getOutputStream().print("error");
                         }
+                        log.info("支付宝订单【{}】异步通知处理，订单状态更新{}", orderId, x==1?"成功":"失败");
                         OrderNotifyBean orderNotifyBean =
                                 OrderNotifyBean.builder().unionOrderID(order.getId())
                                         .method(EnumOrderMessageType.PAY.name())
@@ -156,6 +157,7 @@ public class AlipayNotifyController {
                                 ConstsRabbitMQ.ORDERROUTINGKEY, JSON.toJSONString(orderNotifyBean));
                         notifyAccept.setResponstr("success:发通知");
                         httpServletResponse.getOutputStream().print("success");
+                        log.info("支付宝订单【{}】异步通知完成并返回SUCCESS,消息加入队列", orderId);
                         return;
                     } else if ("TRADE_CLOSED".equals(params.get("trade_status"))) {
                         Order newOrder = new Order();

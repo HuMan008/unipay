@@ -1,5 +1,9 @@
+import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.tools.ObjectHelper;
+import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.OrderNotifyBean;
+import cn.gotoil.unipay.model.entity.ChargeConfig;
+import cn.gotoil.unipay.model.enums.EnumStatus;
 import cn.gotoil.unipay.utils.UtilHttpClient;
 import cn.gotoil.unipay.utils.UtilString;
 import com.alibaba.fastjson.JSON;
@@ -7,6 +11,8 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.net.UrlEscapers;
 import com.sun.jndi.toolkit.url.UrlUtil;
+import io.netty.util.internal.MathUtil;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.internal.util.DomainNameUtil;
 import org.junit.Test;
@@ -18,6 +24,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -100,5 +107,33 @@ public class SuyjUnitTes {
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
+    }
+
+
+    @Test
+    public void t7() throws Exception{
+        xx();
+    }
+
+    @Test
+    public void t8(){
+
+        ChargeConfig chargeConfig  = new ChargeConfig();
+        chargeConfig.setStatus(EnumStatus.Disable.getCode());
+        chargeConfig.setId(1);
+        Optional.ofNullable(chargeConfig).orElseThrow(() -> new BillException(UnipayError.AppNotSupportThisPay));
+        Optional.of(chargeConfig).filter(c -> EnumStatus.Enable.getCode() == c.getStatus()).orElseThrow(() -> new BillException(UnipayError.ChargeConfigIsDisabled));
+        System.out.println(chargeConfig.getId());
+    }
+
+    public  void xx()  throws Exception{ int x =RandomUtils.nextInt(1,10);
+        if(x>5){
+            System.out.println(x);
+        }else{
+            throw new Exception("aaaa");
+
+        }
+        System.out.println("----");
+
     }
 }

@@ -108,7 +108,8 @@ public class OrderDeadMessageListener {
                 log.error("{}", io);
                 noticeLog.setResponseContent(io.getMessage());
             }
-
+            log.info("通知\t订单号【{}】地址【{}】,参数【{}】\t响应【{}】",notifyBean.getUnionOrderID(),notifyBean.getAsyncUrl(),
+                    jsonStr,responStr);
             if (!"success".equalsIgnoreCase(responStr)) {
                 //对方未响应success
                 message.getMessageProperties().getExpiration();
