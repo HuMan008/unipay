@@ -19,7 +19,7 @@ build-master:
   variables:
     REPO_URL: "registry.petroun.com/petroun-release/unipay"
   script:
-    - docker run --rm -u root --add-host nexus.petroun.com:10.0.0.6 -v "$PWD":/home/gradle/project -w /home/gradle/project gradle:5.6.1-jdk11 gradle bootJar
+    - docker run --rm -u root --add-host nexus.petroun.com:10.0.0.6 -v "$PWD":/home/gradle/project -w /home/gradle/project gradle:4.10-jdk8 gradle bootJar
     - ls build/libs
     - docker build -t $REPO_URL:$CI_COMMIT_SHORT_SHA .
     - docker push $REPO_URL:$CI_COMMIT_SHORT_SHA
