@@ -1,21 +1,26 @@
 package cn.gotoil.unipay.web.services.impl;
 
+import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.tools.ObjectHelper;
 import cn.gotoil.bill.tools.date.DateUtils;
 import cn.gotoil.unipay.model.ChargeAccount;
 import cn.gotoil.unipay.model.ChargeWechatModel;
 import cn.gotoil.unipay.model.entity.Order;
+import cn.gotoil.unipay.model.entity.Refund;
 import cn.gotoil.unipay.model.enums.EnumOrderStatus;
 import cn.gotoil.unipay.model.enums.EnumPayType;
+import cn.gotoil.unipay.model.enums.EnumRefundStatus;
+import cn.gotoil.unipay.model.mapper.RefundMapper;
 import cn.gotoil.unipay.utils.*;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
-import cn.gotoil.unipay.web.message.response.OrderRefundQueryResponse;
+import cn.gotoil.unipay.web.message.response.OrderRefundResponse;
+import cn.gotoil.unipay.web.message.response.RefundQueryResponse;
 import cn.gotoil.unipay.web.services.OrderService;
 import cn.gotoil.unipay.web.services.WechatService;
 import com.alibaba.fastjson.JSON;
-import com.google.common.base.Charsets;
 import com.google.common.net.UrlEscapers;
+import com.rabbitmq.client.Return;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,7 +50,9 @@ public class WechatServiceImpl implements WechatService {
 
 
     @Resource
-    OrderService orderService ;
+    OrderService orderService;
+    @Resource
+    RefundMapper refundMapper;
 
 
     /**
@@ -64,8 +71,8 @@ public class WechatServiceImpl implements WechatService {
         data.put("appid", chargeModel.getAppID());
         data.put("mch_id", chargeModel.getMerchID());
         data.put("nonce_str", UtilWechat.generateNonceStr());
-        data.put("body", UtilString.getLongString( order.getSubjects(), 128));
-        data.put("detail", UtilString.getLongString( order.getDescp(), 128));
+        data.put("body", UtilString.getLongString(order.getSubjects(), 128));
+        data.put("detail", UtilString.getLongString(order.getDescp(), 128));
         data.put("sign_type", UtilWechat.SignType.MD5.name());
         data.put("openid", payRequest.getPaymentUserID());
         data.put("out_trade_no", order.getId());
@@ -86,7 +93,7 @@ public class WechatServiceImpl implements WechatService {
             sign = UtilWechat.generateSignature(data, chargeModel.getApiKey());
         } catch (Exception e) {
             log.error("微信加签错误", e.getMessage());
-            return new ModelAndView(UtilString.makeErrorPage(5000, "微信加签错误",payRequest.getBackUrl()));
+            return new ModelAndView(UtilString.makeErrorPage(5000, "微信加签错误", payRequest.getBackUrl()));
         }
         data.put("sign", sign);
         try {
@@ -94,31 +101,31 @@ public class WechatServiceImpl implements WechatService {
             Map<String, String> reMap = processResponseXml(repStr, chargeModel.getApiKey());
             if (reMap.containsKey(RETURN_CODE) && reMap.containsKey(RESULT_CODE) && SUCCESS.equals(reMap.get(RETURN_CODE)) && SUCCESS.equals(reMap.get(RESULT_CODE))) {
                 if (TradeType.MWEB.name().equals(reMap.get("trade_type"))) {
-                    String mwebUrl = new String("redirect:"+reMap.get("mweb_url"));
+                    String mwebUrl = new String("redirect:" + reMap.get("mweb_url"));
                     //同步地址作为页面返回地址
-                    if(StringUtils.isNotEmpty(payRequest.getSyncUrl())){
-                        mwebUrl=
-                                mwebUrl+ "&redirect_url="+ UrlEscapers.urlFormParameterEscaper().escape(payRequest.getSyncUrl());
+                    if (StringUtils.isNotEmpty(payRequest.getSyncUrl())) {
+                        mwebUrl =
+                                mwebUrl + "&redirect_url=" + UrlEscapers.urlFormParameterEscaper().escape(payRequest.getSyncUrl());
                     }
                     return new ModelAndView(mwebUrl);
                 }
                 ModelAndView modelAndView = new ModelAndView("wechat/jsapipay");
                 orderService.saveOrder(order);
-                Map<String,String>  ssMap = new HashMap();
+                Map<String, String> ssMap = new HashMap();
                 ssMap.put("appId", reMap.get("appid"));
-                ssMap.put("timeStamp",String.valueOf(Instant.now().getEpochSecond()) );
+                ssMap.put("timeStamp", String.valueOf(Instant.now().getEpochSecond()));
                 ssMap.put("nonceStr", UtilWechat.generateNonceStr());
-                ssMap.put("package", "prepay_id="+reMap.get("prepay_id"));
-                ssMap.put("signType",data.get("sign_type"));
+                ssMap.put("package", "prepay_id=" + reMap.get("prepay_id"));
+                ssMap.put("signType", data.get("sign_type"));
                 String paySign = UtilWechat.generateSignature(ssMap, chargeModel.getApiKey(), UtilWechat.SignType.MD5);
-                ssMap.put("paySign",paySign);
+                ssMap.put("paySign", paySign);
                 modelAndView.addAllObjects(ssMap);
                 modelAndView.addObject("domain", domain);
                 modelAndView.addObject("appOrderNo", order.getAppOrderNo());
                 modelAndView.addObject("orderId", order.getId());
                 modelAndView.addObject("cancelUrl", payRequest.getCancelUrl());
                 modelAndView.addObject("backUrl", payRequest.getBackUrl());
-                modelAndView.addObject("successUrl", domain+"/payment/wechat/return/"+order.getId());
+                modelAndView.addObject("successUrl", domain + "/payment/wechat/return/" + order.getId());
                 modelAndView.addObject("subject", order.getSubjects());
                 modelAndView.addObject("descp", order.getDescp());
                 modelAndView.addObject("orderFeeY", UtilMoney.fenToYuan(order.getFee(), true));
@@ -130,7 +137,7 @@ public class WechatServiceImpl implements WechatService {
             }
         } catch (Exception e) {
             log.error("微信支付订单创建出错{}", e.getMessage());
-            return new ModelAndView(UtilString.makeErrorPage(5000, e.getMessage(),payRequest.getBackUrl()));
+            return new ModelAndView(UtilString.makeErrorPage(5000, e.getMessage(), payRequest.getBackUrl()));
         }
     }
 
@@ -149,8 +156,8 @@ public class WechatServiceImpl implements WechatService {
         data.put("appid", chargeModel.getAppID());
         data.put("mch_id", chargeModel.getMerchID());
         data.put("nonce_str", UtilWechat.generateNonceStr());
-        data.put("body", UtilString.getLongString( order.getSubjects(), 128));
-        data.put("detail", UtilString.getLongString( order.getDescp(), 128));
+        data.put("body", UtilString.getLongString(order.getSubjects(), 128));
+        data.put("detail", UtilString.getLongString(order.getDescp(), 128));
         data.put("sign_type", UtilWechat.SignType.MD5.name());
         data.put("out_trade_no", order.getId());
         data.put("total_fee", String.valueOf(order.getFee()));
@@ -175,9 +182,9 @@ public class WechatServiceImpl implements WechatService {
         try {
             String repStr = UtilHttpClient.doPostStr(WechatService.CreateOrderUrl, UtilWechat.mapToXml(data));
             Map<String, String> reMap = processResponseXml(repStr, chargeModel.getApiKey());
-            if(reMap.containsKey(RESULT_CODE)  &&  reMap.get(RESULT_CODE).equals(SUCCESS) && SUCCESS.equals(reMap.getOrDefault(RETURN_CODE,""))){
-                return ObjectHelper.jsonString(createAppParam(reMap,((ChargeWechatModel) chargeConfig).getApiKey()));
-            }else{
+            if (reMap.containsKey(RESULT_CODE) && reMap.get(RESULT_CODE).equals(SUCCESS) && SUCCESS.equals(reMap.getOrDefault(RETURN_CODE, ""))) {
+                return ObjectHelper.jsonString(createAppParam(reMap, ((ChargeWechatModel) chargeConfig).getApiKey()));
+            } else {
                 return ObjectHelper.jsonString(reMap);
             }
         } catch (Exception e) {
@@ -187,14 +194,14 @@ public class WechatServiceImpl implements WechatService {
     }
 
     // 根据下单响应 创建吊起支付请求
-    private  Map<String,String>  createAppParam (Map<String,String> reMap,String apiKey){
-        Map<String,String> xx  = new HashMap<>( ) ;
-        xx.put("appid",reMap.getOrDefault("appid","appid"));
-        xx.put("partnerid",reMap.getOrDefault("mch_id","mch_id"));
-        xx.put("prepayid",reMap.getOrDefault("prepay_id","prepay_id"));
-        xx.put("package","Sign=WXPay");
-        xx.put("noncestr",UtilWechat.generateNonceStr());
-        xx.put("timestamp",     String.valueOf(Instant.now().getEpochSecond()));
+    private Map<String, String> createAppParam(Map<String, String> reMap, String apiKey) {
+        Map<String, String> xx = new HashMap<>();
+        xx.put("appid", reMap.getOrDefault("appid", "appid"));
+        xx.put("partnerid", reMap.getOrDefault("mch_id", "mch_id"));
+        xx.put("prepayid", reMap.getOrDefault("prepay_id", "prepay_id"));
+        xx.put("package", "Sign=WXPay");
+        xx.put("noncestr", UtilWechat.generateNonceStr());
+        xx.put("timestamp", String.valueOf(Instant.now().getEpochSecond()));
         String sign = "";
         try {
             sign = UtilWechat.generateSignature(xx, apiKey);
@@ -252,13 +259,15 @@ public class WechatServiceImpl implements WechatService {
                             orderQueryResponse.setPayFee(Integer.parseInt(reMap.get("cash_fee")));
                             orderQueryResponse.setArrFee(Integer.parseInt(reMap.get("total_fee")));
                         } else if ("NOTPAY".equalsIgnoreCase(reMap.get("trade_state")) || "USERPAYING".equalsIgnoreCase(reMap.get("trade_state"))) {
-                            Date flagDate =
-                                    org.apache.commons.lang3.time.DateUtils.addMinutes(order.getCreatedAt(),
-                                            order.getExpiredTimeMinute() + 30);
+                            Date flagDate = org.apache.commons.lang3.time.DateUtils.addMinutes(order.getCreatedAt(),
+                                    order.getExpiredTimeMinute() + 30);
                             if (flagDate.getTime() < System.currentTimeMillis()) {
-                                                                orderQueryResponse.setStatus(EnumOrderStatus
-                                 .PayFailed.getCode());
-//                                return OrderQueryResponse.builder().unionOrderID(order.getId()).appOrderNO(order.getAppOrderNo()).paymentId(order.getPaymentId()).orderFee(0).payFee(0).thirdStatus(orderQueryResponse.getThirdStatus()).thirdCode(orderQueryResponse.getThirdCode()).status(EnumOrderStatus.PayFailed.getCode()).thirdMsg(orderQueryResponse.getThirdMsg()).build();
+                                orderQueryResponse.setStatus(EnumOrderStatus.PayFailed.getCode());
+                                //                                return OrderQueryResponse.builder().unionOrderID
+                                // (order.getId()).appOrderNO(order.getAppOrderNo()).paymentId(order.getPaymentId())
+                                // .orderFee(0).payFee(0).thirdStatus(orderQueryResponse.getThirdStatus()).thirdCode
+                                // (orderQueryResponse.getThirdCode()).status(EnumOrderStatus.PayFailed.getCode())
+                                // .thirdMsg(orderQueryResponse.getThirdMsg()).build();
                             } else {
                                 orderQueryResponse.setStatus(EnumOrderStatus.Created.getCode());
                                 //                                return OrderQueryResponse.builder().unionOrderID
@@ -293,17 +302,6 @@ public class WechatServiceImpl implements WechatService {
         }
 
 
-    }
-
-    /**
-     * 退款状态查询 远程查
-     *
-     * @param orderId
-     * @param chargeConfig
-     */
-    @Override
-    public OrderRefundQueryResponse orderRefundQuery(String orderId, ChargeAccount chargeConfig) {
-        return null;
     }
 
 
@@ -350,4 +348,118 @@ public class WechatServiceImpl implements WechatService {
         return UtilWechat.isSignatureValid(reqData, key, UtilWechat.SignType.MD5);
     }
 
+    /**
+     * 退款状态查询
+     *
+     * @param chargeConfig
+     * @param refund
+     * @return
+     */
+    @Override
+    public RefundQueryResponse orderRefundQuery(ChargeAccount chargeConfig, Refund refund) {
+        ChargeWechatModel chargeModel = (ChargeWechatModel) chargeConfig;
+        HashMap<String, String> data = new HashMap<String, String>();
+        data.put("appid", chargeModel.getAppID());
+        data.put("mch_id", chargeModel.getMerchID());
+        data.put("nonce_str", UtilWechat.generateNonceStr());
+        data.put("out_refund_no", refund.getRefundOrderId());
+        String sign = "";
+        try {
+            sign = UtilWechat.generateSignature(data, chargeModel.getApiKey());
+        } catch (Exception e) {
+            log.error("微信加签错误", e.getMessage());
+        }
+        data.put(UtilWechat.FIELD_SIGN, sign);
+        try {
+            String repStr = UtilHttpClient.doPostStr(WechatService.RefundQueryUrl, UtilWechat.mapToXml(data));
+            Map<String, String> reMap = processResponseXml(repStr, chargeModel.getApiKey());
+            if (reMap.containsKey(RESULT_CODE) && reMap.get(RESULT_CODE).equals(SUCCESS) && SUCCESS.equals(reMap.getOrDefault(RETURN_CODE, ""))) {
+                RefundQueryResponse refundQueryResponse =
+                        RefundQueryResponse.builder().orderRefundId(refund.getRefundOrderId())
+                                .thirdCode(reMap.get(RESULT_CODE + RETURN_CODE))
+                                .thirdMsg(reMap.get("return_msg") + reMap.get("err_code_des"))
+                                .orderId(refund.getOrderId()).appOrderNo(refund.getAppOrderNo()).appOrderRefundNo(refund.getAppOrderRefundNo()).applyFee(refund.getApplyFee()).build();
+
+                String refundStatus = reMap.get("refund_status_0");
+                 /*   SUCCESS—退款成功
+                    REFUNDCLOSE—退款关闭。
+                    PROCESSING—退款处理中
+                    CHANGE—退款异常，*/
+                EnumRefundStatus enumOrderStatus = null;
+                if (SUCCESS.equals(refundStatus) || "REFUNDCLOSE".equals(refundStatus)) {
+                    enumOrderStatus = EnumRefundStatus.Success;
+                    refundQueryResponse.setPassFee(Integer.parseInt(reMap.get("refund_fee_0")));
+                } else if ("PROCESSING".equals(refundStatus)) {
+                    enumOrderStatus = EnumRefundStatus.WaitSure;
+                    refundQueryResponse.setPassFee(0);
+                } else if ("CHANGE".equals(refundStatus)) {
+                    enumOrderStatus = EnumRefundStatus.Failed;
+                    refundQueryResponse.setPassFee(0);
+                }
+                refundQueryResponse.setRefundStatus(enumOrderStatus.getCode());
+                return refundQueryResponse;
+            } else {
+                throw new BillException(5003, reMap.get(RESULT_CODE)+reMap.get(RETURN_CODE)+ reMap.get("return_msg"));
+            }
+        } catch (Exception e) {
+            throw new BillException(55, e.getMessage());
+        }
+    }
+
+    /**
+     * 退款申请
+     *
+     * @param chargeConfig
+     * @param refund
+     * @return
+     */
+    @Override
+    public OrderRefundResponse orderRefund(ChargeAccount chargeConfig, Refund refund) {
+        ChargeWechatModel chargeModel = (ChargeWechatModel) chargeConfig;
+        HashMap<String, String> data = new HashMap<String, String>();
+        data.put("appid", chargeModel.getAppID());
+        data.put("mch_id", chargeModel.getMerchID());
+        data.put("nonce_str", UtilWechat.generateNonceStr());
+        data.put("out_refund_no", refund.getRefundOrderId());
+        data.put("total_fee", String.valueOf(refund.getOrderFee()));
+        data.put("refund_fee", String.valueOf(refund.getFee()));
+        data.put("refund_desc", refund.getDescp());
+        String sign = "";
+        try {
+            sign = UtilWechat.generateSignature(data, chargeModel.getApiKey());
+        } catch (Exception e) {
+            log.error("微信加签错误", e.getMessage());
+        }
+        data.put(UtilWechat.FIELD_SIGN, sign);
+
+        try {
+            String repStr = UtilHttpClient.postConnWithCert(WechatService.RefundUrl, UtilWechat.mapToXml(data),
+                    chargeModel.getCertPath(), chargeModel.getMerchID());
+            Map<String, String> reMap = processResponseXml(repStr, chargeModel.getApiKey());
+            if (reMap.containsKey(RESULT_CODE) && reMap.get(RESULT_CODE).equals(SUCCESS) && SUCCESS.equals(reMap.getOrDefault(RETURN_CODE, ""))) {
+                // 提交对了
+                refund.setStatusUpdateDatetime(new Date());
+                refund.setProcessResult(EnumRefundStatus.WaitSure.getCode());
+                refund.setUpdateAt(refund.getStatusUpdateDatetime());
+                OrderRefundResponse orderRefundResponse = new OrderRefundResponse();
+                orderRefundResponse.setRefundStatus(EnumRefundStatus.Refunding.getCode());
+                orderRefundResponse.setMsg("退款申请成功，请调用查询退款获取退款结果");
+                orderRefundResponse.setReslutQueryId(refund.getRefundOrderId());
+                return orderRefundResponse;
+            } else {
+                refund.setFailMsg(UtilString.getLongString(reMap.get("return_msg"), 199));
+                OrderRefundResponse orderRefundResponse = new OrderRefundResponse();
+                orderRefundResponse.setRefundStatus(EnumRefundStatus.Refunding.getCode());
+                orderRefundResponse.setReslutQueryId(refund.getRefundOrderId());
+                refund.setProcessResult(EnumRefundStatus.Failed.getCode());
+                orderRefundResponse.setMsg("退款申请失败:" + reMap.get("return_msg"));
+                return orderRefundResponse;
+            }
+        } catch (Exception e) {
+            throw new BillException(55, e.getMessage());
+        } finally {
+            refundMapper.updateByPrimaryKey(refund);
+        }
+
+    }
 }

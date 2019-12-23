@@ -85,8 +85,7 @@ ExtOrderQueryMapper extOrderQueryMapper;
             throw new BillException(5100,"没有对应订单");
         }
         if("localStatus".equals(type)){
-
-            return new BillApiResponse(OrderQueryResponse.warpOrderToOrderQuyerResponse(order));
+            return orderService.orderQueryLocal(order);
         }else if("remoteStatus".equals(type)){
             return new BillApiResponse(orderService.queryOrderStatusFromRemote(order));
         }else{

@@ -183,13 +183,13 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
                 || EnumPayType.WechatSDK.getCode().equals(chargeConfig.getPayType())) {
             JSONObject jsonObject = JSONObject.parseObject(chargeConfig.getConfigJson());
             ChargeWechatModel wechatModel = JSON.toJavaObject(jsonObject, ChargeWechatModel.class);
-            return UtilString.checkObjFieldIsNull(wechatModel);
+            return wechatModel==null;
 
         } else if (EnumPayType.AlipayH5.getCode().equals(chargeConfig.getPayType())
                 || EnumPayType.AlipaySDK.getCode().equals(chargeConfig.getPayType())) {
             JSONObject jsonObject = JSONObject.parseObject(chargeConfig.getConfigJson());
             ChargeAlipayModel alipayModel = JSON.toJavaObject(jsonObject, ChargeAlipayModel.class);
-            return UtilString.checkObjFieldIsNull(alipayModel);
+            return alipayModel==null;
 
 
         } else {

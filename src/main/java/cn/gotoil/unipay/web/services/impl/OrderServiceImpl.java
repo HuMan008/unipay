@@ -404,4 +404,30 @@ public class OrderServiceImpl implements OrderService {
                 JSON.toJSONString(orderNotifyBean));
         return new BillApiResponse(0, "已加入消息队列", null);
     }
+
+
+    /**
+     * 订单状态本地查询
+     * @param appOrderNo
+     * @param appId
+     * @return
+     */
+    @Override
+    public OrderQueryResponse orderQueryLocal(String appOrderNo, String appId) {
+        Order order = loadByAppOrderNo(appOrderNo, appId);
+        Optional.ofNullable(order).orElseThrow(() -> new BillException(UnipayError.OrderNotExists));
+        return OrderQueryResponse.warpOrderToOrderQuyerResponse(order);
+    }
+
+
+    /**
+     * 订单状态本地查询
+     * @param order
+     * @return
+     */
+    @Override
+    public OrderQueryResponse orderQueryLocal(Order order) {
+        assert order !=null;
+        return OrderQueryResponse.warpOrderToOrderQuyerResponse(order);
+    }
 }

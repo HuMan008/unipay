@@ -4,9 +4,12 @@ spring:
   main:
     allow-bean-definition-overriding: true
   datasource:
-    url: "jdbc:mysql://201.201.201.173:3306/banshee?characterEncoding=utf8"
+#    url: "jdbc:mysql://201.201.201.173:3306/banshee?characterEncoding=utf8"
+#    username:  dev
+#    password:  devMysql!@#!123
+    url: "jdbc:mysql://172.200.209.13:3306/unipayDEV?characterEncoding=utf8"
     username:  dev
-    password:  devMysql!@#!123
+    password:  ChongQing@MySQL3306
     driver-class-name: "com.mysql.jdbc.Driver"
   redis:
     database: 7
@@ -39,6 +42,8 @@ spring:
 logging:
   level:
     org.springframework.web: DEBUG
+    cn.gotoil.unipay.model.mapper: ERROR
+    cn.gotoil: DEBUG
   path: logs
 
 isDebug: true

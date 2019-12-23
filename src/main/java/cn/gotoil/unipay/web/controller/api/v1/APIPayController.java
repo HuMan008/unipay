@@ -14,14 +14,14 @@ import cn.gotoil.unipay.model.ChargeWechatModel;
 import cn.gotoil.unipay.model.entity.App;
 import cn.gotoil.unipay.model.entity.ChargeConfig;
 import cn.gotoil.unipay.model.entity.Order;
+import cn.gotoil.unipay.model.enums.EnumOrderStatus;
 import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.model.enums.EnumStatus;
+import cn.gotoil.unipay.web.helper.RedisLockHelper;
 import cn.gotoil.unipay.web.message.request.PayRequest;
+import cn.gotoil.unipay.web.message.request.RefundRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
-import cn.gotoil.unipay.web.services.AlipayService;
-import cn.gotoil.unipay.web.services.ChargeConfigService;
-import cn.gotoil.unipay.web.services.OrderService;
-import cn.gotoil.unipay.web.services.WechatService;
+import cn.gotoil.unipay.web.services.*;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import io.swagger.annotations.ApiOperation;
@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * api入口
@@ -54,6 +55,11 @@ public class APIPayController {
 
     @Autowired
     WechatService wechatService;
+
+    @Autowired
+    RefundService refundService;
+    @Autowired
+    RedisLockHelper redisLockHelper;
 
     @RequestMapping(value = "dopay", method = RequestMethod.POST)
     @ApiOperation(value = "API订单创建", position = 5)
@@ -124,11 +130,39 @@ public class APIPayController {
     @RequestMapping(value = "query/{appOrderNo}", method = RequestMethod.POST)
     @ApiOperation(value = "订单支付状态 本地", position = 10)
     public Object queryOrderAction(@PathVariable String appOrderNo) {
-        Order order = orderService.loadByAppOrderNo(appOrderNo, ServletRequestHelper.XU());
-//        if (order == null) {
-//            throw new BillException(UnipayError.OrderNotExists);
-//        }
-        return Optional.ofNullable(order).map(e->OrderQueryResponse.warpOrderToOrderQuyerResponse(e)).orElseThrow(()->new BillException(UnipayError.OrderNotExists));
-
+        return orderService.orderQueryLocal(appOrderNo,ServletRequestHelper.XU());
     }
+
+    @RequestMapping(value = "refund",method = RequestMethod.POST)
+    @ApiOperation(value = "退款申请",position = 20)
+    public Object refundAction(@Valid @RequestBody RefundRequest refundRequest){
+        if(StringUtils.isEmpty(refundRequest.getAppOrderRefundNo())){
+            refundRequest.setAppOrderRefundNo(refundRequest.getAppOrderNo());
+        }
+        if(redisLockHelper.hasLock(RedisLockHelper.Key.Refund+refundRequest.getAppOrderRefundNo())){
+            throw new BillException(UnipayError.SystemBusy);
+        }
+        redisLockHelper.addLock(RedisLockHelper.Key.Refund+refundRequest.getAppOrderRefundNo(),true,3, TimeUnit.MINUTES);
+        Order order = orderService.loadByAppOrderNo(refundRequest.getAppOrderNo(), ServletRequestHelper.XU());
+        Optional.ofNullable(order).orElseThrow(() -> new BillException(UnipayError.OrderNotExists));
+        if(EnumOrderStatus.PaySuccess.getCode()!=order.getStatus()){
+            //todo
+            throw new BillException(UnipayError.CreatOrderError);
+        }
+        try {
+            return refundService.refund(order, refundRequest);
+        }catch(Exception e){
+            throw new BillException(5000,e.getMessage());
+        }finally {
+            redisLockHelper.releaseLock(RedisLockHelper.Key.Refund+refundRequest.getAppOrderRefundNo());
+        }
+    }
+    @RequestMapping(value = "refundQuery",method = RequestMethod.POST)
+    @ApiOperation(value = "退款申请查询",position = 20)
+    public Object refundAction(@RequestParam(required = true) String refundId){
+        return refundService.refundQueryFromRemote(refundId);
+    }
+
+
+
 }

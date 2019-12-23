@@ -22,6 +22,7 @@ public class RedisLockHelper {
         public static final String Notify = "Notify:";
         public static final String OrderStatusSync = "OrderStatusSync";
         public static final String OrderExpiredSync = "OrderExpiredSync";
+        public static final String Refund = "Refund";
     }
 
     public static final String LockedFlag = "LOCKED";

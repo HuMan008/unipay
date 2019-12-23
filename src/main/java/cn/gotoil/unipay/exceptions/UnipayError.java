@@ -26,7 +26,15 @@ public enum UnipayError implements BillError {
 
     WebUserError_UserPwdError(11009, "用户名密码错误"),
 
-    OrderStatusIsNotPaySuccess(4021,"订单状态不是支付成功，不允许发送通知");
+    OrderStatusIsNotPaySuccess(4021,"订单状态不是支付成功，不允许发送通知"),
+
+
+    ExistRefundApplay(4300,"已存在处理中的退款请求!"),
+    RefundFeeOutOfOrderFee(4301,"退款申请金额超过用户支付金额"),
+    UnSupportRefund(4311,"此支付方式不支持退款"),
+    RefundQueryIdError(4320,"退款查询不存在"),
+
+    SystemBusy( 50001,"系统繁忙！请稍后重试!"),
 
     ;
 

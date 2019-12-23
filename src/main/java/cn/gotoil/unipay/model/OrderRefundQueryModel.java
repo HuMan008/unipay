@@ -1,4 +1,4 @@
-package cn.gotoil.unipay.web.message.response;
+package cn.gotoil.unipay.model;
 
 import lombok.Data;
 
@@ -12,24 +12,32 @@ import java.util.List;
  * @date 2019-9-20、9:46
  */
 @Data
-public class OrderRefundQueryResponse {
+public class OrderRefundQueryModel {
 
     /**
      * 我的订单ID 提交给支付方的商户订单号
      */
     String unionOrderID;
 
+    /**
+     * 订单支付金额（除掉折扣)
+     */
+    int payFee;
 
     /**
-     * 传过来的订单号
+     * 商户到账金额
      */
-    String appOrderNo;
-
+    int orderArrFee;
 
     /**
-     * 传过来的退款申请订单号
+     * 订单金额
      */
-    String appOrderRefundNo;
+    int orderFee;
+
+    /**
+     * 累计成功退款金额
+     */
+    int totolRefundFee;
 
 
     List<RefundDetail> refundDetail = new ArrayList<>();
@@ -37,13 +45,3 @@ public class OrderRefundQueryResponse {
 
 }
 
-@Data
-class RefundDetail {
-    String refundOrderId;
-    String appOrderNo;
-    String appOrderRefundNo;
-    int applyFee;
-    String descp;
-    byte processResult;
-
-}

@@ -7,6 +7,8 @@ RUN mkdir /application/config
 RUN mkdir /application/logs
 
 COPY ./build/libs/unipay-1.0-SNAPSHOT.jar /application/app.jar
+# 增加证书目录 2019年12月23日10:29:41 苏亚江
+COPY /certs /application/ -f -r
 
 WORKDIR /application
 

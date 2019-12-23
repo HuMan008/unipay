@@ -45,14 +45,14 @@ dependencies {
     compile("org.springframework.boot:spring-boot:${springBootVersion}")
     compile("org.springframework.boot:spring-boot-starter-amqp:${springBootVersion}")
 //    compile("org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}")
-    compile("org.springframework.boot:spring-boot-starter-aop:${springBootVersion}")
+//    compile("org.springframework.boot:spring-boot-starter-aop:${springBootVersion}")
 
 //    compile("org.springframework.boot:spring-boot-starter-web:${springBootVersion}"){
 //        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
 //    }
     compile("org.springframework.boot:spring-boot-starter-undertow:${springBootVersion}")
 
-    compile("org.springframework.boot:spring-boot-starter-data-redis:${springBootVersion}")
+//    compile("org.springframework.boot:spring-boot-starter-data-redis:${springBootVersion}")
     compile("org.springframework.boot:spring-boot-starter-thymeleaf:${springBootVersion}")
     compile group: 'org.projectlombok', name: 'lombok', version: '1.18.8'
     annotationProcessor "org.projectlombok:lombok:1.18.8"

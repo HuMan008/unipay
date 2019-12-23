@@ -111,4 +111,19 @@ public interface OrderService {
      * @return
      */
     BillApiResponse manualSendNotify(Order order);
+
+    /**
+     * 订单状态本地查询
+     * @param appOrderNo
+     * @param appId
+     * @return
+     */
+    OrderQueryResponse orderQueryLocal(String appOrderNo, String appId);
+
+    /**
+     * 订单状态本地查询
+     * @param order
+     * @return
+     */
+    OrderQueryResponse orderQueryLocal(Order order);
 }
