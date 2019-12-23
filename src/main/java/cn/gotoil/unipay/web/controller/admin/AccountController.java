@@ -28,7 +28,7 @@ public class AccountController {
     @NeedLogin
     @HasRole(value = ConstsRole.ADMIN)
     public Object addAccountAction(@RequestBody AccountAddRequest accountAddRequest) {
-        if (configService.checkName(accountAddRequest.getName(), null)) {
+        if (!configService.checkName(accountAddRequest.getName(), null)) {
             throw new BillException(5000, "名称重复");
         }
         ChargeConfig chargeConfig = new ChargeConfig();
@@ -46,7 +46,7 @@ public class AccountController {
     @HasRole(value = ConstsRole.ADMIN)
     public Object checkAccountNameAction(@ApiParam(value = "名称") @RequestParam String appName,
                                          @ApiParam(value = "id") @RequestParam(required = false) Integer id) {
-        return configService.checkName(appName, id);
+        return !configService.checkName(appName, id);
     }
 
     @ApiOperation(value = "修改状态", position = 5, tags = "账号管理")

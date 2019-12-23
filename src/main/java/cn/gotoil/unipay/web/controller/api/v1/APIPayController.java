@@ -157,9 +157,9 @@ public class APIPayController {
             redisLockHelper.releaseLock(RedisLockHelper.Key.Refund+refundRequest.getAppOrderRefundNo());
         }
     }
-    @RequestMapping(value = "refundQuery",method = RequestMethod.POST)
+    @RequestMapping(value = "refundQuery/{refundId:^r_\\d{21}_\\d+$}",method = RequestMethod.POST)
     @ApiOperation(value = "退款申请查询",position = 20)
-    public Object refundAction(@RequestParam(required = true) String refundId){
+    public Object refundAction(@PathVariable String refundId){
         return refundService.refundQueryFromRemote(refundId);
     }
 

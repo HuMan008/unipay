@@ -421,8 +421,9 @@ public class WechatServiceImpl implements WechatService {
         data.put("mch_id", chargeModel.getMerchID());
         data.put("nonce_str", UtilWechat.generateNonceStr());
         data.put("out_refund_no", refund.getRefundOrderId());
+        data.put("out_trade_no",refund.getOrderId());
         data.put("total_fee", String.valueOf(refund.getOrderFee()));
-        data.put("refund_fee", String.valueOf(refund.getFee()));
+        data.put("refund_fee", String.valueOf(refund.getApplyFee()));
         data.put("refund_desc", refund.getDescp());
         String sign = "";
         try {

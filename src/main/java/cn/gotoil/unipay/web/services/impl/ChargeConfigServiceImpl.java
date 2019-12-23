@@ -252,7 +252,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
      *
      * @param name
      * @param id
-     * @return
+     * @return ture可用  false不可用
      */
     @Override
     public boolean checkName(String name, Integer id) {
@@ -264,11 +264,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
         criteria.andNameEqualTo(name);
 
         List list = chargeConfigMapper.selectByExample(example);
-        if (list != null && list.size() > 0) {
-            return true;
-        } else {
-            return false;
-        }
+       return  list.isEmpty();
     }
 
     /**
