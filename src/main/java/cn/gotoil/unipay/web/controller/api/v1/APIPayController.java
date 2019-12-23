@@ -146,8 +146,7 @@ public class APIPayController {
         Order order = orderService.loadByAppOrderNo(refundRequest.getAppOrderNo(), ServletRequestHelper.XU());
         Optional.ofNullable(order).orElseThrow(() -> new BillException(UnipayError.OrderNotExists));
         if(EnumOrderStatus.PaySuccess.getCode()!=order.getStatus()){
-            //todo
-            throw new BillException(UnipayError.CreatOrderError);
+            throw new BillException(UnipayError.RefundError_OrderStatusError);
         }
         try {
             return refundService.refund(order, refundRequest);

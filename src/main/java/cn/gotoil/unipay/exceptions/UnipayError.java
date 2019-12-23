@@ -31,6 +31,7 @@ public enum UnipayError implements BillError {
 
     ExistRefundApplay(4300,"已存在处理中的退款请求!"),
     RefundFeeOutOfOrderFee(4301,"退款申请金额超过用户支付金额"),
+    RefundError_OrderStatusError(4302,"订单状态非支付成功状态，不允许退款"),
     UnSupportRefund(4311,"此支付方式不支持退款"),
     RefundQueryIdError(4320,"退款查询不存在"),
 
