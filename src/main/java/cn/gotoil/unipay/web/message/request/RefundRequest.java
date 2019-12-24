@@ -31,8 +31,8 @@ public class RefundRequest {
     /**
      * 退款申请金额 单位分
      */
-    @NotNull(message = "支付金额不得为空！")
-    @Min(value = 1, message = "支付金额不得少于1分！")
+    @NotNull(message = "退款申请金额不得为空！")
+    @Min(value = 1, message = "退款申请金额不得少于1分！")
     int fee;
 
     /**
