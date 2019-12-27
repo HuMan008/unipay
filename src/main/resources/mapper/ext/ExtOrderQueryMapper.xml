@@ -6,8 +6,8 @@
         <if test=" status != null and status != '' ">
             and o.status = #{status}
         </if>
-        <if test=" appid != null and appid != '' ">
-            and o.app_id = #{appid}
+        <if test=" appId != null and appId != '' ">
+            and o.app_id = #{appId}
         </if>
         <if test=" queryId != null and queryId != '' ">
             and (o.id = #{queryId} or o.payment_id = #{queryId} or o.app_order_no = #{queryId})

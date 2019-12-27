@@ -16,6 +16,7 @@ import cn.gotoil.unipay.web.message.response.admin.BaseComboResponse;
 import cn.gotoil.unipay.web.services.NoticeLogService;
 import cn.gotoil.unipay.web.services.OrderQueryService;
 import cn.gotoil.unipay.web.services.OrderService;
+import cn.gotoil.unipay.web.services.RefundService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -41,6 +42,9 @@ public class OrderController {
     NoticeLogService noticeLogService;
 @Resource
 ExtOrderQueryMapper extOrderQueryMapper;
+
+@Autowired
+    RefundService refundService;
 
     @ApiOperation(value = "订单查询", position = 1, tags = "订单管理")
     @RequestMapping(value = "queryOrder", method = RequestMethod.POST)
@@ -80,14 +84,21 @@ ExtOrderQueryMapper extOrderQueryMapper;
     public Object queryOrderStatusAction(@ApiParam(value = "appkey") @RequestParam String appkey, @ApiParam(value = "订单号") @RequestParam String orderId,
                                          @ApiParam(value = " localStatus/remoteStatus 本地/远程查询订单状态, " + "localRefund/remoteRefund 本地/远程查询退款状态",
                                            allowableValues = "localStatus,remoteStatus,localRefund,remoteRefund", example = "localStatus") @RequestParam(defaultValue = "localStatus") String type) {
-        Order order = orderQueryService.getOrderByAppKeyAndId(appkey,orderId);
-        if(order == null){
-            throw new BillException(5100,"没有对应订单");
-        }
-        if("localStatus".equals(type)){
-            return orderService.orderQueryLocal(order);
-        }else if("remoteStatus".equals(type)){
-            return new BillApiResponse(orderService.queryOrderStatusFromRemote(order));
+
+        if("localStatus".equals(type) ||  "remoteStatus".equals(type)){
+            Order order = orderQueryService.getOrderByAppKeyAndId(appkey,orderId);
+            if(order == null){
+                throw new BillException(5100,"没有对应订单");
+            }
+            if("localStatus".equals(type)){
+                return orderService.orderQueryLocal(order);
+            }else{
+                return new BillApiResponse(orderService.queryOrderStatusFromRemote(order));
+            }
+        }else if("localRefund".equalsIgnoreCase(type)){
+            return  refundService.refundQuery(orderId,0);
+        }else if("remoteRefund".equalsIgnoreCase(type)){
+            return  refundService.refundQuery(orderId,1);
         }else{
             throw new BillException(5100,"查询类型出错");
         }

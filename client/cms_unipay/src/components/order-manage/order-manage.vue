@@ -497,9 +497,6 @@ export default {
     formatPayType(v) {
       return this.payTypeMap.get(v);
     },
-    pageChange(pagination) {
-      // console.log(pagination)
-    },
     // 订单远程状态查询
     remoteQuery(orderId, appId) {
       HttpService.get(

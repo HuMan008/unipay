@@ -14,20 +14,20 @@ import cn.gotoil.unipay.model.entity.RefundExample;
 import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.model.enums.EnumRefundStatus;
 import cn.gotoil.unipay.model.mapper.RefundMapper;
+import cn.gotoil.unipay.model.mapper.ext.ExtRefundQueryMapper;
+import cn.gotoil.unipay.web.message.BasePageResponse;
 import cn.gotoil.unipay.web.message.request.RefundRequest;
-import cn.gotoil.unipay.web.message.response.OrderRefundResponse;
+import cn.gotoil.unipay.web.message.request.admin.RefundQueryListRequest;
 import cn.gotoil.unipay.web.message.response.RefundQueryResponse;
 import cn.gotoil.unipay.web.services.*;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -52,6 +52,9 @@ public class RefundServiceImpl implements RefundService {
 
     @Autowired
     OrderService orderService;
+
+    @Resource
+    ExtRefundQueryMapper extRefundQueryMapper;
 
     /**
      * 发起退款申请
@@ -153,7 +156,9 @@ public class RefundServiceImpl implements RefundService {
             } else {
                 return RefundDetail.refund2DetailBean(refund);
             }
-        } return null;
+        } else {
+            return refundQueryFromRemote(refundQueryId);
+        }
     }
 
 
@@ -214,4 +219,56 @@ public class RefundServiceImpl implements RefundService {
         }
 
     }
+
+    /**
+     * 退款列表
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public Object queryRefundList(RefundQueryListRequest request) {
+        BasePageResponse pageResponse = new BasePageResponse();
+        BeanUtils.copyProperties(request, pageResponse);
+        Map<String, Object> params = request.getParams();
+        int total = extRefundQueryMapper.queryRefundCounts(params);
+        pageResponse.setTotal(total);
+
+        params.put("offset", pageResponse.getOffset());
+        params.put("pageSize", pageResponse.getPageSize());
+        pageResponse.setRows(extRefundQueryMapper.refundList(params));
+        return pageResponse;
+    }
+
+
+    /**
+     * 获取退款提交成功但是结果未知的 退款列表
+     * @return
+     */
+    @Override
+    public List<Refund> getWaitSureResultList(){
+        RefundExample refundExample = new RefundExample();
+        List<Byte> statusList =  new ArrayList<>();
+        statusList.add(EnumRefundStatus.WaitSure.getCode());
+        statusList.add(EnumRefundStatus.Refunding.getCode());
+        refundExample.createCriteria().andProcessResultIn(statusList);
+        refundExample.setLimit(200);
+        refundExample.setOrderByClause("apply_datetime");
+        return refundMapper.selectByExample(refundExample);
+    }
+
+    /**
+     * 更新退款记录
+     */
+    @Override
+    public int updateRefund(Refund dbRefund, Refund newRefund) {
+        //这里要重写
+        assert newRefund != null && newRefund.getRefundOrderId() != null && newRefund.getRefundOrderId().equals(newRefund.getRefundOrderId());
+        newRefund.setUpdateAt(new Date());
+        newRefund.setStatusUpdateDatetime(newRefund.getUpdateAt());
+        RefundExample refundExample = new RefundExample();
+        refundExample.createCriteria().andUpdateAtEqualTo(dbRefund.getUpdateAt());
+        return refundMapper.updateByExampleSelective(newRefund, refundExample);
+    }
+
 }

@@ -13,6 +13,7 @@ import java.util.Date;
 @Data
 public class RefundDetail {
     String refundOrderId;
+    String orderId;
     String appOrderNo;
     String appOrderRefundNo;
     int applyFee;
@@ -20,10 +21,11 @@ public class RefundDetail {
     Date applyTime;
     String descp;
     String fialMsg;
-    byte processResult;
+    byte status;
 
     public static RefundDetail refund2DetailBean (Refund refund){
         RefundDetail detail = new RefundDetail();
+        detail.setOrderId(refund.getOrderId());
         detail.setRefundOrderId(refund.getRefundOrderId());
         detail.setAppOrderNo(refund.getAppOrderNo());
         detail.setAppOrderRefundNo(refund.getAppOrderRefundNo());
@@ -31,7 +33,8 @@ public class RefundDetail {
         detail.setPassFee(refund.getProcessResult() == EnumRefundStatus.Success.getCode() ? refund.getFee() : 0);
         detail.setApplyTime(refund.getCreatedAt());
         detail.setFialMsg(refund.getFailMsg());
-        detail.setProcessResult(refund.getProcessResult());
+        detail.setStatus(refund.getProcessResult());
+        detail.setDescp(refund.getDescp());
         return detail;
     }
 

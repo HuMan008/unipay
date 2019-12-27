@@ -117,7 +117,7 @@ sign的内容为md5(xxxx+appSecret(统一分配))
 ```
 
 ## 请求路径
-`/api/v1/dopay `
+`/api/v1/refund`
 ## 请求参数
 
 | 参数名           | 说明       | 选项       | 类型 | 备注                     |
@@ -139,12 +139,40 @@ sign的内容为md5(xxxx+appSecret(统一分配))
     }
 }
 ```
+# 支付结果查询
+## 支付结果状态码
+ 详见<a href = "#payStatus" ></a>
+ 
+ ## 请求路径
+  `POST`   `/api/v1/query/appOrderNo`"
+` appOrderNo 为创建订单的时候传入的订单号`
+
+##请求参数
+无
+## 响应
+```json
+{
+    "status": 0,
+    "message": null,
+    "data": {
+          "unionOrderID":"统一订单号",
+          "appOrderNO" :"应用订单号",
+          "paymentId": "支付方订单号",
+           "paymentUid": "支付方用户号",
+          "payDateTime": 14333333212 ,// 支付成功才有
+          "status": 0 , //支付状态 
+          "orderFee": 1, //订单金额
+          "payFee": 1 , //用户支付金额
+          "arrFee": 1  //公司到账金额
+    }
+}
+```
 # 退款查询
 ## 退款状态码
  详见 <a href="#refundStatus"> 退款状态码 </a> 
 
 ## 请求路径 
-`/api/v1/refundQuery/resultQueryId`
+`POST` `/api/v1/refundQuery/resultQueryId`"
 `resultQueryId 为退款申请时返回的`
 
 ## 请求参数
@@ -155,15 +183,16 @@ sign的内容为md5(xxxx+appSecret(统一分配))
     "status": 0,
     "message": null,
     "data": {
-        "orderRefundId": "r_201912231459358781672_0",
+        "refundOrderId": "r_201912231459358781672_0",
         "orderId": "201912231459358781672",
         "appOrderNo": "32478896825827328",
         "appOrderRefundNo": "32478896825827328",
         "applyFee": 1,
-        "passFee": 1,
-        "thirdMsg": "OKnull",
-        "thirdCode": null,
-        "refundStatus": 0
+        "applyReason": "退款原",
+        "passFee": 1, //退款状态为成功的时候返回 其他状态为0
+        "applyTime": "2019-12-22 14:22:43",
+        "status": 0, //参见退款状态
+        "fialMsg": "" //失败的时候 的原因
     }
 }
 

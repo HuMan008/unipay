@@ -4,6 +4,7 @@ import cn.gotoil.unipay.model.OrderRefundQueryModel;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.model.entity.Refund;
 import cn.gotoil.unipay.web.message.request.RefundRequest;
+import cn.gotoil.unipay.web.message.request.admin.RefundQueryListRequest;
 import cn.gotoil.unipay.web.message.response.OrderRefundResponse;
 import cn.gotoil.unipay.web.message.response.RefundQueryResponse;
 
@@ -57,4 +58,22 @@ public interface RefundService {
      * @return
      */
     RefundQueryResponse refundQueryFromRemote(String refundId);
+
+    /**
+     * 退款列表
+     * @param request
+     * @return
+     */
+    Object queryRefundList(RefundQueryListRequest request);
+
+    /**
+     * 获取退款提交成功但是结果未知的 退款列表
+     * @return
+     */
+    List<Refund> getWaitSureResultList();
+
+    /**
+     * 更新退款记录
+     */
+    int updateRefund(Refund dbRefund, Refund newRefund);
 }
