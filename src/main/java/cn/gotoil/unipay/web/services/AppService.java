@@ -99,4 +99,17 @@ public interface AppService {
      * @return
      */
     boolean grantPay(AppAccountIds appAccountIds);
+
+    /**
+     * 刷新应用收款账号关系
+     * @return
+     */
+    int refreshAppChargeAccountRedis();
+
+    /**
+     * 刷新APP
+     *
+     * @return
+     */
+    int refreshApp();
 }

@@ -34,7 +34,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -46,8 +45,6 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class AppServiceImpl implements AppService {
-
-    public static final String APPCHARGKEY = "appCharge:";
 
     static final Set<String> IGNORESET = Sets.newHashSet("createdAt", "updatedAt");
 
@@ -85,7 +82,7 @@ public class AppServiceImpl implements AppService {
         Date d = new Date();
         app.setCreatedAt(d);
         app.setUpdatedAt(d);
-        redisHashHelper.set(APPKEY + app.getAppKey(), app, IGNORESET);
+        redisHashHelper.set(appRedisKey(app.getAppKey()), app, IGNORESET);
         return appMapper.insert(app);
     }
 
@@ -97,7 +94,7 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public App load(String appKey) {
-        App app = redisHashHelper.get(APPKEY + appKey, App.class);
+        App app = redisHashHelper.get(appRedisKey(appKey), App.class);
         if (app != null) {
             return app;
         }
@@ -189,7 +186,7 @@ public class AppServiceImpl implements AppService {
         int x = appMapper.updateByPrimaryKeySelective(updateApp);
         if (x == 1) {
             old.setStatus(status);
-            redisHashHelper.set(APPKEY + appkey, old, IGNORESET);
+            redisHashHelper.set(appRedisKey(appkey), old, IGNORESET);
             return true;
         } else {
             throw new BillException(CommonError.SystemError);
@@ -211,15 +208,15 @@ public class AppServiceImpl implements AppService {
 
         if (result == 1) {
             App appNew = appMapper.selectByPrimaryKey(app.getAppKey());
-            redisHashHelper.set(APPKEY + app.getAppKey(), appNew, IGNORESET);
+            redisHashHelper.set(appRedisKey(app.getAppKey()), appNew, IGNORESET);
         }
         return result;
     }
 
-    private void removeAppChargeAccountFromRedis(String payType, String appId) {
-        String key = ChargeConfigServiceImpl.APPCHARGKEY + payType + "_" + appId;
-        redisTemplate.opsForHash().getOperations().expire(key, 0, TimeUnit.SECONDS);
-    }
+    //    private void removeAppChargeAccountFromRedis(String payType, String appId) {
+    //        String key = chargeConfigService.appChargAccountKey4AppidAndPayTypeRedisKey(appId,payType),
+    //        redisTemplate.opsForHash().getOperations().expire(key, 0, TimeUnit.SECONDS);
+    //    }
 
 
     /**
@@ -297,17 +294,19 @@ public class AppServiceImpl implements AppService {
             List<Integer> watiAddList = new ArrayList<>(pageChoose);
             watiAddList.removeAll(hasPay);
             //数据库有的，页面没有的 就是要删除的
-            List<Integer> waitDelete = new ArrayList<>(hasPay); ;
+            List<Integer> waitDelete = new ArrayList<>(hasPay);
+            ;
             waitDelete.removeAll(pageChoose);
             //添加
             List<TModel> waitAddModel = watiAddList.stream().map(e -> pageModelMap.get(e)).collect(Collectors.toList());
-            if(waitAddModel.size()>0){
+            if (waitAddModel.size() > 0) {
                 addAppConfigRelation(appAccountIds.getAppKey(), waitAddModel);
             }
             //移除
-            if(waitDelete.size()>0){
+            if (waitDelete.size() > 0) {
                 deleteByappIdAccId(appAccountIds.getAppKey(), waitDelete);
             }
+            refreshAppChargeAccountRedis();
             return true;
         }
     }
@@ -327,7 +326,8 @@ public class AppServiceImpl implements AppService {
             aca.setStatus(EnumStatus.Enable.getCode());
             accounts.add(aca);
         }
-        BatchEntity batchEntity = BatchUtil.buildBatchEntity("dp_app_charge_account", AppChargeAccount.class, accounts, "id");
+        BatchEntity batchEntity = BatchUtil.buildBatchEntity("dp_app_charge_account", AppChargeAccount.class,
+                accounts, "id");
         return commonExtMapper.insertBatch(batchEntity);
     }
 
@@ -336,6 +336,29 @@ public class AppServiceImpl implements AppService {
         AppChargeAccountExample example = new AppChargeAccountExample();
         example.createCriteria().andAppIdEqualTo(appKey).andAccountIdIn(accIds);
         return appChargeAccountMapper.deleteByExample(example);
+    }
+
+
+    /**
+     * 刷新应用收款账号关系
+     * @return
+     */
+    @Override
+    public int refreshAppChargeAccountRedis() {
+        try {
+            AppChargeAccountExample example = new AppChargeAccountExample();
+            example.createCriteria().andStatusEqualTo(EnumStatus.Enable.getCode());
+            example.setOrderByClause("updated_at desc");
+            List<AppChargeAccount> appReChangeAccountList = appChargeAccountMapper.selectByExample(example);
+            for (AppChargeAccount appChargeAccount : appReChangeAccountList) {
+                chargeConfigService.addAppChargeAccount2Redis(appChargeAccount);
+            }
+            return 1;
+        } catch (Exception e) {
+            log.error("刷新应用收款方式出错{}",e.getMessage());
+            return 0;
+        }
+
     }
 
     private Map<Integer, TModel> warpAccountIds(AppAccountIds appAccountIds) {
@@ -370,6 +393,32 @@ public class AppServiceImpl implements AppService {
 
     }
 
+    /**
+     * 刷新APP
+     *
+     * @return
+     */
+    @Override
+    public int refreshApp() {
+        try {
+            AppExample example = new AppExample();
+            List<App> list = appMapper.selectByExample(example);
+            for (App app : list) {
+                String key = appRedisKey(app.getAppKey());
+                redisHashHelper.set(key, app, IGNORESET);
+            }
+            return 1;
+        } catch (Exception e) {
+            log.error("刷新应用出错{}",e.getMessage());
+            return 0;
+        }
+
+    }
+
+    private String appRedisKey(String id) {
+        return APPKEY + id;
+    }
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -378,5 +427,4 @@ public class AppServiceImpl implements AppService {
         String payTypeCode;
         int accId;
     }
-
 }

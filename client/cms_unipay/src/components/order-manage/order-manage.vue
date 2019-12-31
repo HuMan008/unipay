@@ -607,11 +607,12 @@ textarea {
 .row{
   flex-wrap: wrap;
 }
-.longText{
-  max-width: 200px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.longText {
+  max-width: 60vw;
+  white-space: wrap;
+  overflow: auto;
+  text-overflow: inherit;
   margin-bottom: 0;
+  word-wrap: break-word;
 }
 </style>

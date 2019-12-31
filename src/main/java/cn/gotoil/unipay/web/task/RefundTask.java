@@ -35,19 +35,20 @@ public class RefundTask {
 
     @Autowired
     RabbitTemplate rabbitTemplate;
-    private ExecutorService executorService;
 
 
     @Scheduled(initialDelay = 1200, fixedDelay = 1000 * 60 * 5)
     public void expiredOrder() {
-        log.info("退款状态同步任务");
+
         if (redisLockHelper.hasLock(RefundStatusSync)) {
             return;
         }
+        log.info("退款状态同步任务");
         redisLockHelper.addLock(RefundStatusSync, true, 30, TimeUnit.MINUTES);
         try {
             //已经过期了10分钟，但是本地状态还是待支付的订单 单批次取200条
             List<Refund> refundList = refundService.getWaitSureResultList();
+            log.info("本次待获取退款结果数据{}条",refundList.size());
             for (Refund refund : refundList) {
                 RefundQueryResponse refundQueryResponse = refundService.refundQueryFromRemote(refund.getRefundOrderId());
                 if (refundQueryResponse != null && (EnumRefundStatus.Success.getCode() == refundQueryResponse.getRefundStatus()  || EnumRefundStatus.Failed.getCode() == refundQueryResponse.getRefundStatus() )  ) {

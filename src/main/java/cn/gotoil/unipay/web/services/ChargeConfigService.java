@@ -12,6 +12,18 @@ import java.util.List;
  * @date 2019-9-20、16:02
  */
 public interface ChargeConfigService {
+
+    String APPCHARGKEY = "Unipay:appCharge:";
+
+    /**
+     * 关系
+     *
+     * @param appId
+     * @param payTypeCode
+     * @return
+     */
+    String appChargAccountKey4AppidAndPayTypeRedisKey(String appId, String payTypeCode);
+
     /**
      * 根据条件查询收款账号
      *
