@@ -34,6 +34,7 @@ public enum UnipayError implements BillError {
     RefundError_OrderStatusError(4302,"订单状态非支付成功状态，不允许退款"),
     UnSupportRefund(4311,"此支付方式不支持退款"),
     RefundQueryIdError(4320,"退款查询不存在"),
+    RefundError_NoCertPath(4321,"未配置退款证书路径，不支持退款"),
 
     SystemBusy( 50001,"系统繁忙！请稍后重试!"),
 

@@ -3,6 +3,7 @@ package cn.gotoil.unipay.web.services.impl;
 import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.tools.ObjectHelper;
 import cn.gotoil.bill.tools.date.DateUtils;
+import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.ChargeAccount;
 import cn.gotoil.unipay.model.ChargeWechatModel;
 import cn.gotoil.unipay.model.entity.Order;
@@ -416,6 +417,9 @@ public class WechatServiceImpl implements WechatService {
     @Override
     public OrderRefundResponse orderRefund(ChargeAccount chargeConfig, Refund refund) {
         ChargeWechatModel chargeModel = (ChargeWechatModel) chargeConfig;
+        if(StringUtils.isEmpty(chargeModel.getCertPath())){
+            throw new BillException(UnipayError.RefundError_NoCertPath);
+        }
         HashMap<String, String> data = new HashMap<String, String>();
         data.put("appid", chargeModel.getAppID());
         data.put("mch_id", chargeModel.getMerchID());
