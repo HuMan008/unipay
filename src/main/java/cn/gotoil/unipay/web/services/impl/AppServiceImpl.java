@@ -334,13 +334,17 @@ public class AppServiceImpl implements AppService {
     int deleteByappIdAccId(String appKey, List<Integer> accIds) {
         log.info("删除" + accIds.toString());
         AppChargeAccountExample example = new AppChargeAccountExample();
-        example.createCriteria().andAppIdEqualTo(appKey).andAccountIdIn(accIds);
+        AppChargeAccountExample.Criteria criteria = example.createCriteria().andAppIdEqualTo(appKey);
+        if (accIds.size() > 0) {
+            criteria.andAccountIdIn(accIds);
+        }
         return appChargeAccountMapper.deleteByExample(example);
     }
 
 
     /**
      * 刷新应用收款账号关系
+     *
      * @return
      */
     @Override
@@ -355,7 +359,7 @@ public class AppServiceImpl implements AppService {
             }
             return 1;
         } catch (Exception e) {
-            log.error("刷新应用收款方式出错{}",e.getMessage());
+            log.error("刷新应用收款方式出错{}", e.getMessage());
             return 0;
         }
 
@@ -409,7 +413,7 @@ public class AppServiceImpl implements AppService {
             }
             return 1;
         } catch (Exception e) {
-            log.error("刷新应用出错{}",e.getMessage());
+            log.error("刷新应用出错{}", e.getMessage());
             return 0;
         }
 
