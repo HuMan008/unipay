@@ -111,7 +111,11 @@ public class WechatServiceImpl implements WechatService {
                     return new ModelAndView(mwebUrl);
                 }
                 ModelAndView modelAndView = new ModelAndView("wechat/jsapipay");
-                orderService.saveOrder(order);
+                int x = orderService.saveOrder(order);
+                if(x!=1){
+                    return new ModelAndView(UtilString.makeErrorPage(UnipayError.PageRefreshError,
+                            payRequest.getBackUrl()));
+                }
                 Map<String, String> ssMap = new HashMap();
                 ssMap.put("appId", reMap.get("appid"));
                 ssMap.put("timeStamp", String.valueOf(Instant.now().getEpochSecond()));
