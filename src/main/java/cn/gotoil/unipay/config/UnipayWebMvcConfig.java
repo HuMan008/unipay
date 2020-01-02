@@ -13,7 +13,6 @@ public class UnipayWebMvcConfig extends BillWebMvcConfig {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
 //        registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");
         registry.addResourceHandler("/*.txt").addResourceLocations("classpath:/");
-        registry.addResourceHandler("/wechat/example.css").addResourceLocations("classpath:/templates/wechat/");
         super.addResourceHandlers(registry);
     }
 
