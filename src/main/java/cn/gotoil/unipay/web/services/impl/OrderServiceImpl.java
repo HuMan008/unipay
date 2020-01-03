@@ -86,7 +86,7 @@ public class OrderServiceImpl implements OrderService {
     public void checkPayRequest(PayRequest payRequest) {
         // 检查app
         App app = appService.load(payRequest.getAppId());
-        Optional.ofNullable(app).map(app1 -> app1).orElseThrow(() -> new BillException(UnipayError.AppNotExists));
+        Optional.ofNullable(app).orElseThrow(() -> new BillException(UnipayError.AppNotExists));
         Optional.of(app).filter(c -> EnumStatus.Enable.getCode() == c.getStatus()).orElseThrow(() -> new BillException(UnipayError.AppStatusError));
         //检查应用订单号
         if (!checkOrderNo(payRequest.getAppOrderNo(), payRequest.getAppId())) {
@@ -95,7 +95,7 @@ public class OrderServiceImpl implements OrderService {
         //检查收款账号
         ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(payRequest.getAppId(),
                 payRequest.getPayType());
-        Optional.ofNullable(chargeConfig).map(app1 -> app1).orElseThrow(() -> new BillException(UnipayError.AppNotSupportThisPay));
+        Optional.ofNullable(chargeConfig).orElseThrow(() -> new BillException(UnipayError.AppNotSupportThisPay));
         Optional.of(chargeConfig).filter(c -> EnumStatus.Enable.getCode() == c.getStatus()).orElseThrow(() -> new BillException(UnipayError.ChargeConfigIsDisabled));
 
     }
@@ -196,7 +196,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(EnumOrderStatus.Created.getCode());
         order.setPayType(payRequest.getPayType());
         order.setPayTypeCategory(EnumUtils.getEnum(EnumPayType.class, payRequest.getPayType()).getEnumPayCategory().getCodeValue());
-        //订单号生成规则 yyyyMMddHHmmss+4位流水号+2位随机数
+        //订单号生成规则 yyyyMMddHHmmssSSS+4位随机数
         order.setId(currentDateTime.concat(RandomStringUtils.random(4, false, true)));
         //收款账号
         ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(payRequest.getAppId(),
@@ -403,5 +403,31 @@ public class OrderServiceImpl implements OrderService {
         rabbitTemplate.convertAndSend(ConstsRabbitMQ.ORDERFIRSTEXCHANGENAME, ConstsRabbitMQ.ORDERROUTINGKEY,
                 JSON.toJSONString(orderNotifyBean));
         return new BillApiResponse(0, "已加入消息队列", null);
+    }
+
+
+    /**
+     * 订单状态本地查询
+     * @param appOrderNo
+     * @param appId
+     * @return
+     */
+    @Override
+    public OrderQueryResponse orderQueryLocal(String appOrderNo, String appId) {
+        Order order = loadByAppOrderNo(appOrderNo, appId);
+        Optional.ofNullable(order).orElseThrow(() -> new BillException(UnipayError.OrderNotExists));
+        return OrderQueryResponse.warpOrderToOrderQuyerResponse(order);
+    }
+
+
+    /**
+     * 订单状态本地查询
+     * @param order
+     * @return
+     */
+    @Override
+    public OrderQueryResponse orderQueryLocal(Order order) {
+        assert order !=null;
+        return OrderQueryResponse.warpOrderToOrderQuyerResponse(order);
     }
 }

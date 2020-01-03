@@ -10,12 +10,10 @@ import cn.gotoil.unipay.model.entity.AppChargeAccountExample;
 import cn.gotoil.unipay.model.entity.ChargeConfig;
 import cn.gotoil.unipay.model.entity.ChargeConfigExample;
 import cn.gotoil.unipay.model.enums.EnumPayType;
-import cn.gotoil.unipay.model.enums.EnumStatus;
 import cn.gotoil.unipay.model.mapper.AppChargeAccountMapper;
 import cn.gotoil.unipay.model.mapper.AppMapper;
 import cn.gotoil.unipay.model.mapper.ChargeConfigMapper;
 import cn.gotoil.unipay.model.mapper.ext.ExtChargeConfigMapper;
-import cn.gotoil.unipay.utils.UtilString;
 import cn.gotoil.unipay.web.annotation.OpLog;
 import cn.gotoil.unipay.web.services.ChargeConfigService;
 import com.alibaba.fastjson.JSON;
@@ -40,7 +38,6 @@ import java.util.Set;
 @Slf4j
 public class ChargeConfigServiceImpl implements ChargeConfigService {
 
-    public static final String APPCHARGKEY = "Unipay:appCharge:";
 
     static final Set<String> IGNORESET = Sets.newHashSet("createdAt", "updatedAt");
 
@@ -72,7 +69,8 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
      * @param payTypeCode
      * @return
      */
-    public String appChargAccountKey4AppidAndPayType(String appId, String payTypeCode) {
+    @Override
+    public String appChargAccountKey4AppidAndPayTypeRedisKey(String appId, String payTypeCode) {
         return APPCHARGKEY + payTypeCode + "_" + appId;
     }
 
@@ -106,7 +104,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
 
     @Override
     public void addAppChargeAccount2Redis(AppChargeAccount appChargeAccount) {
-        String key = appChargAccountKey4AppidAndPayType(appChargeAccount.getAppId(), appChargeAccount.getPayType());
+        String key = appChargAccountKey4AppidAndPayTypeRedisKey(appChargeAccount.getAppId(), appChargeAccount.getPayType());
         redisHashHelper.set(key, appChargeAccount, IGNORESET);
     }
 
@@ -131,7 +129,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
      */
     @Override
     public ChargeConfig loadByAppIdPayType(String appId, String payType) {
-        String key = appChargAccountKey4AppidAndPayType(appId, payType);
+        String key = appChargAccountKey4AppidAndPayTypeRedisKey(appId, payType);
         AppChargeAccount appChargeAccount = redisHashHelper.get(key, AppChargeAccount.class);
         if (appChargeAccount != null) {
             return loadByChargeId(appChargeAccount.getAccountId());
@@ -183,13 +181,13 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
                 || EnumPayType.WechatSDK.getCode().equals(chargeConfig.getPayType())) {
             JSONObject jsonObject = JSONObject.parseObject(chargeConfig.getConfigJson());
             ChargeWechatModel wechatModel = JSON.toJavaObject(jsonObject, ChargeWechatModel.class);
-            return UtilString.checkObjFieldIsNull(wechatModel);
+            return wechatModel==null;
 
         } else if (EnumPayType.AlipayH5.getCode().equals(chargeConfig.getPayType())
                 || EnumPayType.AlipaySDK.getCode().equals(chargeConfig.getPayType())) {
             JSONObject jsonObject = JSONObject.parseObject(chargeConfig.getConfigJson());
             ChargeAlipayModel alipayModel = JSON.toJavaObject(jsonObject, ChargeAlipayModel.class);
-            return UtilString.checkObjFieldIsNull(alipayModel);
+            return alipayModel==null;
 
 
         } else {
@@ -252,7 +250,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
      *
      * @param name
      * @param id
-     * @return
+     * @return ture可用  false不可用
      */
     @Override
     public boolean checkName(String name, Integer id) {
@@ -264,11 +262,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
         criteria.andNameEqualTo(name);
 
         List list = chargeConfigMapper.selectByExample(example);
-        if (list != null && list.size() > 0) {
-            return true;
-        } else {
-            return false;
-        }
+       return  list.isEmpty();
     }
 
     /**
@@ -315,9 +309,10 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
             }
             return 1;
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("刷新收款账号出错{}",e.getMessage());
+            return 0;
         }
-        return 0;
+
     }
 
 

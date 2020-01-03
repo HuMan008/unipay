@@ -4,27 +4,25 @@ import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.unipay.model.ChargeAccount;
 import cn.gotoil.unipay.model.ChargeAlipayModel;
 import cn.gotoil.unipay.model.entity.Order;
+import cn.gotoil.unipay.model.entity.Refund;
 import cn.gotoil.unipay.model.enums.EnumOrderStatus;
-import cn.gotoil.unipay.utils.DateUtil;
+import cn.gotoil.unipay.model.enums.EnumRefundStatus;
+import cn.gotoil.unipay.model.mapper.RefundMapper;
 import cn.gotoil.unipay.utils.UtilMoney;
+import cn.gotoil.unipay.utils.UtilString;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
-import cn.gotoil.unipay.web.message.response.OrderRefundQueryResponse;
+import cn.gotoil.unipay.web.message.response.OrderRefundResponse;
+import cn.gotoil.unipay.web.message.response.RefundQueryResponse;
 import cn.gotoil.unipay.web.services.AlipayService;
 import cn.gotoil.unipay.web.services.OrderService;
 import com.alibaba.fastjson.JSONObject;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
-import com.alipay.api.domain.AlipayTradeAppPayModel;
-import com.alipay.api.domain.AlipayTradeQueryModel;
-import com.alipay.api.domain.AlipayTradeWapPayModel;
-import com.alipay.api.request.AlipayTradeAppPayRequest;
-import com.alipay.api.request.AlipayTradeQueryRequest;
-import com.alipay.api.request.AlipayTradeWapPayRequest;
-import com.alipay.api.response.AlipayTradeAppPayResponse;
-import com.alipay.api.response.AlipayTradeQueryResponse;
-import com.alipay.api.response.AlipayTradeWapPayResponse;
+import com.alipay.api.domain.*;
+import com.alipay.api.request.*;
+import com.alipay.api.response.*;
 import com.google.common.base.Charsets;
 import com.google.common.net.UrlEscapers;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +32,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
@@ -53,16 +52,9 @@ public class AlipayServiceImpl implements AlipayService {
     @Autowired
     OrderService orderService;
 
-    /**
-     * 退款状态查询 远程查
-     *
-     * @param orderId
-     * @param chargeConfig
-     */
-    @Override
-    public OrderRefundQueryResponse orderRefundQuery(String orderId, ChargeAccount chargeConfig) {
-        return null;
-    }
+    @Resource
+    RefundMapper refundMapper;
+
 
     /**
      * 页面支付
@@ -145,7 +137,7 @@ public class AlipayServiceImpl implements AlipayService {
             alipayTradeAppPayRequest.setReturnUrl(domain + "/payment/alipay/return/" + order.getId());
             AlipayTradeAppPayResponse alipayTradeAppPayResponse = alipayClient.sdkExecute(alipayTradeAppPayRequest);
             if (alipayTradeAppPayResponse.isSuccess()) {
-                logger.debug("支付宝创建订单【{}】成功");
+                logger.debug("支付宝创建订单【{}】成功", order.getId());
                 return alipayTradeAppPayResponse.getBody();
             } else {
                 return "";
@@ -204,10 +196,10 @@ public class AlipayServiceImpl implements AlipayService {
 
             } else if ("40004".equals(alipayTradeQueryResponse.getCode()) && "ACQ.TRADE_NOT_EXIST".equals(alipayTradeQueryResponse.getSubCode())) {
                 // 在用户输入正确的支付密码前，订单都是不存在 那么 就应该判断是否真过期
-                Date flagDate  = DateUtils.addMinutes(order.getCreatedAt(),order.getExpiredTimeMinute()+30);
-                if(flagDate.getTime()<System.currentTimeMillis()){
+                Date flagDate = DateUtils.addMinutes(order.getCreatedAt(), order.getExpiredTimeMinute() + 30);
+                if (flagDate.getTime() < System.currentTimeMillis()) {
                     return OrderQueryResponse.builder().unionOrderID(order.getId()).appOrderNO(order.getAppOrderNo()).paymentId(alipayTradeQueryResponse.getOutTradeNo()).orderFee(0).payFee(0).thirdStatus(alipayTradeQueryResponse.getTradeStatus()).thirdCode(alipayTradeQueryResponse.getCode()).status(EnumOrderStatus.PayFailed.getCode()).thirdMsg(alipayTradeQueryResponse.getMsg()).build();
-                }else{
+                } else {
                     return OrderQueryResponse.builder().unionOrderID(order.getId()).appOrderNO(order.getAppOrderNo()).paymentId(alipayTradeQueryResponse.getOutTradeNo()).orderFee(0).payFee(0).thirdStatus(alipayTradeQueryResponse.getTradeStatus()).thirdCode(alipayTradeQueryResponse.getCode()).status(EnumOrderStatus.Created.getCode()).thirdMsg(alipayTradeQueryResponse.getMsg()).build();
                 }
             } else {
@@ -222,5 +214,90 @@ public class AlipayServiceImpl implements AlipayService {
         }
     }
 
+    /**
+     * 退款申请
+     *
+     * @param chargeConfig
+     * @param refund
+     * @return
+     */
+    @Override
+    public OrderRefundResponse orderRefund(ChargeAccount chargeConfig, Refund refund) {
+        ChargeAlipayModel chargeModel = (ChargeAlipayModel) chargeConfig;
+        AlipayClient client = new DefaultAlipayClient(GATEWAYURL, chargeModel.getAppID(), chargeModel.getPriKey(),
+                FORMAT, Charsets.UTF_8.name(), chargeModel.getPubKey(), SIGNTYPE);
+        AlipayTradeRefundRequest request = new AlipayTradeRefundRequest();
+        AlipayTradeRefundModel model = new AlipayTradeRefundModel();
+        model.setOutTradeNo(refund.getOrderId());
+        model.setRefundAmount(UtilMoney.fenToYuan(refund.getApplyFee(), false));
+        model.setRefundReason(refund.getDescp());
+        model.setOutRequestNo(refund.getRefundOrderId());
+        request.setBizModel(model);
+        try {
+            AlipayTradeRefundResponse response = client.execute(request);
+            if (response.isSuccess()) {
+                refund.setProcessResult(EnumRefundStatus.WaitSure.getCode());
+                refund.setStatusUpdateDatetime(new Date());
+                refund.setUpdateAt(refund.getStatusUpdateDatetime());
+                OrderRefundResponse orderRefundResponse = new OrderRefundResponse();
+                orderRefundResponse.setRefundStatus(EnumRefundStatus.Refunding.getCode());
+                orderRefundResponse.setReslutQueryId(refund.getRefundOrderId());
+                orderRefundResponse.setMsg("退款申请成功，请调用查询退款获取退款结果");
+                return orderRefundResponse;
+            } else {
+                refund.setFailMsg(UtilString.getLongString(response.getMsg() + response.getSubMsg(), 199));
+                OrderRefundResponse orderRefundResponse = new OrderRefundResponse();
+                orderRefundResponse.setRefundStatus(EnumRefundStatus.Refunding.getCode());
+                orderRefundResponse.setReslutQueryId(refund.getRefundOrderId());
+                refund.setProcessResult(EnumRefundStatus.Failed.getCode());
+                orderRefundResponse.setMsg("退款申请失败:" + response.getMsg() + response.getSubMsg());
+                return orderRefundResponse;
+            }
+        } catch (AlipayApiException e) {
+            throw new BillException(55, e.getErrCode());
+        } finally {
+            refundMapper.updateByPrimaryKey(refund);
+        }
+    }
 
+    /**
+     * 退款状态查询
+     *
+     * @param chargeConfig
+     * @param refund
+     * @return
+     */
+    @Override
+    public RefundQueryResponse orderRefundQuery(ChargeAccount chargeConfig, Refund refund) {
+        ChargeAlipayModel chargeModel = (ChargeAlipayModel) chargeConfig;
+        AlipayClient client = new DefaultAlipayClient(GATEWAYURL, chargeModel.getAppID(), chargeModel.getPriKey(),
+                FORMAT, Charsets.UTF_8.name(), chargeModel.getPubKey(), SIGNTYPE);
+        AlipayTradeFastpayRefundQueryRequest request = new AlipayTradeFastpayRefundQueryRequest();
+        AlipayTradeFastpayRefundQueryModel model = new AlipayTradeFastpayRefundQueryModel();
+        model.setOutTradeNo(refund.getOrderId());
+        model.setOutRequestNo(refund.getRefundOrderId());
+        request.setBizModel(model);
+        try {
+            AlipayTradeFastpayRefundQueryResponse response = client.execute(request);
+            if (response.isSuccess()) {
+                RefundQueryResponse refundQueryResponse =
+                        RefundQueryResponse.builder().orderRefundId(refund.getRefundOrderId()).orderId(refund.getOrderId()).appOrderNo(refund.getAppOrderNo()).appOrderRefundNo(refund.getAppOrderRefundNo()).applyFee(refund.getApplyFee()).thirdMsg(response.getMsg() + response.getSubMsg()).thirdCode(response.getCode() + response.getSubCode()).build();
+                //如果该接口返回了查询数据，且refund_status为空或为REFUND_SUCCESS，则代表退款成功
+                if (model.getOutTradeNo().equals(response.getOutTradeNo()) && model.getOutRequestNo().equals(response.getOutRequestNo()) && (StringUtils.isEmpty(response.getRefundStatus()) || "REFUND_SUCCESS".equalsIgnoreCase(response.getRefundStatus()))) {
+                    refundQueryResponse.setPassFee(UtilMoney.yuanToFen(response.getRefundAmount()));
+                    refundQueryResponse.setRefundStatus(EnumRefundStatus.Success.getCode());
+                    return refundQueryResponse;
+                } else {
+                    refundQueryResponse.setPassFee(0);
+                    refundQueryResponse.setRefundStatus(EnumRefundStatus.WaitSure.getCode());
+                }
+                return refundQueryResponse;
+            } else {
+                throw new BillException(5003,
+                        response.getSubCode() + response.getErrorCode() + response.getMsg() + response.getSubMsg());
+            }
+        } catch (AlipayApiException e) {
+            throw new BillException(55, e.getErrCode());
+        }
+    }
 }

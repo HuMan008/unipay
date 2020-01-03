@@ -164,7 +164,11 @@ public class WebPayContoller {
                     ChargeAlipayModel chargeAlipayModel =
                             JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
                                     ChargeAlipayModel.class);
-                    orderService.saveOrder(order);
+                    int x =  orderService.saveOrder(order);
+                    if(x!=1){
+                        return new ModelAndView(UtilString.makeErrorPage(UnipayError.PageRefreshError,
+                                payRequest.getBackUrl()));
+                    }
                     return alipayService.pagePay(payRequest, order, chargeAlipayModel, httpServletRequest,
                             httpServletResponse);
                 default:

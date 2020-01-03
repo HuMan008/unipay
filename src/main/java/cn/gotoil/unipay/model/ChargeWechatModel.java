@@ -32,4 +32,9 @@ public class ChargeWechatModel extends ChargeAccount {
      */
     String apiKey;
 
+    /**
+     * 证书路径
+     */
+    String certPath;
+
 }

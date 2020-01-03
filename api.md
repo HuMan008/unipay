@@ -108,6 +108,100 @@ sign的内容为md5(xxxx+appSecret(统一分配))
 
 参见<a href ="#asyncParam">异步通知说明</a>
 
+# 退款申请
+### 说明
+```
+	1、同一笔订单允许多次退款。但是只允许一笔处理中的订单。
+	2、退款累计金额不超过用户实际支付金额（除优惠券等...）。
+	3、需要退款的订单状态必须为已经支付的订单。
+```
+
+## 请求路径
+`/api/v1/refund`
+## 请求参数
+
+| 参数名           | 说明       | 选项       | 类型 | 备注                     |
+| ---------------- | ---------- | ---------- | ---- | ------------------------ |
+| appOrderNo       | 应用订单号 | String(24) | Y    | 创建订单时候提交的订单号 |
+| appOrderRefundNo | 退款订单号 | String(30) | N    | 本地退款订单编号需唯一   |
+| fee              | 退款金额   | int        | Y    | 单位分                   |
+| remark           | 退款备注   | String(50) | N    |                          |
+
+## 响应
+```json
+{
+    "status": 0,
+    "message": null,
+    "data": {
+        "reslutQueryId": "r_201912231459358781672_0",
+        "refundStatus": 1, # <a href="#refundStatus"> 退款状态码 </a> 
+        "msg": "退款申请成功，请调用查询退款获取退款结果"
+    }
+}
+```
+# 支付结果查询
+## 支付结果状态码
+ 详见<a href = "#payStatus" ></a>
+ 
+ ## 请求路径
+  `POST`   `/api/v1/query/appOrderNo`"
+` appOrderNo 为创建订单的时候传入的订单号`
+
+##请求参数
+无
+## 响应
+```json
+{
+    "status": 0,
+    "message": null,
+    "data": {
+          "unionOrderID":"统一订单号",
+          "appOrderNO" :"应用订单号",
+          "paymentId": "支付方订单号",
+           "paymentUid": "支付方用户号",
+          "payDateTime": 14333333212 ,// 支付成功才有
+          "status": 0 , //支付状态 
+          "orderFee": 1, //订单金额
+          "payFee": 1 , //用户支付金额
+          "arrFee": 1  //公司到账金额
+    }
+}
+```
+# 退款查询
+## 退款状态码
+ 详见 <a href="#refundStatus"> 退款状态码 </a> 
+
+## 请求路径 
+`POST` `/api/v1/refundQuery/resultQueryId`"
+`resultQueryId 为退款申请时返回的`
+
+## 请求参数
+无
+## 响应
+```json
+{
+    "status": 0,
+    "message": null,
+    "data": {
+        "refundOrderId": "r_201912231459358781672_0",
+        "orderId": "201912231459358781672",
+        "appOrderNo": "32478896825827328",
+        "appOrderRefundNo": "32478896825827328",
+        "applyFee": 1,
+        "applyReason": "退款原",
+        "passFee": 1, //退款状态为成功的时候返回 其他状态为0
+        "applyTime": "2019-12-22 14:22:43",
+        "status": 0, //参见退款状态
+        "fialMsg": "" //失败的时候 的原因
+    }
+}
+
+```
+
+
+
+
+
 # 全局定义
 
 ## 支付方式说明
@@ -133,3 +227,11 @@ sign的内容为md5(xxxx+appSecret(统一分配))
 | 1      | 待支付   |
 | 2      | 支付失败 |
 
+##  退款状态
+<a name="refundStatus"></a>
+
+| 状态码  | 说明 |
+| ------ | -------- |
+| 0 | 成功 |
+| 1 | 处理中 |
+| 2 | 失败 |

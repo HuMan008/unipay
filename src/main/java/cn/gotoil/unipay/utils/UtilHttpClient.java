@@ -20,6 +20,7 @@ import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -29,14 +30,17 @@ import org.apache.http.message.BasicHeaderElementIterator;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
-import java.io.IOException;
-import java.io.InterruptedIOException;
+import java.io.*;
 import java.net.UnknownHostException;
+import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -349,5 +353,51 @@ public class UtilHttpClient {
         return reStr;
     }
 
+
+
+    /**
+     * 用https的方式想某个地址发送post请求
+     * @param postUrl post地址 必须https开头
+     * @param bodyStr  body 字符串
+     * @param certPath 证书路径
+     * @param key 证书秘钥
+     * @return
+     * @throws Exception
+     */
+    public static String postConnWithCert(String postUrl,String bodyStr,String certPath,String key) throws Exception{
+
+        assert  postUrl.toUpperCase().startsWith("HTTPS");
+        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        // 读取本机存放的PKCS12证书文件
+        FileInputStream instream = new FileInputStream(new File(certPath));
+        try {
+            // 指定PKCS12的密码(商户ID)
+            keyStore.load(instream, key.toCharArray());
+        } finally {
+            instream.close();
+        }
+        SSLContext sslcontext = SSLContexts.custom().loadKeyMaterial(keyStore, key.toCharArray()).build();
+        SSLConnectionSocketFactory sslsf =
+                new SSLConnectionSocketFactory(sslcontext,new DefaultHostnameVerifier());
+        CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
+        try {
+            // 设置响应头信息
+            HttpPost httpost = new HttpPost(postUrl);
+            httpost.setEntity(new StringEntity(bodyStr, "UTF-8"));
+            CloseableHttpResponse response = httpclient.execute(httpost);
+            try {
+                HttpEntity entity = response.getEntity();
+
+                String jsonStr = EntityUtils.toString(response.getEntity(), "UTF-8");
+                EntityUtils.consume(entity);
+                return jsonStr;
+            } catch (Exception e) {
+                response.close();
+            }
+        }catch (Exception e){
+            httpclient.close();
+        }
+        return "";
+    }
 
 }

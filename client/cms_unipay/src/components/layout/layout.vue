@@ -26,7 +26,8 @@
             >
               <a-form id="modifyPwdForm" :form="modifyPwdForm" @submit="uppwd">
                 <a-form-item :label-col="{span:5}" :wrapper-col="{span:16}" label="旧密码">
-                  <a-input maxlength="30"
+                  <a-input
+                    maxlength="30"
                     placeholder="请输入当前登录用户密码"
                     v-decorator="[
           'oldPwd',
@@ -43,7 +44,8 @@
                   />
                 </a-form-item>
                 <a-form-item :label-col="{ span: 5 }" :wrapper-col="{ span: 16 }" label="请密码">
-                  <a-input maxlength="30"
+                  <a-input
+                    maxlength="30"
                     placeholder="请输入新密码"
                     v-decorator="[
           'newPwd',
@@ -63,7 +65,8 @@
                   />
                 </a-form-item>
                 <a-form-item :label-col="{ span: 5 }" :wrapper-col="{ span:16 }" label="确认新密码">
-                  <a-input maxlength="30"
+                  <a-input
+                    maxlength="30"
                     placeholder="请再输入一次新密码"
                     v-decorator="[
           'confirm',
@@ -128,6 +131,18 @@
               @click="routerChange('PayingOrder')"
               v-hasRole="['Admin','Order']"
             >支付中订单</a-menu-item>
+          </a-sub-menu>
+
+          <a-sub-menu key="sub3" class="mySubMenu">
+            <span slot="title">
+              <a-icon type="user" />
+              <span>退款管理</span>
+            </span>
+            <a-menu-item
+              key="21"
+              @click="routerChange('Refund')"
+              v-hasRole="['Admin','Order','Finance']"
+            >退款列表</a-menu-item>
           </a-sub-menu>
         </a-menu>
       </a-layout-sider>

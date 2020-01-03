@@ -73,15 +73,16 @@ public class AlipayNotifyController {
                             @PathVariable String orderId) throws UnsupportedEncodingException, AlipayApiException {
         Map<String, String> params = UtilRequest.request2Map(request);
         NotifyAccept notifyAccept = NotifyAcceptService.createDefault(request, EnumOrderMessageType.PAY, orderId);
-        log.debug("支付宝异步通知【{}】\n",orderId, JSONObject.toJSONString(params));
+        log.debug("支付宝异步通知【{}】\n", orderId, JSONObject.toJSONString(params));
         try {
             //判断是否正在处理这个订单
             if (redisLockHelper.hasLock(RedisLockHelper.Key.Notify + orderId)) {
                 log.error("支付宝订单【{}】异步通知处理冲突，忽略本次通知", orderId);
                 notifyAccept.setResponstr("error:处理中");
-                httpServletResponse.getOutputStream().print("error"); return;
+                httpServletResponse.getOutputStream().print("error");
+                return;
             }
-            redisLockHelper.addLock(RedisLockHelper.Key.Notify + orderId, false, 0,null);
+            redisLockHelper.addLock(RedisLockHelper.Key.Notify + orderId, false, 0, null);
             //订单查询
             Order order = orderService.loadByOrderID(orderId);
             if (order == null) {
@@ -132,23 +133,10 @@ public class AlipayNotifyController {
                             notifyAccept.setResponstr("error:更新订单状态失败");
                             httpServletResponse.getOutputStream().print("error");
                         }
+                        log.info("支付宝订单【{}】异步通知处理，订单状态更新{}", orderId, x == 1 ? "成功" : "失败");
                         OrderNotifyBean orderNotifyBean =
-                                OrderNotifyBean.builder().unionOrderID(order.getId())
-                                        .method(EnumOrderMessageType.PAY.name())
-                                        .appId(order.getAppId())
-                                        .paymentId(newOrder.getPaymentId())
-                                        .appOrderNO(order.getAppOrderNo())
-                                        .status(newOrder.getStatus())
-                                        .orderFee(order.getFee())
-                                        .refundFee(0)
-                                        .totalRefundFee(0)
-                                        .payFee(newOrder.getPayFee())
-                                        .arrFee(newOrder.getArrFee())
-                                        .asyncUrl(order.getAsyncUrl())
-                                        .extraParam(order.getExtraParam())
-                                        .payDate(newOrder.getOrderPayDatetime()).
-                                        timeStamp(Instant.now().getEpochSecond())
-                                        .build();
+                                OrderNotifyBean.builder().unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appId(order.getAppId()).paymentId(newOrder.getPaymentId()).appOrderNO(order.getAppOrderNo()).status(newOrder.getStatus()).orderFee(order.getFee()).refundFee(0).totalRefundFee(0).payFee(newOrder.getPayFee()).arrFee(newOrder.getArrFee()).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(newOrder.getOrderPayDatetime()).
+                                timeStamp(Instant.now().getEpochSecond()).build();
                         String appSecret = appService.key(order.getAppId());
                         String signStr = UtilMySign.sign(orderNotifyBean, appSecret);
                         orderNotifyBean.setSign(signStr);
@@ -156,18 +144,18 @@ public class AlipayNotifyController {
                                 ConstsRabbitMQ.ORDERROUTINGKEY, JSON.toJSONString(orderNotifyBean));
                         notifyAccept.setResponstr("success:发通知");
                         httpServletResponse.getOutputStream().print("success");
+                        log.info("支付宝订单【{}】异步通知完成并返回SUCCESS,消息加入队列", orderId);
                         return;
                     } else if ("TRADE_CLOSED".equals(params.get("trade_status"))) {
-                        Order newOrder = new Order();
-                        newOrder.setId(order.getId());
-                        newOrder.setPayFee(0);
-                        newOrder.setStatus(EnumOrderStatus.PaySuccess.getCode());
-                        orderService.updateOrder(order, newOrder);
+                        // 未付款交易超时关闭，或支付完成后全额退款
+                        //订单关闭通知
                         log.info("支付宝订单【{}】异步通知 订单关闭{}", orderId, params);
+                        // 订单关闭通知不处理订单状态
                         notifyAccept.setResponstr("success:订单已关闭");
                         httpServletResponse.getOutputStream().print("success");
                         return;
                     } else {
+                        // TRADE_FINISHED                   交易结束，不可退款
                         log.error("支付宝订单【{}】异步通知状态不是支付成功{}", orderId, params);
                         notifyAccept.setResponstr("success:订单状态不是成功状态");
                         httpServletResponse.getOutputStream().print("error");
@@ -182,7 +170,8 @@ public class AlipayNotifyController {
             } else {
                 log.error("支付宝订单【{}】异步通知签名验验证失败", orderId);
                 notifyAccept.setResponstr("error:签名验验证失败");
-                httpServletResponse.getOutputStream().print("error"); return;
+                httpServletResponse.getOutputStream().print("error");
+                return;
             }
 
         } catch (Exception e) {

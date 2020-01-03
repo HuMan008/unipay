@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.gotoil.unipay.model.mapper.ext.ExtRefundQueryMapper">
+
+    <sql id="queryreund_sql_where">
+        <if test=" status != null and status != '' ">
+            and o.process_result = #{status}
+        </if>
+        <!--<if test=" appId != null and appId != '' ">-->
+            <!--and o.app_id = #{appId}-->
+        <!--</if>-->
+        <if test=" queryId != null and queryId != '' ">
+            and (o.refund_order_id = #{queryId} or o.order_id = #{queryId} or o.app_order_no = #{queryId} or
+            o.app_order_refund_no=#{queryId})
+        </if>
+        <if test=" reason != null and reason != '' ">
+        and o.descp like concat('%',#{reason,jdbcType=VARCHAR},'%'
+        </if>
+        <if test="beginTime != null and beginTime != ''">
+            and DATE_FORMAT(o.apply_datetime,'%Y-%m-%d %H:%i:%s') >= #{beginTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            and DATE_FORMAT(o.apply_datetime,'%Y-%m-%d %H:%i:%s') <![CDATA[ <= ]]> #{endTime}
+        </if>
+    </sql>
+
+    <select id="refundList" parameterType="map" resultType="cn.gotoil.unipay.model.entity.Refund">
+        SELECT
+        o.*
+        FROM
+          dp_refund o
+        <where>
+          <include refid="queryreund_sql_where" />
+        </where>
+        ORDER BY o.update_at desc limit #{offset}, #{pageSize}
+    </select>
+
+    <select id="queryRefundCounts" parameterType="map" resultType="int">
+        SELECT
+          count(o.refund_order_id)
+        FROM
+        dp_refund o
+        <where>
+            <include refid="queryreund_sql_where" />
+        </where>
+    </select>
+
+
+
+
+</mapper>
