@@ -160,14 +160,17 @@ public class AlipayNotifyController {
                         log.info("支付宝订单【{}】异步通知完成并返回SUCCESS,消息加入队列", orderId);
                         return;
                     } else if ("TRADE_CLOSED".equals(params.get("trade_status"))) {
-                        Order newOrder = new Order();
+                        //订单关闭通知
+                        log.info("支付宝订单【{}】异步通知 订单关闭{}", orderId, params);
+                       /*
+                       订单关闭通知不处理订单状态
+                       Order newOrder = new Order();
                         newOrder.setId(order.getId());
                         newOrder.setPayFee(0);
                         newOrder.setStatus(EnumOrderStatus.PaySuccess.getCode());
                         orderService.updateOrder(order, newOrder);
-                        log.info("支付宝订单【{}】异步通知 订单关闭{}", orderId, params);
                         notifyAccept.setResponstr("success:订单已关闭");
-                        httpServletResponse.getOutputStream().print("success");
+                        httpServletResponse.getOutputStream().print("success");*/
                         return;
                     } else {
                         log.error("支付宝订单【{}】异步通知状态不是支付成功{}", orderId, params);
