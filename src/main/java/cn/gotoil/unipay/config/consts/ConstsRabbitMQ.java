@@ -12,6 +12,12 @@ import java.util.Map;
 public class ConstsRabbitMQ {
 
     public static final String ORDERROUTINGKEY = "dead";
+
     public static String ORDERFIRSTEXCHANGENAME = "";
     public static Map<String, Integer> ORDERQUEUEINDEX = new HashMap();
+
+    public static String REFUNDORDERFIRSTEXCHANGENAME = "";
+    public static Map<String, Integer> REFUNDORDERQUEUEINDEX = new HashMap();
+
+
 }

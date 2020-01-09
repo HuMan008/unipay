@@ -17,3 +17,16 @@ ordermessageconfig:
   - queueName: "unipay.order.queue.ttl4"
     exchangeName: "unipay.order.exchange.tt4"
     ttl: 72000000 # 2小时 72000000
+  refundMessageQueues:
+  - queueName: "unipay.order.refundqueue.ttl0"
+    exchangeName: "unipay.order.refundexchange.ttl0"
+    ttl: 0 # 延迟时间 单位毫秒 1000 =1秒
+  - queueName: "unipay.order.refundqueue.ttl5m"
+    exchangeName: "unipay.order.refundexchange.ttl5m"
+    ttl: 300000 # 延迟时间 300s 5分钟 300000
+  - queueName: "unipay.order.refundqueue.ttl30m"
+    exchangeName: "unipay.order.refundexchange.ttl30m"
+    ttl: 1800000 # 延迟时间30分钟 1800000
+  - queueName: "unipay.order.refundqueue.ttl2h"
+    exchangeName: "unipay.order.refundexchange.ttl2h"
+    ttl: 72000000 # 延迟时间2小时 72000000

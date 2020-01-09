@@ -1,9 +1,12 @@
 package cn.gotoil.unipay.web.task;
 
+import cn.gotoil.unipay.futrue.RefundFutrue;
 import cn.gotoil.unipay.model.entity.Refund;
 import cn.gotoil.unipay.model.enums.EnumRefundStatus;
 import cn.gotoil.unipay.web.helper.RedisLockHelper;
 import cn.gotoil.unipay.web.message.response.RefundQueryResponse;
+import cn.gotoil.unipay.web.services.AppService;
+import cn.gotoil.unipay.web.services.OrderService;
 import cn.gotoil.unipay.web.services.RefundService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -35,10 +38,13 @@ public class RefundTask {
 
     @Autowired
     RabbitTemplate rabbitTemplate;
+    @Autowired
+    OrderService orderService;
+    @Autowired
+    AppService appService;
 
-
-    @Scheduled(initialDelay = 1200, fixedDelay = 1000 * 60 * 5)
-    public void expiredOrder() {
+    @Scheduled(initialDelay = 1200, fixedDelay = 1000 * 60 * 3)
+    public void fetchRefundOrder() {
 
         if (redisLockHelper.hasLock(RefundStatusSync)) {
             return;
@@ -60,6 +66,9 @@ public class RefundTask {
                     if (x != 1) {
                         log.error("【{}】退款状态更新出错", refund.getRefundOrderId());
                     }
+                    RefundFutrue refundFutrue = new RefundFutrue(refund.getRefundOrderId(),refundService,orderService
+                            ,appService,rabbitTemplate);
+                    refundFutrue.afterFetchRefundResult();
                     log.info("订单退款状态更新完成【{}】", refund.getRefundOrderId());
                 } else{
                     log.error("获取退款订单【{}】,远程响应{}",refund.getRefundOrderId(),refundQueryResponse.toString());

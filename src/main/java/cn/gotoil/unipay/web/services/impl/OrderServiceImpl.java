@@ -301,7 +301,7 @@ public class OrderServiceImpl implements OrderService {
                 if (x == 1) {
                     log.info("订单【{}】状态更新为支付成功并发送通知", order.getId());
                     OrderNotifyBean orderNotifyBean =
-                            OrderNotifyBean.builder().unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appOrderNO(order.getAppOrderNo()).status(newOrder.getStatus()).orderFee(order.getFee()).refundFee(0).payFee(orderQueryResponse.getPayFee()).arrFee(orderQueryResponse.getArrFee()).totalRefundFee(0).paymentId(newOrder.getPaymentId()).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(newOrder.getOrderPayDatetime()).
+                            OrderNotifyBean.builder().unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appOrderNO(order.getAppOrderNo()).status(newOrder.getStatus()).orderFee(order.getFee()).payFee(orderQueryResponse.getPayFee()).arrFee(orderQueryResponse.getArrFee()).paymentId(newOrder.getPaymentId()).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(newOrder.getOrderPayDatetime()).
                             timeStamp(Instant.now().getEpochSecond()).build();
                     String appSecret = appService.key(order.getAppId());
                     String signStr = UtilMySign.sign(orderNotifyBean, appSecret);
@@ -373,7 +373,7 @@ public class OrderServiceImpl implements OrderService {
             return modelAndView;
         } else {
             OrderNotifyBean orderNotifyBean =
-                    OrderNotifyBean.builder().appId(order.getAppId()).unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appOrderNO(order.getAppOrderNo()).paymentId(order.getPaymentId()).status(order.getStatus()).orderFee(order.getFee()).payFee(order.getPayFee()).arrFee(order.getArrFee()).refundFee(0).totalRefundFee(0).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(order.getOrderPayDatetime()).timeStamp(Instant.now().getEpochSecond()).build();
+                    OrderNotifyBean.builder().appId(order.getAppId()).unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appOrderNO(order.getAppOrderNo()).paymentId(order.getPaymentId()).status(order.getStatus()).orderFee(order.getFee()).payFee(order.getPayFee()).arrFee(order.getArrFee()).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(order.getOrderPayDatetime()).timeStamp(Instant.now().getEpochSecond()).build();
             String param = UtilBase64.encode(JSONObject.toJSONString(orderNotifyBean).getBytes()).replaceAll("\\+",
                     "GT680");
             String sign = Hash.md5(param + appService.key(order.getAppId()));
@@ -396,7 +396,7 @@ public class OrderServiceImpl implements OrderService {
             throw new BillException(UnipayError.OrderStatusIsNotPaySuccess);
         }
         OrderNotifyBean orderNotifyBean =
-                OrderNotifyBean.builder().unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appOrderNO(order.getAppOrderNo()).status(order.getStatus()).orderFee(order.getFee()).refundFee(0).payFee(order.getPayFee()).arrFee(order.getArrFee()).totalRefundFee(0).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(order.getOrderPayDatetime()).timeStamp(Instant.now().getEpochSecond()).paymentId(order.getPaymentId()).sendType((byte) 1).build();
+                OrderNotifyBean.builder().unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appOrderNO(order.getAppOrderNo()).status(order.getStatus()).orderFee(order.getFee()).payFee(order.getPayFee()).arrFee(order.getArrFee()).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(order.getOrderPayDatetime()).timeStamp(Instant.now().getEpochSecond()).paymentId(order.getPaymentId()).sendType((byte) 1).build();
         String appSecret = appService.key(order.getAppId());
         String signStr = UtilMySign.sign(orderNotifyBean, appSecret);
         orderNotifyBean.setSign(signStr);

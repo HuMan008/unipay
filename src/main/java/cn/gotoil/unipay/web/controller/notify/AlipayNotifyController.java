@@ -135,7 +135,7 @@ public class AlipayNotifyController {
                         }
                         log.info("支付宝订单【{}】异步通知处理，订单状态更新{}", orderId, x == 1 ? "成功" : "失败");
                         OrderNotifyBean orderNotifyBean =
-                                OrderNotifyBean.builder().unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appId(order.getAppId()).paymentId(newOrder.getPaymentId()).appOrderNO(order.getAppOrderNo()).status(newOrder.getStatus()).orderFee(order.getFee()).refundFee(0).totalRefundFee(0).payFee(newOrder.getPayFee()).arrFee(newOrder.getArrFee()).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(newOrder.getOrderPayDatetime()).
+                                OrderNotifyBean.builder().unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appId(order.getAppId()).paymentId(newOrder.getPaymentId()).appOrderNO(order.getAppOrderNo()).status(newOrder.getStatus()).orderFee(order.getFee()).payFee(newOrder.getPayFee()).arrFee(newOrder.getArrFee()).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(newOrder.getOrderPayDatetime()).
                                 timeStamp(Instant.now().getEpochSecond()).build();
                         String appSecret = appService.key(order.getAppId());
                         String signStr = UtilMySign.sign(orderNotifyBean, appSecret);

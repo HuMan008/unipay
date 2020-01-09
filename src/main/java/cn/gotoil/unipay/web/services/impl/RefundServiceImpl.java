@@ -271,4 +271,12 @@ public class RefundServiceImpl implements RefundService {
         return refundMapper.updateByExampleSelective(newRefund, refundExample);
     }
 
+
+    /**
+     * 根据退款订单id找退款对象
+     */
+    @Override
+    public Refund loadById(String refundId){
+        return refundMapper.selectByPrimaryKey(refundId);
+    }
 }

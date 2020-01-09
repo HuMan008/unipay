@@ -169,8 +169,6 @@ public class WechatNotifyController {
                                             .orderFee(order.getFee())
                                             .paymentId(newOrder.getPaymentId())
                                             .payFee(newOrder.getPayFee())
-                                            .refundFee(0)
-                                            .totalRefundFee(0)
                                             .asyncUrl(order.getAsyncUrl())
                                             .extraParam(order.getExtraParam())
                                             .payDate(newOrder.getOrderPayDatetime())
