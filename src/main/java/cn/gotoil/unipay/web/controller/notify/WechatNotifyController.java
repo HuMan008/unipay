@@ -1,18 +1,20 @@
 package cn.gotoil.unipay.web.controller.notify;
 
 import cn.gotoil.bill.tools.date.DateUtils;
+import cn.gotoil.bill.tools.encoder.Hash;
 import cn.gotoil.bill.web.annotation.NeedLogin;
 import cn.gotoil.unipay.config.consts.ConstsRabbitMQ;
+import cn.gotoil.unipay.futrue.RefundFutrue;
 import cn.gotoil.unipay.model.ChargeWechatModel;
 import cn.gotoil.unipay.model.OrderNotifyBean;
 import cn.gotoil.unipay.model.entity.ChargeConfig;
 import cn.gotoil.unipay.model.entity.NotifyAccept;
 import cn.gotoil.unipay.model.entity.Order;
+import cn.gotoil.unipay.model.entity.Refund;
 import cn.gotoil.unipay.model.enums.EnumOrderMessageType;
 import cn.gotoil.unipay.model.enums.EnumOrderStatus;
-import cn.gotoil.unipay.utils.UtilMySign;
-import cn.gotoil.unipay.utils.UtilString;
-import cn.gotoil.unipay.utils.UtilWechat;
+import cn.gotoil.unipay.model.enums.EnumRefundStatus;
+import cn.gotoil.unipay.utils.*;
 import cn.gotoil.unipay.web.helper.RedisLockHelper;
 import cn.gotoil.unipay.web.services.*;
 import com.alibaba.fastjson.JSON;
@@ -22,6 +24,7 @@ import com.google.common.io.CharStreams;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.jcajce.provider.digest.MD5;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -31,7 +34,9 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -59,6 +64,9 @@ public class WechatNotifyController {
     RabbitTemplate rabbitTemplate;
     @Autowired
     NotifyAcceptService notifyAcceptService;
+
+    @Autowired
+    RefundService refundService;
 
     @RequestMapping(value = {"{orderId:^\\d{21}$}"})
     @NeedLogin(value = false)
@@ -222,6 +230,160 @@ public class WechatNotifyController {
             notifyAcceptService.add(notifyAccept);
         }
     }
+
+
+    /**
+     *
+     * @param httpServletRequest
+     * @param httpServletResponse
+     * @param orderId 统一支付订单号
+     * @param refundOrderId 统一退款订单号
+     * @throws Exception
+     */
+    @RequestMapping(value = {"refund/{orderId:^\\d{21}$}/{refundOrderId}"})
+    @NeedLogin(value = false)
+    public void asyncRefundNotify(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
+                            @PathVariable String orderId,
+                            @PathVariable String refundOrderId) throws Exception {
+
+        httpServletResponse.setCharacterEncoding(Charsets.ISO_8859_1.name());
+        String requestBodyXml = "";//响应xml
+        Map<String, String> mm = new HashMap<>();
+        NotifyAccept notifyAccept = NotifyAcceptService.createDefault(httpServletRequest, EnumOrderMessageType.REFUND,
+                orderId);
+        try {
+            //判断是否正在处理这个订单
+            if (redisLockHelper.hasLock(RedisLockHelper.Key.RefundNotify + refundOrderId)) {
+                mm.put(WechatService.RETURN_CODE, "FAIL");
+                mm.put("return_msg", "OrderProcessing");
+                notifyAccept.setResponstr("FAIL:退款通知处理中");
+                httpServletResponse.getOutputStream().print( UtilWechat.mapToXml(mm));
+                return;
+            }
+            redisLockHelper.addLock(RedisLockHelper.Key.RefundNotify + refundOrderId, false, 0, null);
+            requestBodyXml = CharStreams.toString(httpServletRequest.getReader());
+            notifyAccept.setParams(requestBodyXml);
+            //响应XML转成Map
+            Map<String, String> reMap = UtilWechat.xmlToMap(requestBodyXml);
+
+            log.info("微信退款异步通知【{}】\n{}",refundOrderId,JSONObject.toJSONString(reMap));
+            //响应code 为success
+            if (reMap.containsKey(WechatService.RETURN_CODE) && WechatService.SUCCESS.equals(reMap.get(WechatService.RETURN_CODE).toString())) {
+
+                //查询退款信息
+                Refund refund = refundService.loadById(refundOrderId);
+                if(refund==null){
+                    mm.put(WechatService.RETURN_CODE, WechatService.FAIL);
+                    mm.put("return_msg", "RefundNotExists");
+                    notifyAccept.setResponstr("FAIL:退款信息不存在");
+                    httpServletResponse.getOutputStream().print( UtilWechat.mapToXml(mm));
+                    return ;
+                }
+                //订单查询
+                Order order = orderService.loadByOrderID(refund.getOrderId());
+                if (order == null) {
+                    mm.put(WechatService.RETURN_CODE, WechatService.FAIL);
+                    mm.put("return_msg", "OrderNotExists");
+                    notifyAccept.setResponstr("FAIL:支付订单不存在");
+                    httpServletResponse.getOutputStream().print( UtilWechat.mapToXml(mm));
+                    return ;
+                }
+                notifyAccept.setAppOrderNo(order.getAppOrderNo());
+
+                //退款信息不是处理中
+                if (EnumRefundStatus.Refunding.getCode() != refund.getProcessResult().byteValue()) {
+                    mm.put(WechatService.RETURN_CODE, WechatService.SUCCESS);
+                    mm.put("return_msg", "success");
+                    notifyAccept.setResponstr("SKIP:已处理的订单");
+                    httpServletResponse.getOutputStream().print( UtilWechat.mapToXml(mm));
+                    return ;
+                }
+                //根据订单找到这个订单的收款账号
+                ChargeConfig chargeConfig = chargeConfigService.loadByChargeId(order.getChargeAccountId());
+                ChargeWechatModel model = JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
+                        ChargeWechatModel.class);
+                String merchanKey = model == null ? "" : model.getApiKey();
+                // 解密 req_info
+                String req_info = reMap.get("req_info");
+                String req_infoXML =UtilWechat.decryptData(req_info,merchanKey);
+                //这里包含具体的退款信息内容
+                Map<String,String> reqInfoMap  =UtilWechat.xmlToMap(req_infoXML);
+                //只处理API发过来的，并且要求退款单号相等，应用号相等
+                if(model.getAppID().equalsIgnoreCase(reMap.get("appid"))
+                        && "API".equalsIgnoreCase(reMap.get("refund_request_source"))
+                        && refund.getRefundOrderId().equalsIgnoreCase(reqInfoMap.get("out_refund_no"))
+                ){
+                    Refund newRefund = new Refund();
+                    newRefund.setRefundOrderId(refund.getRefundOrderId());
+                    newRefund.setStatusUpdateDatetime(new Date());
+                    newRefund.setUpdateAt(new Date());
+                    byte ps = refund.getProcessResult();
+                    if(WechatService.SUCCESS.equalsIgnoreCase(reqInfoMap.get("refund_status"))){
+                        //退款成功
+                        ps = EnumRefundStatus.Success.getCode();
+                        int s  = new BigDecimal(reqInfoMap.getOrDefault("settlement_refund_fee","0") ).intValue() ;
+                        newRefund.setFee(s);
+                        if (StringUtils.isNotEmpty(reMap.get("success_time"))) {
+                            //2017-12-15 09:46:01
+                            newRefund.setStatusUpdateDatetime(DateUtils.simpleDatetimeFormatter().parse(reqInfoMap.get("success_time")));
+                        }
+                    }else if("CHANGE".equalsIgnoreCase(reqInfoMap.get("refund_status"))){
+                        //退款异常 做失败处理
+                        ps = EnumRefundStatus.Failed.getCode();
+                    }else if("REFUNDCLOSE".equalsIgnoreCase(reqInfoMap.get("refund_status"))){
+                        // 退款关闭 做失败处理
+                        ps = EnumRefundStatus.Failed.getCode();
+                    }
+                    newRefund.setProcessResult(ps);
+                    //更新refund
+                   int x = refundService.updateRefund(refund, newRefund);
+//                     发送通知
+                    if (x == 1 && newRefund.getProcessResult().byteValue()!=refund.getProcessResult().byteValue()) {
+                        RefundFutrue refundFutrue = new RefundFutrue(refund.getRefundOrderId(),refundService,orderService
+                                ,appService,rabbitTemplate);
+                        refundFutrue.afterFetchRefundResult();
+                        mm.put(WechatService.RETURN_CODE, WechatService.SUCCESS);
+                        mm.put("return_msg", "success");
+                        notifyAccept.setResponstr("退款状态更新并发送通知");
+                        httpServletResponse.getOutputStream().print( UtilWechat.mapToXml(mm));
+                        return;
+                    }else{
+                        mm.put(WechatService.RETURN_CODE, WechatService.FAIL);
+                        mm.put("return_msg", "update error");
+                        notifyAccept.setResponstr("退款状态更新出错");
+                        httpServletResponse.getOutputStream().print( UtilWechat.mapToXml(mm));
+                        log.error("【{}】退款状态更新出错", refund.getRefundOrderId());
+                        return;
+                    }
+                }else{
+                    mm.put(WechatService.RETURN_CODE, WechatService.FAIL);
+                    mm.put("return_msg", "非后台通知");
+                    notifyAccept.setResponstr("非后台通知或者appid不等于应用号或者退款号错误");
+                    httpServletResponse.getOutputStream().print( UtilWechat.mapToXml(mm));
+                    return ;
+                }
+            } else {
+                mm.put(WechatService.RETURN_CODE, WechatService.FAIL);
+                mm.put("return_msg", "MessageError");
+                notifyAccept.setResponstr("FAIL:消息为不正常消息");
+                httpServletResponse.getOutputStream().print( UtilWechat.mapToXml(mm));
+                return ;
+            }
+        } catch (Exception e) {
+            log.error("微信支付异步通知处理异常{}", e);
+            mm.put(WechatService.RETURN_CODE, WechatService.FAIL);
+            mm.put("return_msg", e.getMessage());
+            notifyAccept.setResponstr(UtilString.getLongString("FAIL:" + e.getMessage(), 4000));
+            httpServletResponse.getOutputStream().print( UtilWechat.mapToXml(mm));
+            return ;
+
+        } finally {
+            redisLockHelper.releaseLock(RedisLockHelper.Key.RefundNotify + refundOrderId);
+            notifyAcceptService.add(notifyAccept);
+        }
+    }
+
+
 
     @NeedLogin(value = false)
     @RequestMapping("return/{orderId:^\\d{21}$}")

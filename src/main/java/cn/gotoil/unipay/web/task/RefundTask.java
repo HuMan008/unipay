@@ -1,8 +1,10 @@
 package cn.gotoil.unipay.web.task;
 
+import cn.gotoil.bill.tools.date.DateUtils;
 import cn.gotoil.unipay.futrue.RefundFutrue;
 import cn.gotoil.unipay.model.entity.Refund;
 import cn.gotoil.unipay.model.enums.EnumRefundStatus;
+import cn.gotoil.unipay.utils.DateUtil;
 import cn.gotoil.unipay.web.helper.RedisLockHelper;
 import cn.gotoil.unipay.web.message.response.RefundQueryResponse;
 import cn.gotoil.unipay.web.services.AppService;
@@ -14,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -45,17 +48,20 @@ public class RefundTask {
 
     @Scheduled(initialDelay = 1200, fixedDelay = 1000 * 60 * 3)
     public void fetchRefundOrder() {
-
         if (redisLockHelper.hasLock(RefundStatusSync)) {
             return;
         }
         log.info("退款状态同步任务");
         redisLockHelper.addLock(RefundStatusSync, true, 30, TimeUnit.MINUTES);
         try {
-            //已经过期了10分钟，但是本地状态还是待支付的订单 单批次取200条
+            //已经提交了2个小时，状态还是处理中的
             List<Refund> refundList = refundService.getWaitSureResultList();
-            log.info("本次待获取退款结果数据{}条",refundList.size());
+
             for (Refund refund : refundList) {
+                if(DateUtils.dateAdd(refund.getCreatedAt(),0,0,0,1,0,0).after(new Date())){
+                    //1小时以内提交的跳过
+                    continue;
+                }
                 RefundQueryResponse refundQueryResponse = refundService.refundQueryFromRemote(refund.getRefundOrderId());
                 if (refundQueryResponse != null && (EnumRefundStatus.Success.getCode() == refundQueryResponse.getRefundStatus()  || EnumRefundStatus.Failed.getCode() == refundQueryResponse.getRefundStatus() )  ) {
                     Refund newRefund = new Refund();

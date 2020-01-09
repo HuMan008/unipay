@@ -79,7 +79,7 @@ public class RefundFutrue {
                 orderRefundNotifyBean.setRemake(refund.getDescp());
                 orderRefundNotifyBean.setStatus(refund.getProcessResult());
                 orderRefundNotifyBean.setPassFee(refund.getFee());
-                orderRefundNotifyBean.setFinishDate(Instant.now().getEpochSecond());
+                orderRefundNotifyBean.setFinishDate(refund.getStatusUpdateDatetime().getTime()/1000);
                 orderRefundNotifyBean.setFailReason(refund.getFailMsg());
                 orderRefundNotifyBean.setAsyncUrl(order.getAsyncUrl());
                 orderRefundNotifyBean.setTimeStamp(Instant.now().getEpochSecond());

@@ -1,10 +1,12 @@
 package cn.gotoil.unipay.utils;
 
+import cn.gotoil.bill.tools.encoder.Hash;
 import com.google.common.base.Charsets;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.parsers.DocumentBuilder;
@@ -264,6 +266,44 @@ public class UtilWechat {
     public enum SignType {
         MD5, HMACSHA256
     }
+    /**
+     * 密钥算法
+     */
+    private static final String ALGORITHM = "AES";
+    /**
+     * 加解密算法/工作模式/填充方式
+     */
+    private static final String ALGORITHM_MODE_PADDING = "AES/ECB/PKCS7Padding";
 
+    /**
+     * AES解密
+     *
+     * @param base64Data 解密内容
+     * @param password 解密密码
+     * @return
+     * @throws Exception
+     */
+    public static String decryptData(String base64Data,String password) throws Exception {
+        // 创建密码器
+        Cipher cipher = Cipher.getInstance(ALGORITHM_MODE_PADDING);
+        //使用密钥初始化，设置为解密模式
+        cipher.init(Cipher.DECRYPT_MODE, getSecretKey(password));
+        //执行操作
+        byte[] result = cipher.doFinal(UtilBase64.decode(base64Data));
+
+        return new String(result, "utf-8");
+    }
+
+
+    /**
+     * 生成加密秘钥
+     *
+     * @return
+     */
+    private static SecretKeySpec getSecretKey(String password) {
+
+        SecretKeySpec key = new SecretKeySpec(Hash.md5(password).toLowerCase().getBytes(), ALGORITHM);
+        return key;
+    }
 
 }

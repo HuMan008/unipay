@@ -433,6 +433,7 @@ public class WechatServiceImpl implements WechatService {
         data.put("total_fee", String.valueOf(refund.getOrderFee()));
         data.put("refund_fee", String.valueOf(refund.getApplyFee()));
         data.put("refund_desc", refund.getDescp());
+        data.put("notify_url", domain + "/payment/wechat/refund/"+ refund.getOrderId() +"/" +  refund.getRefundOrderId());
         String sign = "";
         try {
             sign = UtilWechat.generateSignature(data, chargeModel.getApiKey());

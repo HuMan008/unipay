@@ -235,7 +235,7 @@ public class AlipayServiceImpl implements AlipayService {
         request.setBizModel(model);
         try {
             AlipayTradeRefundResponse response = client.execute(request);
-            if (response.isSuccess()) {
+            if (response.isSuccess() && "Y".equalsIgnoreCase(response.getFundChange()) ) {
                 refund.setProcessResult(EnumRefundStatus.WaitSure.getCode());
                 refund.setStatusUpdateDatetime(new Date());
                 refund.setUpdateAt(refund.getStatusUpdateDatetime());

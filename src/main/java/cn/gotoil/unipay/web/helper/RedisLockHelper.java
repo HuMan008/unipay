@@ -20,6 +20,7 @@ public class RedisLockHelper {
 
     public static class Key {
         public static final String Notify = "Notify:";
+        public static final String RefundNotify = "RefundNotify:";
         public static final String OrderStatusSync = "OrderStatusSync";
         public static final String OrderExpiredSync = "OrderExpiredSync";
         public static final String Refund = "Refund";
