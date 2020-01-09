@@ -33,7 +33,7 @@ public class OrderRefundNotifyBean implements Serializable {
      * 通知类型 PAY 支付通知    REFUND 退款通知
      */
     @Builder.Default
-    String method = EnumOrderMessageType.PAY.name();
+    String method = EnumOrderMessageType.REFUND.name();
 
     /**
      * 传过来的订单号

@@ -107,7 +107,7 @@ public class RabbitMQConfigure {
         rabbitAdmin(connectionFactory).declareBinding(BindingBuilder.bind(deadQueue).to(deadExchange).with(ConstsRabbitMQ.ORDERROUTINGKEY));
         List<RefundMessageQueueDefine> defineList  =
                 payNotifyConfig.getRefundMessageQueues().stream().sorted(Comparator.comparing(RefundMessageQueueDefine::getTtl).thenComparing(RefundMessageQueueDefine::getQueueName)).collect(Collectors.toList());//根据ttl + 名字升序
-        for (int i = 0; i < payNotifyConfig.getMessageQueues().size(); i++) {
+        for (int i = 0; i < payNotifyConfig.getRefundMessageQueues().size(); i++) {
             RefundMessageQueueDefine define = defineList.get(i);
             if (i == 0) {
                 //设置第一个发送队列的名称

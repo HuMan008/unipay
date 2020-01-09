@@ -58,7 +58,7 @@ API模式
 Web模式 页面跳转
 
 
-# 异步通知说明
+# 支付异步通知说明
 ## 说明
 ```POST提交参数到异步通知地址。异步通知必须在三秒内响应。响应内容为“SUCCESS”表示不需要再发，否则按照通知定义机制多次发送。```
 
@@ -85,8 +85,8 @@ sign的内容为md5(xxxx+appSecret(统一分配))
 | orderFee | 订单金额，单位分 |
 | payFee | 支付金额，单位分。实际用户支付金额，不包含优惠券等。 |
 | arrFee | 实际到账金额 |
-| refundFee | 退款金额。退款通知才有 |
-| totalRefundFee | 累计退款金额。退款通知才有 |
+| ~~refundFee~~ | ~~退款金额。退款通知才有~~ |
+| ~~totalRefundFee~~ | ~~累计退款金额。退款通知才有~~ |
 | asyncUrl | 通知地址 |
 | extraParam | 创建订单的时候的extraParam原样 |
 | payDate | 支付时间 10位时间戳 |
@@ -98,7 +98,7 @@ sign的内容为md5(xxxx+appSecret(统一分配))
 
 
 
-# 同步通知
+# 支付同步通知
 
 ## 说明
 
@@ -109,7 +109,7 @@ sign的内容为md5(xxxx+appSecret(统一分配))
 参见<a href ="#asyncParam">异步通知说明</a>
 
 # 退款申请
-### 说明
+## 说明
 ```
 	1、同一笔订单允许多次退款。但是只允许一笔处理中的订单。
 	2、退款累计金额不超过用户实际支付金额（除优惠券等...）。
@@ -139,10 +139,38 @@ sign的内容为md5(xxxx+appSecret(统一分配))
     }
 }
 ```
+
+# 退款通知
+```退款通知地址为订单发起支付的时候传入的异步通知地址.按照Method=Method```
+## 参数说明
+| 参数名  | 说明         |
+| ------- | ------------ |
+| appId | 统一分配的应用ID |
+| unionOrderID | 统一订单号 |
+| unionRefundOrderID | 统一退款订单号 |
+| method | 通知类型 PAY:支付通知;REFUND退款通知 |
+| appOrderNO | 创建订单提交的订单编号 |
+| appRefundOrderNo | 应用退款订单号 |
+| applyFee | 退款申请金额 单位分 |
+| applyDateTime | 申请时间 10位长度时间撮 |
+| remake | 退款原因 |
+| status |  <a href="#refundStatus"> 状态 </a> |
+| finishDate | 退款完成时间 10为时间撮 |
+| passFee | 本次退款通过金额 |
+| failReason | 失败原因 |
+| asyncUrl | 通知地址 |
+| sign | 签名 通知对象转map去sign后转key1=value1&key2=value2....+key=appSecret得到字符串再MD5 |
+| timeStamp | 通知创建时间 10位时间戳|
+| doCount | 通知次数0开始 |
+| sendType | 通知方式 0状态机触发 1手动触发 |
+|  |  |
+
+
 # 支付结果查询
+
 ## 支付结果状态码
  详见<a href = "#payStatus" ></a>
- 
+
  ## 请求路径
   `POST`   `/api/v1/query/appOrderNo`"
 ` appOrderNo 为创建订单的时候传入的订单号`
