@@ -291,7 +291,7 @@ public class WechatNotifyController {
                 notifyAccept.setAppOrderNo(order.getAppOrderNo());
 
                 //退款信息不是处理中
-                if (EnumRefundStatus.Refunding.getCode() != refund.getProcessResult().byteValue()) {
+                if (EnumRefundStatus.WaitSure.getCode() != refund.getProcessResult().byteValue()) {
                     mm.put(WechatService.RETURN_CODE, WechatService.SUCCESS);
                     mm.put("return_msg", "success");
                     notifyAccept.setResponstr("SKIP:已处理的订单");
