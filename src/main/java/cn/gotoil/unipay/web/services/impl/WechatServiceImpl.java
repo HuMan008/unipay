@@ -21,10 +21,12 @@ import cn.gotoil.unipay.web.services.OrderService;
 import cn.gotoil.unipay.web.services.WechatService;
 import com.alibaba.fastjson.JSON;
 import com.google.common.net.UrlEscapers;
+import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 import com.rabbitmq.client.Return;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -141,6 +143,10 @@ public class WechatServiceImpl implements WechatService {
                         payRequest.getBackUrl()));
             }
         } catch (Exception e) {
+            if(e instanceof MySQLIntegrityConstraintViolationException || e instanceof DuplicateKeyException){
+                return new ModelAndView(UtilString.makeErrorPage(UnipayError.PageRefreshError,
+                        payRequest.getBackUrl()));
+            }
             log.error("微信支付订单创建出错{}", e.getMessage());
             return new ModelAndView(UtilString.makeErrorPage(5000, e.getMessage(), payRequest.getBackUrl()));
         }
