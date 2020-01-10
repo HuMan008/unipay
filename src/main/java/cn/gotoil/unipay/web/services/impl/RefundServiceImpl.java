@@ -2,6 +2,7 @@ package cn.gotoil.unipay.web.services.impl;
 
 import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.exception.CommonError;
+import cn.gotoil.bill.tools.date.DateUtils;
 import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.ChargeAlipayModel;
 import cn.gotoil.unipay.model.ChargeWechatModel;
@@ -11,10 +12,12 @@ import cn.gotoil.unipay.model.entity.ChargeConfig;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.model.entity.Refund;
 import cn.gotoil.unipay.model.entity.RefundExample;
+import cn.gotoil.unipay.model.enums.EnumPayCategory;
 import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.model.enums.EnumRefundStatus;
 import cn.gotoil.unipay.model.mapper.RefundMapper;
 import cn.gotoil.unipay.model.mapper.ext.ExtRefundQueryMapper;
+import cn.gotoil.unipay.utils.DateUtil;
 import cn.gotoil.unipay.web.message.BasePageResponse;
 import cn.gotoil.unipay.web.message.request.RefundRequest;
 import cn.gotoil.unipay.web.message.request.admin.RefundQueryListRequest;
@@ -74,6 +77,10 @@ public class RefundServiceImpl implements RefundService {
                     refundList.stream().anyMatch(r -> r.getProcessResult() == EnumRefundStatus.Refunding.getCode() || r.getProcessResult() == EnumRefundStatus.WaitSure.getCode());
             if (hasRefnding) {
                 throw new BillException(UnipayError.ExistRefundApplay);
+            }
+            //检查是否再退款期以内
+            if(!canRefund(order)){
+                throw new BillException(UnipayError.RefundError_OutTime);
             }
             int refundedFee = 0;
             refundedFee =
@@ -278,5 +285,24 @@ public class RefundServiceImpl implements RefundService {
     @Override
     public Refund loadById(String refundId){
         return refundMapper.selectByPrimaryKey(refundId);
+    }
+
+
+    /**
+     * 判断是否再退款期以内，如果是 返回ture,如果不是返回false
+     * 支付宝3个月内的订单
+     * 微信12个月内的
+     * @param o
+     * @return
+     */
+    private boolean canRefund(Order o ){
+        Date payDate = new Date(o.getOrderPayDatetime()*1000);
+        if(EnumPayCategory.Alipay.getCodeValue() == o.getPayTypeCategory().byteValue()){
+            return Math.abs(DateUtils.monthsBetween(new Date(),payDate))<=3;
+        }else if(EnumPayCategory.Wechat.getCodeValue() == o.getPayTypeCategory().byteValue()){
+            return Math.abs(DateUtils.monthsBetween(new Date(),payDate))<=12;
+        }else {
+            return false;
+        }
     }
 }
