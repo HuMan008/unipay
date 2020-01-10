@@ -98,13 +98,7 @@ public class AlipayNotifyController {
                 return;
             }
             notifyAccept.setAppOrderNo(order.getAppOrderNo());
-            //订单不是支付中状态
-            if (EnumOrderStatus.Created.getCode() != order.getStatus().byteValue()) {
-                log.error("支付宝订单【{}】异步通知处理失败，订单状态不是待支付", orderId);
-                notifyAccept.setResponstr("error:本地未找到订单");
-                httpServletResponse.getOutputStream().print("error");
-                return;
-            }
+
             ChargeConfig chargeConfig = chargeConfigService.loadByChargeId(order.getChargeAccountId());
             ChargeAlipayModel chargeAlipayModel =
                     JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()), ChargeAlipayModel.class);
@@ -114,6 +108,13 @@ public class AlipayNotifyController {
             //调用SDK验证签名 并且判断通知里的APPID是不是等于订单收款账户的APPID
             if (signVerified && chargeAlipayModel.getAppID().equalsIgnoreCase(params.get("app_id")) && orderId.equalsIgnoreCase(params.get("out_trade_no"))) {
                 if(isPayNotify(params)){
+                    //订单不是支付中状态
+                    if (EnumOrderStatus.Created.getCode() != order.getStatus().byteValue()) {
+                        log.error("支付宝订单【{}】异步通知处理失败，订单状态不是待支付", orderId);
+                        notifyAccept.setResponstr("error:本地未找到订单");
+                        httpServletResponse.getOutputStream().print("error");
+                        return;
+                    }
                     //支付通知
                     processPayNotify(params,order,notifyAccept,httpServletResponse,orderId);
                 }else{
@@ -128,7 +129,7 @@ public class AlipayNotifyController {
             }
 
         } catch (Exception e) {
-            log.error("支付宝订单【{}】异步通知处理失败", orderId);
+            log.error("支付宝订单【{}】异步通知处理失败{}", orderId,e);
             notifyAccept.setResponstr(UtilString.getLongString("error:异常" + e.getMessage(), 4000));
             try {
                 httpServletResponse.getOutputStream().print("error");
@@ -256,12 +257,13 @@ public class AlipayNotifyController {
         byte ps = refund.getProcessResult();
 
         //部分退款 ，全额退款 都是退款成功
-        if(params.get("refund_status").equalsIgnoreCase("REFUND_SUCCESS")){
+        if("REFUND_SUCCESS".equalsIgnoreCase(params.get("refund_status")) || "TRADE_CLOSED".equalsIgnoreCase(params.get("trade_status"))){
             ps= EnumRefundStatus.Success.getCode();
             if (StringUtils.isNotEmpty(params.get("gmt_refund"))) {
                 //2017-12-15 09:46:01
                 newRefund.setStatusUpdateDatetime(DateUtils.simpleDatetimeFormatter().parse(params.get("gmt_refund")));
             }
+            newRefund.setFee(UtilMoney.yuanToFen(params.get("refund_fee")));
         }else {
             ps= EnumRefundStatus.Failed.getCode();
         }

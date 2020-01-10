@@ -308,9 +308,8 @@ public class WechatNotifyController {
                 String req_infoXML =UtilWechat.decryptData(req_info,merchanKey);
                 //这里包含具体的退款信息内容
                 Map<String,String> reqInfoMap  =UtilWechat.xmlToMap(req_infoXML);
-                //只处理API发过来的，并且要求退款单号相等，应用号相等
+                //并且要求退款单号相等，应用号相等
                 if(model.getAppID().equalsIgnoreCase(reMap.get("appid"))
-                        && "API".equalsIgnoreCase(reMap.get("refund_request_source"))
                         && refund.getRefundOrderId().equalsIgnoreCase(reqInfoMap.get("out_refund_no"))
                 ){
                     Refund newRefund = new Refund();
