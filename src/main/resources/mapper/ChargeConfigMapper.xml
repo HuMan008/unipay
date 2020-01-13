@@ -278,7 +278,6 @@
     set name = #{name,jdbcType=CHAR},
       pay_type = #{payType,jdbcType=VARCHAR},
       status = #{status,jdbcType=TINYINT},
-      created_at = #{createdAt,jdbcType=TIMESTAMP},
       updated_at = #{updatedAt,jdbcType=TIMESTAMP},
       config_json = #{configJson,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=INTEGER}
@@ -288,7 +287,6 @@
     set name = #{name,jdbcType=CHAR},
       pay_type = #{payType,jdbcType=VARCHAR},
       status = #{status,jdbcType=TINYINT},
-      created_at = #{createdAt,jdbcType=TIMESTAMP},
       updated_at = #{updatedAt,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=INTEGER}
   </update>

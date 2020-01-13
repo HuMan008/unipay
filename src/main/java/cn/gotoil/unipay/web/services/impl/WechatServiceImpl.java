@@ -432,6 +432,11 @@ public class WechatServiceImpl implements WechatService {
     public OrderRefundResponse orderRefund(ChargeAccount chargeConfig, Refund refund) {
         ChargeWechatModel chargeModel = (ChargeWechatModel) chargeConfig;
         if(StringUtils.isEmpty(chargeModel.getCertPath())){
+            Refund newRefund = new Refund();
+            newRefund.setRefundOrderId(refund.getRefundOrderId());
+            newRefund.setProcessResult(EnumRefundStatus.Failed.getCode());
+            newRefund.setFailMsg(UnipayError.RefundError_NoCertPath.getMessage());
+            refundService.updateRefund(refund,newRefund);
             throw new BillException(UnipayError.RefundError_NoCertPath);
         }
         HashMap<String, String> data = new HashMap<String, String>();
