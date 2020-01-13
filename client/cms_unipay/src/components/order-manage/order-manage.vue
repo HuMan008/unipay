@@ -456,7 +456,7 @@ export default {
     showNotifyLog(item) {
       this.modal_notifyLogVisible = true;
       this.notifyLogList = [];
-      HttpService.get("/web/order/getNotifyLog/" + item.id).then(res => {
+      HttpService.get("/web/order/getNotifyLog/" + item.id + "?type=PAY").then(res => {
         if (res.data.status === 0) {
           for (const i in res.data.data) {
             let record = res.data.data[i];
@@ -480,7 +480,7 @@ export default {
       this.modal_notifyLogVisible = false;
     },
     sendMsg(item) {
-      HttpService.get("/web/order/doNotify/" + item.id).then(res => {
+      HttpService.get("/web/order/doNotify/pay/" + item.id).then(res => {
         if (res.data.status === 0) {
           this.$message.success(res.data.message);
         } else {

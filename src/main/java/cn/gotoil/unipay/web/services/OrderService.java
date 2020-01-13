@@ -3,6 +3,7 @@ package cn.gotoil.unipay.web.services;
 
 import cn.gotoil.bill.web.message.BillApiResponse;
 import cn.gotoil.unipay.model.entity.Order;
+import cn.gotoil.unipay.model.entity.Refund;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import org.springframework.web.servlet.ModelAndView;
@@ -112,6 +113,12 @@ public interface OrderService {
      */
     BillApiResponse manualSendNotify(Order order);
 
+    /**
+     * 单独为某个订单发送退款通知
+     * @param refund
+     * @return
+     */
+    BillApiResponse manualSendNotify(Refund refund);
     /**
      * 订单状态本地查询
      * @param appOrderNo

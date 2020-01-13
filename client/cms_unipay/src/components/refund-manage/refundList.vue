@@ -67,6 +67,13 @@
           slot-scope="text, item"
           title="双击我查看远程状态"
         >{{text}}</div>
+        <a v-if="item.processResult===0"
+          href="javaScript:void(0)"
+          slot="notifyLog"
+          slot-scope="item"
+          @click="showNotifyLog(item)"
+        >查看</a>
+        <a v-if="item.processResult===0" href="#" slot="sendMsg" slot-scope="item" @click="sendMsg(item)">发送</a>
         <a-table
           :bordered="true"
           slot="expandedRowRender"
@@ -76,6 +83,28 @@
           :pagination="false"
         ></a-table>
       </a-table>
+      <a-modal
+        width="860"
+        :bordered="true"
+        title="通知记录"
+        :visible="modal_notifyLogVisible"
+        @ok="modal_notify_close"
+        @cancel="modal_notify_close"
+        :confirmLoading="false"
+      >
+        <a-table :columns="notifyLogHd" :dataSource="notifyLogList" :pagination="false">
+          <div :title="item.notifyUrl" slot="longTextShow_url" slot-scope="item">
+            <p class="longtext" style="max-width:200px">  {{item.notifyUrl}}</p>
+          </div>
+          <div :title="item.params" slot="longTextShow_param" slot-scope="item">
+            <p class="longtext" style="max-width:250px">  {{item.params}}</p>
+          </div>
+          <div :title="item.responseContent" slot="longTextShow_response" slot-scope="item">
+            <p class="longtext" style="max-width:180px">  {{item.responseContent}}</p>
+          </div>
+          <div slot="sendType" slot-scope="text">{{text===0?"自动":'手动'}}</div>
+        </a-table>
+      </a-modal>
     </a-layout-content>
   </div>
 </template>
@@ -119,7 +148,17 @@ export default {
           dataIndex: "processResult",
           scopedSlots: { customRender: "refundStatusDiv" }
         },
-        { title: "申请时间", width: 190, dataIndex: "applyDatetime" }
+        { title: "申请时间", width: 190, dataIndex: "applyDatetime" },
+        {
+          title: "通知记录",
+          width: 120,
+          scopedSlots: { customRender: "notifyLog" }
+        },
+        {
+          title: "发送通知",
+          width: 120,
+          scopedSlots: { customRender: "sendMsg" }
+        }
       ],
       innerColumns: [
         { title: "列名", width: 160, dataIndex: "desp" },
@@ -149,7 +188,29 @@ export default {
       // 退款状态Options
       refundStatusOptions: [],
       // 支付方式map key:code  value:label
-      refundStatusMap: new Map()
+      refundStatusMap: new Map(),
+      modal_notifyLogVisible: false,
+      // 通知记录表格
+      notifyLogHd: [
+        { title: "通知地址", width: 200, scopedSlots: { customRender: "longTextShow_url" } },
+        {
+          title: "参数",
+          width: 250,
+          scopedSlots: { customRender: "longTextShow_param" }
+        },
+        { title: "响应", width: 180, scopedSlots: { customRender: "longTextShow_response" } },
+        { title: "通知时间", width: 120, dataIndex: "noticeDatetime" },
+        { title: "次数", width: 30, dataIndex: "repeatCount" },
+        {
+          title: "发送方式",
+          width: 40,
+          dataIndex: "sendType",
+          scopedSlots: { customRender: "sendType" }
+        },
+        { title: "创建时间", width: 120, dataIndex: "createdAt" }
+      ],
+      // 通知记录列表
+      notifyLogList: []
     };
   },
 
@@ -254,6 +315,42 @@ export default {
         }
       });
       return [];
+    },
+    // 查看异步通知记录
+    showNotifyLog(item) {
+      this.modal_notifyLogVisible = true;
+      this.notifyLogList = [];
+      HttpService.get("/web/order/getNotifyLog/" + item.orderId + "?type=REFUND").then(res => {
+        if (res.data.status === 0) {
+          for (const i in res.data.data) {
+            let record = res.data.data[i];
+            this.notifyLogList.push({
+              key: i,
+              notifyUrl: record.notifyUrl,
+              params: record.params,
+              responseContent: record.responseContent,
+              noticeDatetime: record.noticeDatetime,
+              repeatCount: record.repeatCount,
+              sendType: record.sendType,
+              createdAt: record.createdAt
+            });
+          }
+        } else {
+          this.$message.error(res.data.message ? res.data.message : "系统错误");
+        }
+      });
+    },
+    modal_notify_close() {
+      this.modal_notifyLogVisible = false;
+    },
+    sendMsg(item) {
+      HttpService.get("/web/order/doNotify/refund/" + item.refundOrderId).then(res => {
+        if (res.data.status === 0) {
+          this.$message.success(res.data.message);
+        } else {
+          this.$message.error(res.data.message ? res.data.message : "系统错误");
+        }
+      });
     },
 
     // 获取退款状态下拉框

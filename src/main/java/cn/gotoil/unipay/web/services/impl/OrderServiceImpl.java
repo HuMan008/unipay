@@ -7,17 +7,13 @@ import cn.gotoil.bill.tools.encoder.Hash;
 import cn.gotoil.bill.web.message.BillApiResponse;
 import cn.gotoil.unipay.config.consts.ConstsRabbitMQ;
 import cn.gotoil.unipay.exceptions.UnipayError;
+import cn.gotoil.unipay.futrue.RefundFutrue;
 import cn.gotoil.unipay.model.ChargeAlipayModel;
 import cn.gotoil.unipay.model.ChargeWechatModel;
 import cn.gotoil.unipay.model.OrderNotifyBean;
-import cn.gotoil.unipay.model.entity.App;
-import cn.gotoil.unipay.model.entity.ChargeConfig;
-import cn.gotoil.unipay.model.entity.Order;
-import cn.gotoil.unipay.model.entity.OrderExample;
-import cn.gotoil.unipay.model.enums.EnumOrderMessageType;
-import cn.gotoil.unipay.model.enums.EnumOrderStatus;
-import cn.gotoil.unipay.model.enums.EnumPayType;
-import cn.gotoil.unipay.model.enums.EnumStatus;
+import cn.gotoil.unipay.model.OrderRefundNotifyBean;
+import cn.gotoil.unipay.model.entity.*;
+import cn.gotoil.unipay.model.enums.*;
 import cn.gotoil.unipay.model.mapper.OrderMapper;
 import cn.gotoil.unipay.utils.UtilBase64;
 import cn.gotoil.unipay.utils.UtilMoney;
@@ -75,6 +71,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     RabbitTemplate rabbitTemplate;
+    @Autowired
+    RefundService refundService;
 
     /**
      * 校验支付请求参数
@@ -402,6 +400,18 @@ public class OrderServiceImpl implements OrderService {
         orderNotifyBean.setSign(signStr);
         rabbitTemplate.convertAndSend(ConstsRabbitMQ.ORDERFIRSTEXCHANGENAME, ConstsRabbitMQ.ORDERROUTINGKEY,
                 JSON.toJSONString(orderNotifyBean));
+        return new BillApiResponse(0, "已加入消息队列", null);
+    }
+
+    @Override
+    public BillApiResponse manualSendNotify(Refund refund) {
+        assert refund != null;
+        if (EnumRefundStatus.WaitSure.getCode() == refund.getProcessResult().byteValue() ||EnumRefundStatus.Refunding.getCode() ==refund.getProcessResult().byteValue()) {
+            throw new BillException(UnipayError.RefundStatusIsOver);
+        }
+        RefundFutrue refundFutrue = new RefundFutrue(refund.getRefundOrderId(),refundService,this
+                ,appService,rabbitTemplate);
+        refundFutrue.afterFetchRefundResult(true);
         return new BillApiResponse(0, "已加入消息队列", null);
     }
 

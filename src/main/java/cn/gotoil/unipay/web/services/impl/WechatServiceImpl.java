@@ -291,8 +291,8 @@ public class WechatServiceImpl implements WechatService {
                             orderQueryResponse.setStatus(EnumOrderStatus.PayFailed.getCode());
                         }
                         return orderQueryResponse;
-                    }else if(FAIL.equalsIgnoreCase(reMap.get("result_code")) && "".equalsIgnoreCase(reMap.get(
-                            "error_code")) ){
+                    }else if(FAIL.equalsIgnoreCase(reMap.get("result_code")) && "ORDERNOTEXIST".equalsIgnoreCase(reMap.get(
+                            "err_code")) ){
                         return OrderQueryResponse.builder().appOrderNO(order.getAppOrderNo()).thirdCode(reMap.get(
                                 "result_code")).thirdMsg(reMap.get("err_code") + reMap.get("err_code_des")).status(EnumOrderStatus.PayFailed.getCode()).build();
                     } else {

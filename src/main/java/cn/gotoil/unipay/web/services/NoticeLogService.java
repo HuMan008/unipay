@@ -20,7 +20,8 @@ public interface NoticeLogService {
     /**
      * 根据订单号获取订单通知记录
      * @param orderId
+     * @param type  PAY 支付，REFUND 退款
      * @return
      */
-    List<NoticeLog> listByOrderId(String orderId);
+    List<NoticeLog> listByOrderId(String orderId,String type);
 }

@@ -274,7 +274,7 @@ public class AlipayNotifyController {
         if (x == 1 && newRefund.getProcessResult().byteValue()!=refund.getProcessResult().byteValue()) {
             RefundFutrue refundFutrue = new RefundFutrue(refund.getRefundOrderId(),refundService,orderService
                     ,appService,rabbitTemplate);
-            refundFutrue.afterFetchRefundResult();
+            refundFutrue.afterFetchRefundResult(false);
             notifyAccept.setResponstr("退款状态更新并发送通知");
             httpServletResponse.getOutputStream().print("success");
             return;

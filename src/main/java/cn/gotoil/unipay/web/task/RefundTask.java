@@ -74,7 +74,7 @@ public class RefundTask {
                     }
                     RefundFutrue refundFutrue = new RefundFutrue(refund.getRefundOrderId(),refundService,orderService
                             ,appService,rabbitTemplate);
-                    refundFutrue.afterFetchRefundResult();
+                    refundFutrue.afterFetchRefundResult(false);
                     log.info("订单退款状态更新完成【{}】", refund.getRefundOrderId());
                 } else{
                     log.error("获取退款订单【{}】,远程响应{}",refund.getRefundOrderId(),refundQueryResponse.toString());

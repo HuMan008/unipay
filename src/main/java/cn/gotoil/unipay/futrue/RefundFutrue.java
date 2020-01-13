@@ -53,7 +53,11 @@ public class RefundFutrue {
         this.rabbitTemplate  =rabbitTemplate;
     }
 
-    public void  afterFetchRefundResult(){
+    /**
+     *
+     * @param isManual 手动true 自动false
+     */
+    public void  afterFetchRefundResult(boolean isManual){
         ListenableFuture<Void> listenableFuture =guavaExecutor.submit(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
@@ -84,8 +88,8 @@ public class RefundFutrue {
                 orderRefundNotifyBean.setAsyncUrl(order.getAsyncUrl());
                 orderRefundNotifyBean.setTimeStamp(Instant.now().getEpochSecond());
                 orderRefundNotifyBean.setDoCount(0);
+                orderRefundNotifyBean.setSendType(isManual?(byte)1: (byte)0);
                 String sign = UtilMySign.sign(orderRefundNotifyBean,appService.key(order.getAppId()));
-                orderRefundNotifyBean.setSendType((byte)0);
                 orderRefundNotifyBean.setSign(sign);
 
                 rabbitTemplate.convertAndSend(ConstsRabbitMQ.REFUNDORDERFIRSTEXCHANGENAME,

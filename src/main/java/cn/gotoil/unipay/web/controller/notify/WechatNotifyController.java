@@ -340,7 +340,7 @@ public class WechatNotifyController {
                     if (x == 1 && newRefund.getProcessResult().byteValue()!=refund.getProcessResult().byteValue()) {
                         RefundFutrue refundFutrue = new RefundFutrue(refund.getRefundOrderId(),refundService,orderService
                                 ,appService,rabbitTemplate);
-                        refundFutrue.afterFetchRefundResult();
+                        refundFutrue.afterFetchRefundResult(false);
                         mm.put(WechatService.RETURN_CODE, WechatService.SUCCESS);
                         mm.put("return_msg", "success");
                         notifyAccept.setResponstr("退款状态更新并发送通知");
