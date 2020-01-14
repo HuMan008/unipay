@@ -77,7 +77,6 @@ public class WechatServiceImpl implements WechatService {
         data.put("body", UtilString.getLongString(order.getSubjects(), 128));
         data.put("detail", UtilString.getLongString(order.getDescp(), 128));
         data.put("sign_type", UtilWechat.SignType.MD5.name());
-        data.put("openid", payRequest.getPaymentUserID());
         data.put("out_trade_no", order.getId());
         data.put("total_fee", String.valueOf(order.getFee()));
         data.put("time_expire",
@@ -87,6 +86,7 @@ public class WechatServiceImpl implements WechatService {
         data.put("notify_url", domain + "/payment/wechat/" + order.getId());
         if (EnumPayType.WechatJSAPI.getCode().equals(payRequest.getPayType())) {
             data.put("trade_type", TradeType.JSAPI.name());
+            data.put("openid", payRequest.getPaymentUserID());
         } else if (EnumPayType.WechatH5.getCode().equals(payRequest.getPayType())) {
             data.put("trade_type", TradeType.MWEB.name());
             data.put("spbill_create_ip", UtilRequest.getIpAddress(httpServletRequest));
