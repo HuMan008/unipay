@@ -277,7 +277,6 @@
     update dp_charge_config
     set name = #{name,jdbcType=CHAR},
       pay_type = #{payType,jdbcType=VARCHAR},
-      status = #{status,jdbcType=TINYINT},
       updated_at = #{updatedAt,jdbcType=TIMESTAMP},
       config_json = #{configJson,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=INTEGER}
@@ -286,7 +285,6 @@
     update dp_charge_config
     set name = #{name,jdbcType=CHAR},
       pay_type = #{payType,jdbcType=VARCHAR},
-      status = #{status,jdbcType=TINYINT},
       updated_at = #{updatedAt,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=INTEGER}
   </update>

@@ -92,13 +92,13 @@ public class WebPayContoller {
                                     HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         //校验SIGN
         //        appId+appOrderNo+payType+fee+appKey
-        if (!isDebug) {
-            String signStr =
-                    payRequest.getAppId() + payRequest.getAppOrderNo() + payRequest.getPayType() + payRequest.getFee() + appService.key(payRequest.getAppId());
-            if (StringUtils.isEmpty(payRequest.getSign()) || !payRequest.getSign().equals(Hash.md5(signStr).toUpperCase())) {
-                return new ModelAndView(UtilString.makeErrorPage(UnipayError.IllegalRequest, payRequest.getBackUrl()));
-            }
-        }
+//        if (!isDebug) {
+//            String signStr =
+//                    payRequest.getAppId() + payRequest.getAppOrderNo() + payRequest.getPayType() + payRequest.getFee() + appService.key(payRequest.getAppId());
+//            if (StringUtils.isEmpty(payRequest.getSign()) || !payRequest.getSign().equals(Hash.md5(signStr).toUpperCase())) {
+//                return new ModelAndView(UtilString.makeErrorPage(UnipayError.IllegalRequest, payRequest.getBackUrl()));
+//            }
+//        }
         try {
 
             //校验请求

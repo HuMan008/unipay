@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -103,21 +104,29 @@ public class WechatServiceImpl implements WechatService {
             String repStr = UtilHttpClient.doPostStr(WechatService.CreateOrderUrl, UtilWechat.mapToXml(data));
             Map<String, String> reMap = processResponseXml(repStr, chargeModel.getApiKey());
             if (reMap.containsKey(RETURN_CODE) && reMap.containsKey(RESULT_CODE) && SUCCESS.equals(reMap.get(RETURN_CODE)) && SUCCESS.equals(reMap.get(RESULT_CODE))) {
-                if (TradeType.MWEB.name().equals(reMap.get("trade_type"))) {
-                    String mwebUrl = new String("redirect:" + reMap.get("mweb_url"));
-                    //同步地址作为页面返回地址
-                    if (StringUtils.isNotEmpty(payRequest.getSyncUrl())) {
-                        mwebUrl =
-                                mwebUrl + "&redirect_url=" + UrlEscapers.urlFormParameterEscaper().escape(payRequest.getSyncUrl());
-                    }
-                    return new ModelAndView(mwebUrl);
-                }
-                ModelAndView modelAndView = new ModelAndView("wechat/jsapipay");
                 int x = orderService.saveOrder(order);
                 if(x!=1){
                     return new ModelAndView(UtilString.makeErrorPage(UnipayError.PageRefreshError,
                             payRequest.getBackUrl()));
                 }
+                if (TradeType.MWEB.name().equals(reMap.get("trade_type"))) {
+//                    String mwebUrl = new String("redirect:" + reMap.get("mweb_url"));
+                    String mwebUrl = new String(reMap.get("mweb_url"));
+                    Map<String,String> map = new HashMap<>();
+                    map.put("backUrl",payRequest.getBackUrl());
+                    map.put("cancelUrl",payRequest.getCancelUrl());
+                    String s = JSON.toJSONString(map);
+                   String param = UtilBase64.encode(s.getBytes());
+                    mwebUrl =
+                            mwebUrl + "&redirect_url=" + UrlEscapers.urlFormParameterEscaper().escape(domain +
+                                    "/payment/wechat/return/h5jump/" + order.getId()+"?param="+param);
+                    ModelAndView modelAndView =  new ModelAndView("wechat/h5pay");
+                    modelAndView.addObject("mwebUrl",mwebUrl);
+                    fillWechatPage(modelAndView,order,payRequest);
+                    return modelAndView;
+                }else{
+                ModelAndView modelAndView = new ModelAndView("wechat/jsapipay");
+
                 Map<String, String> ssMap = new HashMap();
                 ssMap.put("appId", reMap.get("appid"));
                 ssMap.put("timeStamp", String.valueOf(Instant.now().getEpochSecond()));
@@ -127,17 +136,18 @@ public class WechatServiceImpl implements WechatService {
                 String paySign = UtilWechat.generateSignature(ssMap, chargeModel.getApiKey(), UtilWechat.SignType.MD5);
                 ssMap.put("paySign", paySign);
                 modelAndView.addAllObjects(ssMap);
-                modelAndView.addObject("domain", domain);
-                modelAndView.addObject("appOrderNo", order.getAppOrderNo());
-                modelAndView.addObject("orderId", order.getId());
-                modelAndView.addObject("cancelUrl", payRequest.getCancelUrl());
-                modelAndView.addObject("backUrl", payRequest.getBackUrl());
-                modelAndView.addObject("successUrl", domain + "/payment/wechat/return/" + order.getId());
-                modelAndView.addObject("subject", order.getSubjects());
-                modelAndView.addObject("descp", order.getDescp());
-                modelAndView.addObject("orderFeeY", UtilMoney.fenToYuan(order.getFee(), true));
+                fillWechatPage(modelAndView,order,payRequest);
+//                modelAndView.addObject("domain", domain);
+//                modelAndView.addObject("appOrderNo", order.getAppOrderNo());
+//                modelAndView.addObject("orderId", order.getId());
+//                modelAndView.addObject("cancelUrl", payRequest.getCancelUrl());
+//                modelAndView.addObject("backUrl", payRequest.getBackUrl());
+//                modelAndView.addObject("successUrl", domain + "/payment/wechat/return/" + order.getId());
+//                modelAndView.addObject("subject", order.getSubjects());
+//                modelAndView.addObject("descp", order.getDescp());
+//                modelAndView.addObject("orderFeeY", UtilMoney.fenToYuan(order.getFee(), true));
                 return modelAndView;
-
+                }
             } else {
                 return new ModelAndView(UtilString.makeErrorPage(5001, reMap.getOrDefault("return_msg", "微信支付出错"),
                         payRequest.getBackUrl()));
@@ -150,6 +160,18 @@ public class WechatServiceImpl implements WechatService {
             log.error("微信支付订单创建出错{}", e.getMessage());
             return new ModelAndView(UtilString.makeErrorPage(5000, e.getMessage(), payRequest.getBackUrl()));
         }
+    }
+
+    private void fillWechatPage(ModelAndView modelAndView,Order order,PayRequest payRequest){
+        modelAndView.addObject("domain", domain);
+        modelAndView.addObject("appOrderNo", order.getAppOrderNo());
+        modelAndView.addObject("orderId", order.getId());
+        modelAndView.addObject("cancelUrl", payRequest.getCancelUrl());
+        modelAndView.addObject("backUrl", payRequest.getBackUrl());
+        modelAndView.addObject("successUrl", domain + "/payment/wechat/return/" + order.getId());
+        modelAndView.addObject("subject", order.getSubjects());
+        modelAndView.addObject("descp", order.getDescp());
+        modelAndView.addObject("orderFeeY", UtilMoney.fenToYuan(order.getFee(), true));
     }
 
     /**

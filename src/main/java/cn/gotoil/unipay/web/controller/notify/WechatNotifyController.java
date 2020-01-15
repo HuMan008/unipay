@@ -25,11 +25,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jcajce.provider.digest.MD5;
+import org.bouncycastle.math.raw.Mod;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -67,6 +71,8 @@ public class WechatNotifyController {
 
     @Autowired
     RefundService refundService;
+    @Value("${domain}")
+    String domain;
 
     @RequestMapping(value = {"{orderId:^\\d{21}$}"})
     @NeedLogin(value = false)
@@ -396,5 +402,21 @@ public class WechatNotifyController {
             e.printStackTrace();
         }
         return orderService.syncUrl(orderId, httpServletRequest, httpServletResponse);
+    }
+
+
+    @NeedLogin(value = false)
+    @RequestMapping("return/h5jump/{orderId:^\\d{21}$}")
+    public ModelAndView h5jump(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
+                               @PathVariable String orderId, @RequestParam String param ) throws Exception {
+        ModelAndView model = new ModelAndView("wechat/h5jump");
+        model.addObject("surePay",domain+"/payment/wechat/return/"+orderId);
+        Order order = orderService.loadByOrderID(orderId);
+        String paramD =new String( UtilBase64.decode(param));
+        JSONObject jo  = JSONObject.parseObject(paramD);
+
+        model.addObject("backUrl",jo.getString("backUrl"));
+        model.addObject("cancelUrl",jo.getString("cancelUrl"));
+       return  model;
     }
 }
