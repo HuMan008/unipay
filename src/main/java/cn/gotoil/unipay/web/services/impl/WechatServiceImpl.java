@@ -107,7 +107,7 @@ public class WechatServiceImpl implements WechatService {
             String repStr = UtilHttpClient.doPostStr(WechatService.CreateOrderUrl, UtilWechat.mapToXml(data));
             Map<String, String> reMap = processResponseXml(repStr, chargeModel.getApiKey());
             if (reMap.containsKey(RETURN_CODE) && reMap.containsKey(RESULT_CODE) && SUCCESS.equals(reMap.get(RETURN_CODE)) && SUCCESS.equals(reMap.get(RESULT_CODE))) {
-                if (continuePayRequest == null) {
+                if (needSave) {
                     int x = orderService.saveOrder(order);
                     if (x != 1) {
                         return new ModelAndView(UtilString.makeErrorPage(UnipayError.PageRefreshError,
