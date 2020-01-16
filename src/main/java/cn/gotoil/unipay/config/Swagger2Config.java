@@ -28,7 +28,8 @@ import java.util.List;
 @EnableSwagger2
 public class Swagger2Config {
 
-    private boolean isDebug =true;
+    @Value("${isDebug}")
+    private boolean isDebug;
 
     @Bean
     public Docket createWebApi() {
@@ -46,7 +47,7 @@ public class Swagger2Config {
                     //为当前包路径
                     .apis(RequestHandlerSelectors.basePackage("cn.gotoil.unipay.web.controller.admin")).paths(PathSelectors.any()).build().securitySchemes(securitySchemes()).securityContexts(securityContexts());
         }else{
-            return new Docket(DocumentationType.SWAGGER_2);
+            return new Docket(DocumentationType.SWAGGER_2) .apiInfo(webApiInfo()).groupName("WebApi接口文档").select().apis(RequestHandlerSelectors.basePackage("cnaaa.gotoil.unipay.web.controller.admin")).paths(PathSelectors.any()).build().securitySchemes(securitySchemes()).securityContexts(securityContexts());
         }
     }
 
@@ -59,7 +60,11 @@ public class Swagger2Config {
                     //为当前包路径
                     .apis(RequestHandlerSelectors.basePackage("cn.gotoil.unipay.web.controller.api.v1")).paths(PathSelectors.any()).build();
         }else{
-            return null;
+            return new Docket(DocumentationType.SWAGGER_2).apiInfo(restApiInfo()).groupName("RestApi接口文档")
+                    //                .pathMapping("/api/v1")
+                    .select()
+                    //为当前包路径
+                    .apis(RequestHandlerSelectors.basePackage("cnaaa.gotoil.unipay.web.controller.api.v1")).paths(PathSelectors.any()).build();
         }
     }
 

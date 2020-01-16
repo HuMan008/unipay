@@ -11,22 +11,22 @@ import cn.gotoil.unipay.futrue.RefundFutrue;
 import cn.gotoil.unipay.model.ChargeAlipayModel;
 import cn.gotoil.unipay.model.ChargeWechatModel;
 import cn.gotoil.unipay.model.OrderNotifyBean;
-import cn.gotoil.unipay.model.OrderRefundNotifyBean;
 import cn.gotoil.unipay.model.entity.*;
 import cn.gotoil.unipay.model.enums.*;
 import cn.gotoil.unipay.model.mapper.OrderMapper;
-import cn.gotoil.unipay.utils.*;
+import cn.gotoil.unipay.utils.UtilBase64;
+import cn.gotoil.unipay.utils.UtilMoney;
+import cn.gotoil.unipay.utils.UtilMySign;
+import cn.gotoil.unipay.utils.UtilString;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.services.*;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.sun.org.apache.regexp.internal.RE;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.omg.CORBA.ORB;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -51,6 +51,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 @Slf4j
+@SuppressWarnings("unchecked")
 public class OrderServiceImpl implements OrderService {
 
     @Autowired
@@ -100,21 +101,23 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 检查继续支付的订单是否可以继续支付
+     *
      * @param order
      * @return true 可以继续支付 ;false 不可以
      */
     @Override
-    public boolean rePayOrderCheck(Order order){
-       if(EnumOrderStatus.Created.getCode()!= order.getStatus()){
-           //订单不是待支付状态
-           return false;
-       }
-       // 订单过期了 当前时间 > (订单创建时间+过期时间)
-       if(new Date().after(DateUtils.dateAdd(order.getCreatedAt(),0,0,0,0,order.getExpiredTimeMinute(),0))){
-           return false;
-       }
-       return true;
+    public boolean rePayOrderCheck(Order order) {
+        if (EnumOrderStatus.Created.getCode() != order.getStatus()) {
+            //订单不是待支付状态
+            return false;
+        }
+        // 订单过期了 当前时间 > (订单创建时间+过期时间)
+        if (new Date().after(DateUtils.dateAdd(order.getCreatedAt(), 0, 0, 0, 0, order.getExpiredTimeMinute(), 0))) {
+            return false;
+        }
+        return true;
     }
+
     /**
      * 补充请求里每天的参数
      *
@@ -156,7 +159,8 @@ public class OrderServiceImpl implements OrderService {
         //缓存里没有
         if (!bb) {
             Order order = loadByAppOrderNo(appOrderNo, appId);
-            if (order == null) { //缓存里没有 数据库也灭有
+            // 缓存里没有 数据库也灭有
+            if (order == null) {
                 return true;
             } else { // 缓存里没有 数据库里有
                 return false;
@@ -261,8 +265,8 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public int saveOrder(Order order) {
-        log.info("订单【{}】\t应用订单号【{}】\t下单金额【{}】\t支付方式【{}】被创建", order.getId(), order.getAppOrderNo(),
-                order.getFee(), EnumUtils.getEnum(EnumPayType.class, order.getPayType()).getDescp());
+        log.info("订单【{}】\t应用订单号【{}】\t下单金额【{}】\t支付方式【{}】被创建", order.getId(), order.getAppOrderNo(), order.getFee(),
+                EnumUtils.getEnum(EnumPayType.class, order.getPayType()).getDescp());
         return orderMapper.insert(order);
     }
 
@@ -423,11 +427,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public BillApiResponse manualSendNotify(Refund refund) {
         assert refund != null;
-        if (EnumRefundStatus.WaitSure.getCode() == refund.getProcessResult().byteValue() ||EnumRefundStatus.Refunding.getCode() ==refund.getProcessResult().byteValue()) {
+        if (EnumRefundStatus.WaitSure.getCode() == refund.getProcessResult().byteValue() || EnumRefundStatus.Refunding.getCode() == refund.getProcessResult().byteValue()) {
             throw new BillException(UnipayError.RefundStatusIsOver);
         }
-        RefundFutrue refundFutrue = new RefundFutrue(refund.getRefundOrderId(),refundService,this
-                ,appService,rabbitTemplate);
+        RefundFutrue refundFutrue = new RefundFutrue(refund.getRefundOrderId(), refundService, this, appService,
+                rabbitTemplate);
         refundFutrue.afterFetchRefundResult(true);
         return new BillApiResponse(0, "已加入消息队列", null);
     }
@@ -435,6 +439,7 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 订单状态本地查询
+     *
      * @param appOrderNo
      * @param appId
      * @return
@@ -449,12 +454,13 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 订单状态本地查询
+     *
      * @param order
      * @return
      */
     @Override
     public OrderQueryResponse orderQueryLocal(Order order) {
-        assert order !=null;
+        assert order != null;
         return OrderQueryResponse.warpOrderToOrderQuyerResponse(order);
     }
 }
