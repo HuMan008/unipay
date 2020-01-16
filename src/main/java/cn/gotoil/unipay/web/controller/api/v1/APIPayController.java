@@ -73,45 +73,66 @@ public class APIPayController {
         orderService.fillPayRequest(payRequest);
         //创建订单（不持久化）
         Order order = orderService.warpPayRequest2UnionOrder(payRequest);
-
-        EnumPayType payType = EnumUtils.getEnum(EnumPayType.class, payRequest.getPayType());
-        ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(payRequest.getAppId(), payType.getCode());
-        String payInfoStr = new String();
-        switch (payType) {
-            case WechatSDK: {
-                ChargeWechatModel chargeWechatModel =
-                        JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
-                                ChargeWechatModel.class);
-                payInfoStr = wechatService.sdkPay(payRequest, order, chargeWechatModel);
-                break;
-            }
-            case WechatNAtive: {
-                ChargeWechatModel chargeWechatModel =
-                        JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
-                                ChargeWechatModel.class);
-                payInfoStr = wechatService.sdkPay(payRequest, order, chargeWechatModel);
-                break;
-            }
-            case AlipaySDK:
-                ChargeAlipayModel chargeAlipayModel =
-                        JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
-                                ChargeAlipayModel.class);
-                payInfoStr = alipayService.sdkPay(payRequest, order, chargeAlipayModel);
-                break;
-            default:
-                throw new BillException(UnipayError.PayTypeNotImpl);
-        }
-        if (StringUtils.isEmpty(payInfoStr)) {
-            throw new BillException(CommonError.SystemError);
-        }
+        String payInfoStr = shunt(order);
         orderService.saveOrder(order);
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("payData", payInfoStr);
-        jsonObject.put("extraParam", order.getExtraParam());
-        jsonObject.put("sign", Hash.md5(HashCompareAuthenticationKeyProvider.key(payRequest.getAppId()) + payInfoStr));
-        return jsonObject;
+        return warpPayInfoStr2Object(payInfoStr,order.getExtraParam(),
+                HashCompareAuthenticationKeyProvider.key(payRequest.getAppId()));
     }
 
+private String  shunt(Order order){
+    EnumPayType payType = EnumUtils.getEnum(EnumPayType.class, order.getPayType());
+    ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(order.getAppId(), payType.getCode());
+    String payInfoStr = new String();
+    switch (payType) {
+        case WechatSDK: {
+            ChargeWechatModel chargeWechatModel =
+                    JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
+                            ChargeWechatModel.class);
+            payInfoStr = wechatService.sdkPay( order, chargeWechatModel);
+            break;
+        }
+        case WechatNAtive: {
+            ChargeWechatModel chargeWechatModel =
+                    JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
+                            ChargeWechatModel.class);
+            payInfoStr = wechatService.sdkPay( order, chargeWechatModel);
+            break;
+        }
+        case AlipaySDK:
+            ChargeAlipayModel chargeAlipayModel =
+                    JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
+                            ChargeAlipayModel.class);
+            payInfoStr = alipayService.sdkPay( order, chargeAlipayModel);
+            break;
+        default:
+            throw new BillException(UnipayError.PayTypeNotImpl);
+    }
+    if (StringUtils.isEmpty(payInfoStr)) {
+        throw new BillException(CommonError.SystemError);
+    }
+    return payInfoStr;
+}
+private Object warpPayInfoStr2Object(String payInfoStr,String extraParam,String appKey){
+    JSONObject jsonObject = new JSONObject();
+    jsonObject.put("payData", payInfoStr);
+    jsonObject.put("extraParam", extraParam);
+    jsonObject.put("sign", Hash.md5(appKey + payInfoStr));
+    return jsonObject;
+}
+
+    @RequestMapping(value = "repay/{appOrderNo}", method = RequestMethod.POST)
+    @ApiOperation(value = "API继续支付", position = 5)
+    public Object rePayOrderAction(@PathVariable String appOrderNo) {
+        Order order = orderService.loadByAppOrderNo(appOrderNo,ServletRequestHelper.XU());
+        Optional.ofNullable(order).orElseThrow(() -> new BillException(UnipayError.OrderNotExists));
+        if(!orderService.rePayOrderCheck(order)){
+            throw new BillException(UnipayError.OrdeeStatusErrorOrOrderExpirsed);
+        }
+            String payInfoStr= shunt(order);
+        return  warpPayInfoStr2Object(payInfoStr,order.getExtraParam(),
+                HashCompareAuthenticationKeyProvider.key(order.getAppId()));
+
+    }
 
     @RequestMapping(value = "remoteQuery/{oid:^\\d{21}$}", method = RequestMethod.POST)
     @ApiOperation(value = "订单支付状态 远程", position = 10)

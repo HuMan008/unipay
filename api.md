@@ -34,6 +34,7 @@ Web模式 ``GET``
 | reMark | 订单备注 | String(0,200) | O | 订单备注信息。不传将使用应用申请预留订单备注。 |
 | fee | 订单金额 | int min=1 | N | 订单金额。 |
 | paymentUserID | 支付方用户ID | String(0,50) | O | 支付方用户ID.如微信的open_id |
+| autoCommit | 是否自动提交 | int | N| 默认自动0,1不自动提交 |
 | sign | 签名 |  | O | 签名，``WEB支付必传``,API支付不用传,加密方法MD5(appId+appOrderNo+payType+fee+appKey) 再转大写。 |
 |  |  |  |  |  |
 
@@ -226,8 +227,27 @@ sign的内容为md5(xxxx+appSecret(统一分配))
 
 ```
 
+# 订单继续支付
 
+## 说明
 
+订单创建成功后，由于某种原因未支付，需要重新发起支付的。
+
+##  请求路径
+
+`API模式 `  `/api/v1/repay/{appOrderNo}` `POST`
+
+`WEB模式`  `/web/repay`   `GET`
+
+## 请求参数
+| 参数名           | 说明       | 选项       | 类型 | 备注                     |
+| ---------------- | ---------- | ---------- | ---- | ------------------------ |
+| appOrderNo       | 应用订单号 | String(24) | Y    | 创建订单时候提交的订单号 |
+| appId       | 应用id | String(24) | Y    | 订单所属应用 |
+| backUrl | 返回地址 | String | N    | 不传浏览器处理   |
+| cancelUrl| 取消支付地址   | String        | Y    |                    |
+| autoCommit | 是否自动提交 | int | N| 默认自动0,1不自动提交 |
+| sign           | 签名   | | N    |    MD5(appId+appOrderNo+payType+fee+appKey) 再转大写                      |
 
 
 # 全局定义

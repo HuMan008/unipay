@@ -1,6 +1,7 @@
 package cn.gotoil.unipay.config;
 
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.ApiInfoBuilder;
@@ -27,40 +28,39 @@ import java.util.List;
 @EnableSwagger2
 public class Swagger2Config {
 
+    private boolean isDebug =true;
+
     @Bean
     public Docket createWebApi() {
         ParameterBuilder tokenPar = new ParameterBuilder();
         List<Parameter> pars = new ArrayList<>();
         tokenPar.name("gtToken").description("令牌").modelRef(new ModelRef("string")).parameterType("header").required(false).build();
         pars.add(tokenPar.build());
+        if(isDebug) {
 
-
-        return new Docket(DocumentationType.SWAGGER_2)
-//                .globalOperationParameters(pars)
-                .apiInfo(webApiInfo())
-                .groupName("WebApi接口文档")
-//                .pathMapping("/web")
-                .select()
-                //为当前包路径
-                .apis(RequestHandlerSelectors.basePackage("cn.gotoil.unipay.web.controller.admin"))
-                .paths(PathSelectors.any())
-                .build()
-                .securitySchemes(securitySchemes())
-                .securityContexts(securityContexts());
+            return new Docket(DocumentationType.SWAGGER_2)
+                    //                .globalOperationParameters(pars)
+                    .apiInfo(webApiInfo()).groupName("WebApi接口文档")
+                    //                .pathMapping("/web")
+                    .select()
+                    //为当前包路径
+                    .apis(RequestHandlerSelectors.basePackage("cn.gotoil.unipay.web.controller.admin")).paths(PathSelectors.any()).build().securitySchemes(securitySchemes()).securityContexts(securityContexts());
+        }else{
+            return new Docket(DocumentationType.SWAGGER_2);
+        }
     }
 
     @Bean
     public Docket createRestApi() {
-        return new Docket(DocumentationType.SWAGGER_2)
-                .apiInfo(restApiInfo())
-                .groupName("RestApi接口文档")
-//                .pathMapping("/api/v1")
-                .select()
-                //为当前包路径
-                .apis(RequestHandlerSelectors.basePackage("cn.gotoil.unipay.web.controller.api.v1"))
-                .paths(PathSelectors.any())
-                .build()
-                ;
+        if(isDebug) {
+            return new Docket(DocumentationType.SWAGGER_2).apiInfo(restApiInfo()).groupName("RestApi接口文档")
+                    //                .pathMapping("/api/v1")
+                    .select()
+                    //为当前包路径
+                    .apis(RequestHandlerSelectors.basePackage("cn.gotoil.unipay.web.controller.api.v1")).paths(PathSelectors.any()).build();
+        }else{
+            return null;
+        }
     }
 
 

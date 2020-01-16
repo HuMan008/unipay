@@ -29,13 +29,14 @@
         line-height: 35px;
     }
 </style>
-<body style="background-color: white" >
+<body style="background-color: white"  onload="f()">
 <input type="hidden" name="appOrderNo" th:value="${appOrderNo}" id="appOrderNo"/>
 <input type="hidden" name="orderId" th:value="${orderId}" id="orderId"/>
 <input type="hidden" name="cancelUrl" th:value="${cancelUrl}" id="cancelUrl"/>
 <input type="hidden" name="backUrl" th:value="${backUrl}" id="backUrl"/>
 <input type="hidden" name="successUrl" th:value="${successUrl}" id="successUrl"/>
 <input type="hidden" name="mwebUrl" th:value="${mwebUrl}" id="mwebUrl"/>
+<input type="hidden" name="autoCommit" th:value="${autoCommit}" id="autoCommit"/>
 
 <div class="container">
     <div class="page__hd">
@@ -102,22 +103,32 @@
 <script type="text/javascript">
 
     var back = false;
-    setTimeout(function () {
-        back = true;
-    }, 1000);
+
  function callPay(){
      var mwebUrl= document.getElementById("mwebUrl").value;
      window.location.href=mwebUrl
  }
-    var backUrl = document.getElementById("backUrl").value;
 
-    if (backUrl.length > 0) {
-        history.pushState({}, "title 1", "#");
-        // window.history.pushState(state, "title", "#");
-        window.onpopstate = function (event) {
-            location.href = backUrl;
-        };
+    function f() {
+        var backUrl = document.getElementById("backUrl").value;
+
+        if (backUrl.length > 0) {
+            history.pushState({}, "title 1", "#");
+            // window.history.pushState(state, "title", "#");
+            window.onpopstate = function (event) {
+                location.href = backUrl;
+            };
+        }
+        setTimeout(function () {
+            back = true;
+        }, 1000);
+
+        var autocommit = document.getElementById("autoCommit").value;
+        if(autocommit=="0"){
+            callPay();
+        }
     }
+
 
 
 

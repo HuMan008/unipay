@@ -111,7 +111,9 @@ public class TestController {
             ChargeWechatModel chargeWechatModel =
                     JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()), ChargeWechatModel.class);
 
-            return wechatService.pagePay(payRequest, order, chargeWechatModel, httpServletRequest, httpServletResponse);
+            return wechatService.pagePay( order, chargeWechatModel,
+                    httpServletRequest,
+                    httpServletResponse,null,true);
 
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();

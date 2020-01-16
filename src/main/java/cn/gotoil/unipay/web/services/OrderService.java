@@ -29,6 +29,13 @@ public interface OrderService {
     void checkPayRequest(PayRequest payRequest);
 
     /**
+     * 检查继续支付的订单是否可以继续支付
+     * @param order
+     * @return true 可以继续支付 ;false 不可以
+     */
+    boolean rePayOrderCheck(Order order);
+
+    /**
      * 补充请求里每天的参数
      *
      * @param payRequest

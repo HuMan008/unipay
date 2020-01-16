@@ -18,18 +18,18 @@ public interface WechatService extends BasePayService {
     String CreateOrderUrl = "https://api.mch.weixin.qq.com/pay/unifiedorder";
 
     //订单状态查询
-    String QueryOrderUrl ="https://api.mch.weixin.qq.com/pay/orderquery";
+    String QueryOrderUrl = "https://api.mch.weixin.qq.com/pay/orderquery";
 
 
     /**
      * 退款地址
      */
-    String RefundUrl  = "https://api.mch.weixin.qq.com/secapi/pay/refund";
+    String RefundUrl = "https://api.mch.weixin.qq.com/secapi/pay/refund";
 
     /**
      * 退款查询地址
      */
-    String RefundQueryUrl ="https://api.mch.weixin.qq.com/pay/refundquery";
+    String RefundQueryUrl = "https://api.mch.weixin.qq.com/pay/refundquery";
 
     enum TradeType {
         /**

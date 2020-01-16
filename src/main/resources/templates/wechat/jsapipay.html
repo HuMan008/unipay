@@ -28,7 +28,7 @@
         line-height: 35px;
     }
 </style>
-<body style="background-color: white">
+<body style="background-color: white" onload="f()" >
 
 <input type="hidden" name="appId" th:value="${appId}" id="appId"/>
 <input type="hidden" name="timeStamp" th:value="${timeStamp}" id="timeStamp"/>
@@ -41,6 +41,7 @@
 <input type="hidden" name="cancelUrl" th:value="${cancelUrl}" id="cancelUrl"/>
 <input type="hidden" name="backUrl" th:value="${backUrl}" id="backUrl"/>
 <input type="hidden" name="successUrl" th:value="${successUrl}" id="successUrl"/>
+<input type="hidden" name="autoCommit" th:value="${autoCommit}" id="autoCommit"/>
 
 
 <div class="container">
@@ -138,6 +139,8 @@
 
     function onBridgeReady() {
 
+
+
         WeixinJSBridge.invoke(
             'getBrandWCPayRequest', {
                 "appId": appId,     //公众号名称，由商户传入
@@ -177,6 +180,8 @@
             }
         );
 
+
+
     }
 
     function callPay() {
@@ -190,8 +195,14 @@
         } else {
             onBridgeReady();
         }
-
     }
+    function f() {
+        var autoCommit  = document.getElementById("autoCommit").value;
+        if(autoCommit=="0"){
+            callPay();
+        }
+    }
+
 
 
 </script>

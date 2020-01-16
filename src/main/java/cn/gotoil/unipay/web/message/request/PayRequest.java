@@ -34,8 +34,8 @@ public class PayRequest {
     @NotNull(message = "支付方式不得为空!")
     @ThirdValidation(message = "无效的支付类型,注意区分大小写", className = "cn.gotoil.unipay.utils.UtilValid", methodName =
             "validEnumPayTypeByCode", staticMethod = true)
-    @ApiModelProperty(required = true, example = "", value = "支付方式", allowEmptyValue = false, dataType = "cn.gotoil" +
-            ".unipay.model.enums.EnumPayType", position = 5)
+    @ApiModelProperty(required = true, example = "", value = "支付方式", allowEmptyValue = false, dataType =
+            "cn.gotoil" + ".unipay.model.enums.EnumPayType", position = 5)
     private String payType;
 
     /***
@@ -112,12 +112,19 @@ public class PayRequest {
     @ApiModelProperty(required = false, example = "", value = "支付方式用户ID", position = 65)
     private String paymentUserID;
 
+    /*
+     *H5支付的时候 是否自动提交
+     */
+    @Min(value = 0, message = "自动提交参数只支持0(自动)或者1(手动)！")
+    @Max(value = 1, message = "自动提交参数只支持0(自动)或者1(手动)！")
+    @ApiModelProperty(required = false, example = "", value = "进入支付页面 是否自定提交 1不自动 0 自动", position = 41)
+    private int autoCommit = 0;
+
     /**
      * 签名
      */
-    @ApiModelProperty(required = false, example = "", value = "签名，WEB支付必传,API支付不用传,加密为 " +
-            "MD5(appId+appOrderNo+payType+fee+appKey) 再转大写 ",
-            position = 70)
+    @ApiModelProperty(required = false, example = "", value = "签名，WEB支付必传,API支付不用传,加密为 " + "MD5(appId+appOrderNo" +
+            "+payType+fee+appKey) 再转大写 ", position = 70)
     private String sign;
 }
 

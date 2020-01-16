@@ -416,6 +416,7 @@ public class WechatNotifyController {
         JSONObject jo  = JSONObject.parseObject(paramD);
 
         model.addObject("backUrl",jo.getString("backUrl"));
+        model.addObject("autoCommit",jo.getString("autoCommit"));
         model.addObject("cancelUrl",jo.getString("cancelUrl"));
        return  model;
     }

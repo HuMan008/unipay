@@ -21,6 +21,7 @@ public enum UnipayError implements BillError {
     OrderAppMatchError(4021, "订单所属匹配错误"),
 
     OrderNotExists(4020, "订单不存在"),
+    OrdeeStatusErrorOrOrderExpirsed(4021,"订单不是待支付状态或者已过期"),
 
     IllegalRequest(5000, "非法请求"),
     PageRefreshError(4021,"本页面禁止刷新,请返回后重试！"),
