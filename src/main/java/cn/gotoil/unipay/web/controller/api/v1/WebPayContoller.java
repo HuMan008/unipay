@@ -199,7 +199,6 @@ public class WebPayContoller {
         if (!isDebug) {
             String signStr =
                     order.getAppId() + order.getAppOrderNo() + order.getPayType() + order.getFee() + appService.key(order.getAppId());
-            log.error("签前:{}\n签后{}\n老贼:{}", signStr, Hash.md5(signStr).toUpperCase(), continuePayRequest.getSign());
             if (StringUtils.isEmpty(continuePayRequest.getSign()) || !continuePayRequest.getSign().equals(Hash.md5(signStr).toUpperCase())) {
                 return new ModelAndView(UtilString.makeErrorPage(UnipayError.IllegalRequest,
                         continuePayRequest.getBackUrl()));
