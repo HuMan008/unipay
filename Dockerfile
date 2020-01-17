@@ -5,11 +5,10 @@ LABEL maintainer="s@petroun.com"
 RUN mkdir /application
 RUN mkdir /application/config
 RUN mkdir /application/logs
-RUN mkdir /application/certs
 
 COPY ./build/libs/unipay-1.0-SNAPSHOT.jar /application/app.jar
 # 增加证书目录 2019年12月23日10:29:41 苏亚江
-COPY ./certs /application -f -r
+COPY certs /application -f -r
 
 WORKDIR /application
 
