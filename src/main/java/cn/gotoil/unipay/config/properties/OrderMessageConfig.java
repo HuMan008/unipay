@@ -25,4 +25,6 @@ import java.util.List;
 public class OrderMessageConfig {
 
     List<MessageQueueDefine> messageQueues = new ArrayList<>();
+
+    List<RefundMessageQueueDefine> refundMessageQueues = new ArrayList<>();
 }

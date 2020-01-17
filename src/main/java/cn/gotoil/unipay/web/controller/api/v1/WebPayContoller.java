@@ -16,6 +16,7 @@ import cn.gotoil.unipay.utils.UtilBase64;
 import cn.gotoil.unipay.utils.UtilMySign;
 import cn.gotoil.unipay.utils.UtilRequest;
 import cn.gotoil.unipay.utils.UtilString;
+import cn.gotoil.unipay.web.message.request.ContinuePayRequest;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.services.*;
 import com.alibaba.fastjson.JSON;
@@ -25,7 +26,6 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.aspectj.weaver.SignatureUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -43,7 +43,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.time.Instant;
-import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 /**
@@ -110,13 +110,19 @@ public class WebPayContoller {
             EnumPayType payType = EnumUtils.getEnum(EnumPayType.class, payRequest.getPayType());
             ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(payRequest.getAppId(),
                     payType.getCode());
+            ContinuePayRequest continuePayRequest = new ContinuePayRequest();
+            continuePayRequest.setAppId(payRequest.getAppId());
+            continuePayRequest.setAppOrderNo(payRequest.getAppOrderNo());
+            continuePayRequest.setBackUrl(payRequest.getBackUrl());
+            continuePayRequest.setCancelUrl(payRequest.getCancelUrl());
+            continuePayRequest.setAutoCommit(payRequest.getAutoCommit());
             switch (payType) {
                 case WechatH5: {
                     ChargeWechatModel chargeWechatModel =
                             JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
                                     ChargeWechatModel.class);
-                    return wechatService.pagePay(payRequest, order, chargeWechatModel, httpServletRequest,
-                            httpServletResponse);
+                    return wechatService.pagePay(order, chargeWechatModel, httpServletRequest, httpServletResponse,
+                            continuePayRequest, true);
                 }
                 case WechatJSAPI: {
                     ChargeWechatModel chargeWechatModel =
@@ -140,13 +146,13 @@ public class WebPayContoller {
                         map.put("s_time", String.valueOf(time));
                         String paramString = UtilMySign.makeSignStr(map);
                         String signStr =
-                                String.format(path,chargeWechatModel.getAppID()) + "|" + wechat_open_id_grant_id +
-                                        "|" + time + "|{" + paramString+"}";
+                                String.format(path, chargeWechatModel.getAppID()) + "|" + wechat_open_id_grant_id +
+                                        "|" + time + "|{" + paramString + "}";
                         String sign = Hmac.SHA1(signStr, wechat_open_id_grant_key);
-//                        wechat_open_id_grant_url: "http://thirdparty.guotongshiyou.cn/third_party/oauth/wechat/%s?app_id=%s&sign=%s&s_time=%s&redirect=%s"
-                        String redirectUrlP = String.format(wechat_open_id_grant_url,
-                               chargeWechatModel.getAppID(),wechat_open_id_grant_id,
-                                sign, time,domain + "/web/afterwechatgrant?param=" + param);
+                        //                        wechat_open_id_grant_url: "http://thirdparty.guotongshiyou
+                        // .cn/third_party/oauth/wechat/%s?app_id=%s&sign=%s&s_time=%s&redirect=%s"
+                        String redirectUrlP = String.format(wechat_open_id_grant_url, chargeWechatModel.getAppID(),
+                                wechat_open_id_grant_id, sign, time, domain + "/web/afterwechatgrant?param=" + param);
                         try {
                             //这里转发了，后面没事干了。这个时候订单还没保存
                             httpServletResponse.sendRedirect(redirectUrlP);
@@ -157,20 +163,15 @@ public class WebPayContoller {
                                     payRequest.getBackUrl()));
                         }
                     }
-                    return wechatService.pagePay(payRequest, order, chargeWechatModel, httpServletRequest,
-                            httpServletResponse);
+                    return wechatService.pagePay(order, chargeWechatModel, httpServletRequest, httpServletResponse,
+                            continuePayRequest, true);
                 }
                 case AlipayH5:
                     ChargeAlipayModel chargeAlipayModel =
                             JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
                                     ChargeAlipayModel.class);
-                    int x =  orderService.saveOrder(order);
-                    if(x!=1){
-                        return new ModelAndView(UtilString.makeErrorPage(UnipayError.PageRefreshError,
-                                payRequest.getBackUrl()));
-                    }
-                    return alipayService.pagePay(payRequest, order, chargeAlipayModel, httpServletRequest,
-                            httpServletResponse);
+                    return alipayService.pagePay(order, chargeAlipayModel, httpServletRequest, httpServletResponse,
+                            continuePayRequest, true);
                 default:
                     throw new BillException(UnipayError.PayTypeNotImpl);
             }
@@ -181,6 +182,66 @@ public class WebPayContoller {
         }
     }
 
+    @NeedLogin(value = false)
+    @RequestMapping(value = "repay", method = RequestMethod.GET)
+    @ApiOperation(value = "Web订单重新支付", position = 5)
+    public ModelAndView repayOrder(ContinuePayRequest continuePayRequest, HttpServletRequest httpServletRequest,
+                                   HttpServletResponse httpServletResponse) {
+
+        Order order = orderService.loadByAppOrderNo(continuePayRequest.getAppOrderNo(), continuePayRequest.getAppId());
+        Optional.ofNullable(order).orElseThrow(() -> new BillException(UnipayError.OrderNotExists));
+
+        if (!orderService.rePayOrderCheck(order)) {
+            throw new BillException(UnipayError.OrdeeStatusErrorOrOrderExpirsed);
+        }
+        //校验SIGN
+        //        appId+appOrderNo+payType+fee+appKey
+        if (!isDebug) {
+            String signStr =
+                    order.getAppId() + order.getAppOrderNo() + order.getPayType() + order.getFee() + appService.key(order.getAppId());
+            if (StringUtils.isEmpty(continuePayRequest.getSign()) || !continuePayRequest.getSign().equals(Hash.md5(signStr).toUpperCase())) {
+                return new ModelAndView(UtilString.makeErrorPage(UnipayError.IllegalRequest,
+                        continuePayRequest.getBackUrl()));
+            }
+        }
+        try {
+
+            //校验订单是否有效
+
+            EnumPayType payType = EnumUtils.getEnum(EnumPayType.class, order.getPayType());
+            ChargeConfig chargeConfig = chargeConfigService.loadByChargeId(order.getChargeAccountId());
+            switch (payType) {
+                case WechatH5: {
+                    ChargeWechatModel chargeWechatModel =
+                            JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
+                                    ChargeWechatModel.class);
+                    return wechatService.pagePay(order, chargeWechatModel, httpServletRequest, httpServletResponse,
+                            continuePayRequest, false);
+                }
+                case WechatJSAPI: {
+                    ChargeWechatModel chargeWechatModel =
+                            JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
+                                    ChargeWechatModel.class);
+                    return wechatService.pagePay(order, chargeWechatModel, httpServletRequest, httpServletResponse,
+                            continuePayRequest, false);
+                }
+                case AlipayH5:
+                    ChargeAlipayModel chargeAlipayModel =
+                            JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
+                                    ChargeAlipayModel.class);
+
+                    return alipayService.pagePay(order, chargeAlipayModel, httpServletRequest, httpServletResponse,
+                            continuePayRequest, false);
+                default:
+                    throw new BillException(UnipayError.PayTypeNotImpl);
+            }
+        } catch (BillException e) {
+            return new ModelAndView(UtilString.makeErrorPage(e.getTickcode(), e.getMessage(),
+                    continuePayRequest.getBackUrl()));
+        } catch (Exception e) {
+            return new ModelAndView(UtilString.makeErrorPage(CommonError.SystemError, continuePayRequest.getBackUrl()));
+        }
+    }
 
     @NeedLogin(value = false)
     @RequestMapping(value = "error")
@@ -204,8 +265,7 @@ public class WebPayContoller {
                                    @RequestParam String unionid, @RequestParam String s_time, String sign) throws Exception {
         TreeMap<String, String> map = new TreeMap<>(UtilRequest.request2Map(httpServletRequest));
         String playLoadStr =
-                httpServletRequest.getRequestURI() + "|" + wechat_open_id_grant_id + "|" + s_time + "|{" +UtilMySign.makeSignStr(map)+
-                        "}";
+                httpServletRequest.getRequestURI() + "|" + wechat_open_id_grant_id + "|" + s_time + "|{" + UtilMySign.makeSignStr(map) + "}";
         String mySign = Hmac.SHA1(playLoadStr, wechat_open_id_grant_key);
 
         if (!mySign.equals(sign)) {
@@ -220,8 +280,10 @@ public class WebPayContoller {
             //            orderService.checkPayRequest(payRequest);
             //填充请求 有些参数请求里没传的
             orderService.fillPayRequest(payRequest);
+
             //创建订单（不持久化）
             Order order = orderService.warpPayRequest2UnionOrder(payRequest);
+            order.setPaymentUid(payRequest.getPaymentUserID());
 
             EnumPayType payType = EnumUtils.getEnum(EnumPayType.class, payRequest.getPayType());
             ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(payRequest.getAppId(),
@@ -229,8 +291,14 @@ public class WebPayContoller {
 
             ChargeWechatModel chargeWechatModel =
                     JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()), ChargeWechatModel.class);
-
-            return wechatService.pagePay(payRequest, order, chargeWechatModel, httpServletRequest, httpServletResponse);
+            ContinuePayRequest continuePayRequest = new ContinuePayRequest();
+            continuePayRequest.setAppId(payRequest.getAppId());
+            continuePayRequest.setAppOrderNo(payRequest.getAppOrderNo());
+            continuePayRequest.setBackUrl(payRequest.getBackUrl());
+            continuePayRequest.setCancelUrl(payRequest.getCancelUrl());
+            continuePayRequest.setAutoCommit(payRequest.getAutoCommit());
+            return wechatService.pagePay(order, chargeWechatModel, httpServletRequest, httpServletResponse,
+                    continuePayRequest, true);
 
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();

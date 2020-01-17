@@ -7,17 +7,12 @@ import cn.gotoil.bill.tools.encoder.Hash;
 import cn.gotoil.bill.web.message.BillApiResponse;
 import cn.gotoil.unipay.config.consts.ConstsRabbitMQ;
 import cn.gotoil.unipay.exceptions.UnipayError;
+import cn.gotoil.unipay.futrue.RefundFutrue;
 import cn.gotoil.unipay.model.ChargeAlipayModel;
 import cn.gotoil.unipay.model.ChargeWechatModel;
 import cn.gotoil.unipay.model.OrderNotifyBean;
-import cn.gotoil.unipay.model.entity.App;
-import cn.gotoil.unipay.model.entity.ChargeConfig;
-import cn.gotoil.unipay.model.entity.Order;
-import cn.gotoil.unipay.model.entity.OrderExample;
-import cn.gotoil.unipay.model.enums.EnumOrderMessageType;
-import cn.gotoil.unipay.model.enums.EnumOrderStatus;
-import cn.gotoil.unipay.model.enums.EnumPayType;
-import cn.gotoil.unipay.model.enums.EnumStatus;
+import cn.gotoil.unipay.model.entity.*;
+import cn.gotoil.unipay.model.enums.*;
 import cn.gotoil.unipay.model.mapper.OrderMapper;
 import cn.gotoil.unipay.utils.UtilBase64;
 import cn.gotoil.unipay.utils.UtilMoney;
@@ -56,6 +51,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 @Slf4j
+@SuppressWarnings("unchecked")
 public class OrderServiceImpl implements OrderService {
 
     @Autowired
@@ -75,6 +71,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     RabbitTemplate rabbitTemplate;
+    @Autowired
+    RefundService refundService;
 
     /**
      * 校验支付请求参数
@@ -98,6 +96,26 @@ public class OrderServiceImpl implements OrderService {
         Optional.ofNullable(chargeConfig).orElseThrow(() -> new BillException(UnipayError.AppNotSupportThisPay));
         Optional.of(chargeConfig).filter(c -> EnumStatus.Enable.getCode() == c.getStatus()).orElseThrow(() -> new BillException(UnipayError.ChargeConfigIsDisabled));
 
+    }
+
+
+    /**
+     * 检查继续支付的订单是否可以继续支付
+     *
+     * @param order
+     * @return true 可以继续支付 ;false 不可以
+     */
+    @Override
+    public boolean rePayOrderCheck(Order order) {
+        if (EnumOrderStatus.Created.getCode() != order.getStatus()) {
+            //订单不是待支付状态
+            return false;
+        }
+        // 订单过期了 当前时间 > (订单创建时间+过期时间)
+        if (new Date().after(DateUtils.dateAdd(order.getCreatedAt(), 0, 0, 0, 0, order.getExpiredTimeMinute(), 0))) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -141,7 +159,8 @@ public class OrderServiceImpl implements OrderService {
         //缓存里没有
         if (!bb) {
             Order order = loadByAppOrderNo(appOrderNo, appId);
-            if (order == null) { //缓存里没有 数据库也灭有
+            // 缓存里没有 数据库也灭有
+            if (order == null) {
                 return true;
             } else { // 缓存里没有 数据库里有
                 return false;
@@ -246,8 +265,8 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public int saveOrder(Order order) {
-        log.info("订单【{}】\t应用订单号【{}】\t下单金额【{}】\t支付方式【{}】被创建", order.getId(), order.getAppOrderNo(),
-                order.getFee(), EnumUtils.getEnum(EnumPayType.class, order.getPayType()).getDescp());
+        log.info("订单【{}】\t应用订单号【{}】\t下单金额【{}】\t支付方式【{}】被创建", order.getId(), order.getAppOrderNo(), order.getFee(),
+                EnumUtils.getEnum(EnumPayType.class, order.getPayType()).getDescp());
         return orderMapper.insert(order);
     }
 
@@ -301,7 +320,7 @@ public class OrderServiceImpl implements OrderService {
                 if (x == 1) {
                     log.info("订单【{}】状态更新为支付成功并发送通知", order.getId());
                     OrderNotifyBean orderNotifyBean =
-                            OrderNotifyBean.builder().unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appOrderNO(order.getAppOrderNo()).status(newOrder.getStatus()).orderFee(order.getFee()).refundFee(0).payFee(orderQueryResponse.getPayFee()).arrFee(orderQueryResponse.getArrFee()).totalRefundFee(0).paymentId(newOrder.getPaymentId()).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(newOrder.getOrderPayDatetime()).
+                            OrderNotifyBean.builder().unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appOrderNO(order.getAppOrderNo()).status(newOrder.getStatus()).orderFee(order.getFee()).payFee(orderQueryResponse.getPayFee()).arrFee(orderQueryResponse.getArrFee()).paymentId(newOrder.getPaymentId()).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(newOrder.getOrderPayDatetime()).
                             timeStamp(Instant.now().getEpochSecond()).build();
                     String appSecret = appService.key(order.getAppId());
                     String signStr = UtilMySign.sign(orderNotifyBean, appSecret);
@@ -373,7 +392,7 @@ public class OrderServiceImpl implements OrderService {
             return modelAndView;
         } else {
             OrderNotifyBean orderNotifyBean =
-                    OrderNotifyBean.builder().appId(order.getAppId()).unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appOrderNO(order.getAppOrderNo()).paymentId(order.getPaymentId()).status(order.getStatus()).orderFee(order.getFee()).payFee(order.getPayFee()).arrFee(order.getArrFee()).refundFee(0).totalRefundFee(0).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(order.getOrderPayDatetime()).timeStamp(Instant.now().getEpochSecond()).build();
+                    OrderNotifyBean.builder().appId(order.getAppId()).unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appOrderNO(order.getAppOrderNo()).paymentId(order.getPaymentId()).status(order.getStatus()).orderFee(order.getFee()).payFee(order.getPayFee()).arrFee(order.getArrFee()).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(order.getOrderPayDatetime()).timeStamp(Instant.now().getEpochSecond()).build();
             String param = UtilBase64.encode(JSONObject.toJSONString(orderNotifyBean).getBytes()).replaceAll("\\+",
                     "GT680");
             String sign = Hash.md5(param + appService.key(order.getAppId()));
@@ -396,7 +415,7 @@ public class OrderServiceImpl implements OrderService {
             throw new BillException(UnipayError.OrderStatusIsNotPaySuccess);
         }
         OrderNotifyBean orderNotifyBean =
-                OrderNotifyBean.builder().unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appOrderNO(order.getAppOrderNo()).status(order.getStatus()).orderFee(order.getFee()).refundFee(0).payFee(order.getPayFee()).arrFee(order.getArrFee()).totalRefundFee(0).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(order.getOrderPayDatetime()).timeStamp(Instant.now().getEpochSecond()).paymentId(order.getPaymentId()).sendType((byte) 1).build();
+                OrderNotifyBean.builder().unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appOrderNO(order.getAppOrderNo()).status(order.getStatus()).orderFee(order.getFee()).payFee(order.getPayFee()).arrFee(order.getArrFee()).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(order.getOrderPayDatetime()).timeStamp(Instant.now().getEpochSecond()).paymentId(order.getPaymentId()).sendType((byte) 1).build();
         String appSecret = appService.key(order.getAppId());
         String signStr = UtilMySign.sign(orderNotifyBean, appSecret);
         orderNotifyBean.setSign(signStr);
@@ -405,9 +424,22 @@ public class OrderServiceImpl implements OrderService {
         return new BillApiResponse(0, "已加入消息队列", null);
     }
 
+    @Override
+    public BillApiResponse manualSendNotify(Refund refund) {
+        assert refund != null;
+        if (EnumRefundStatus.WaitSure.getCode() == refund.getProcessResult().byteValue() || EnumRefundStatus.Refunding.getCode() == refund.getProcessResult().byteValue()) {
+            throw new BillException(UnipayError.RefundStatusIsOver);
+        }
+        RefundFutrue refundFutrue = new RefundFutrue(refund.getRefundOrderId(), refundService, this, appService,
+                rabbitTemplate);
+        refundFutrue.afterFetchRefundResult(true);
+        return new BillApiResponse(0, "已加入消息队列", null);
+    }
+
 
     /**
      * 订单状态本地查询
+     *
      * @param appOrderNo
      * @param appId
      * @return
@@ -422,12 +454,13 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 订单状态本地查询
+     *
      * @param order
      * @return
      */
     @Override
     public OrderQueryResponse orderQueryLocal(Order order) {
-        assert order !=null;
+        assert order != null;
         return OrderQueryResponse.warpOrderToOrderQuyerResponse(order);
     }
 }

@@ -4,9 +4,9 @@ spring:
   main:
     allow-bean-definition-overriding: true
   datasource:
-#    url: "jdbc:mysql://201.201.201.173:3306/banshee?characterEncoding=utf8"
-#    username:  dev
-#    password:  devMysql!@#!123
+    #    url: "jdbc:mysql://201.201.201.173:3306/banshee?characterEncoding=utf8"
+    #    username:  dev
+    #    password:  devMysql!@#!123
     url: "jdbc:mysql://172.200.209.13:3306/unipayDEV?characterEncoding=utf8"
     username:  dev
     password:  ChongQing@MySQL3306
@@ -43,7 +43,7 @@ logging:
   level:
     org.springframework.web: DEBUG
     cn.gotoil.unipay.model.mapper: ERROR
-    cn.gotoil: DEBUG
+    cn.gotoil: INFO
   path: logs
 
 isDebug: true
@@ -58,7 +58,7 @@ wechat_open_id_grant_key: "ljofjdfjdsf324234"
 
 bill:
   defaultAuthenticationType: Signature
-#  defaultAuthenticationType: NONE
+  #  defaultAuthenticationType: NONE
   keyOfHashCompareAuthenticationPathPrefix: "/api/v1/"
   apiResponseAroundControllerPackagesExecution: "execution(* cn.gotoil.unipay.controller..*.*Action(..))"
   keyOfHashCompareAuthenticationProviderClass: "cn.gotoil.unipay.classes.HashCompareAuthenticationKeyProvider"

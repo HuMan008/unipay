@@ -3,7 +3,8 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
     <title>微信支付</title>
     <!--<link href="https://cdn.bootcss.com/weui/1.1.2/style/weui.css" rel="stylesheet">-->
     <!--<link href="https://cdn.bootcss.com/weui/1.1.2/style/weui.min.css" rel="stylesheet">-->
@@ -28,21 +29,14 @@
         line-height: 35px;
     }
 </style>
-<body style="background-color: white" onload="f()" >
-
-<input type="hidden" name="appId" th:value="${appId}" id="appId"/>
-<input type="hidden" name="timeStamp" th:value="${timeStamp}" id="timeStamp"/>
-<input type="hidden" name="nonceStr" th:value="${nonceStr}" id="nonceStr"/>
-<input type="hidden" name="package" th:value="${package}" id="package"/>
-<input type="hidden" name="paySign" th:value="${paySign}" id="paySign"/>
-<input type="hidden" name="signType" th:value="${signType}" id="signType"/>
+<body style="background-color: white"  onload="f()">
 <input type="hidden" name="appOrderNo" th:value="${appOrderNo}" id="appOrderNo"/>
 <input type="hidden" name="orderId" th:value="${orderId}" id="orderId"/>
 <input type="hidden" name="cancelUrl" th:value="${cancelUrl}" id="cancelUrl"/>
 <input type="hidden" name="backUrl" th:value="${backUrl}" id="backUrl"/>
 <input type="hidden" name="successUrl" th:value="${successUrl}" id="successUrl"/>
+<input type="hidden" name="mwebUrl" th:value="${mwebUrl}" id="mwebUrl"/>
 <input type="hidden" name="autoCommit" th:value="${autoCommit}" id="autoCommit"/>
-
 
 <div class="container">
     <div class="page__hd">
@@ -103,105 +97,40 @@
     </div>
 
 </div>
+
 </body>
 
 <script type="text/javascript">
 
     var back = false;
-    setTimeout(function () {
-        back = true;
-    }, 1000);
-    var appId = document.getElementById("appId").value;
 
+ function callPay(){
+     var mwebUrl= document.getElementById("mwebUrl").value;
+     window.location.href=mwebUrl
+ }
 
-    var timeStamp = document.getElementById("timeStamp").value;
-
-    var nonceStr = document.getElementById("nonceStr").value;
-
-    var package = document.getElementById("package").value;
-
-    var paySign = document.getElementById("paySign").value;
-    var backUrl = document.getElementById("backUrl").value;
-    var appOrderNo = document.getElementById("appOrderNo").value;
-    var cancelUrl = document.getElementById("cancelUrl").value;
-    var signType = document.getElementById("signType").value;
-    var successUrl = document.getElementById("successUrl").value;
-
-
-    if (backUrl.length > 0) {
-        history.pushState({}, "title 1", "#");
-        // window.history.pushState(state, "title", "#");
-        window.onpopstate = function (event) {
-            location.href = backUrl;
-        };
-    }
-
-
-    function onBridgeReady() {
-
-
-
-        WeixinJSBridge.invoke(
-            'getBrandWCPayRequest', {
-                "appId": appId,     //公众号名称，由商户传入
-                "timeStamp": timeStamp,         //时间戳，自1970年以来的秒数
-                "nonceStr": nonceStr, //随机串
-                "package": package,
-                "signType": signType,         //微信签名方式：
-                "paySign": paySign //微信签名
-            },
-            function (data) {
-                // var str = JSON.stringify(data);
-                switch (data.err_msg) {
-                    case 'get_brand_wcpay_request:cancel':
-                        if (cancelUrl) {
-                            window.location.href = cancelUrl;
-                            break;
-                        } else {
-                            // window.history.back();
-                            break;
-                        }
-
-                    case 'get_brand_wcpay_request:fail':
-                        alert("支付失败")
-                        break;
-                    case 'get_brand_wcpay_request:ok':
-                        // if (backUrl && appOrderNo){
-                        //     alert(backUrl+appOrderNo);
-                        //     window.location.href = backUrl + appOrderNo;
-                        //     break;
-                        // }
-                        if (successUrl) {
-                            window.location.href = successUrl;
-                        }
-                        break;
-                }
-                window._ajax = null;
-            }
-        );
-
-
-
-    }
-
-    function callPay() {
-        if (typeof WeixinJSBridge == "undefined") {
-            if (document.addEventListener) {
-                document.addEventListener('WeixinJSBridgeReady', onBridgeReady, false);
-            } else if (document.attachEvent) {
-                document.attachEvent('WeixinJSBridgeReady', onBridgeReady);
-                document.attachEvent('onWeixinJSBridgeReady', onBridgeReady);
-            }
-        } else {
-            onBridgeReady();
-        }
-    }
     function f() {
-        var autoCommit  = document.getElementById("autoCommit").value;
-        if(autoCommit=="0"){
+        var backUrl = document.getElementById("backUrl").value;
+
+        if (backUrl.length > 0) {
+            history.pushState({}, "title 1", "#");
+            // window.history.pushState(state, "title", "#");
+            window.onpopstate = function (event) {
+                location.href = backUrl;
+            };
+        }
+        setTimeout(function () {
+            back = true;
+        }, 1000);
+
+        var autocommit = document.getElementById("autoCommit").value;
+        if(autocommit=="0"){
             callPay();
         }
     }
+
+
+
 
 
 

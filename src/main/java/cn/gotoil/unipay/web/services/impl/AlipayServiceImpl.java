@@ -1,6 +1,7 @@
 package cn.gotoil.unipay.web.services.impl;
 
 import cn.gotoil.bill.exception.BillException;
+import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.ChargeAccount;
 import cn.gotoil.unipay.model.ChargeAlipayModel;
 import cn.gotoil.unipay.model.entity.Order;
@@ -10,7 +11,7 @@ import cn.gotoil.unipay.model.enums.EnumRefundStatus;
 import cn.gotoil.unipay.model.mapper.RefundMapper;
 import cn.gotoil.unipay.utils.UtilMoney;
 import cn.gotoil.unipay.utils.UtilString;
-import cn.gotoil.unipay.web.message.request.PayRequest;
+import cn.gotoil.unipay.web.message.request.ContinuePayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.message.response.OrderRefundResponse;
 import cn.gotoil.unipay.web.message.response.RefundQueryResponse;
@@ -59,14 +60,19 @@ public class AlipayServiceImpl implements AlipayService {
     /**
      * 页面支付
      *
-     * @param payRequest
      * @param order
      * @param chargeConfig
+     * @param httpServletRequest
+     * @param httpServletResponse
+     * @param continuePayRequest
+     * @param needSave
      * @return
      */
     @Override
-    public ModelAndView pagePay(PayRequest payRequest, Order order, ChargeAccount chargeConfig,
-                                HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+    public ModelAndView pagePay(Order order, ChargeAccount chargeConfig, HttpServletRequest httpServletRequest,
+                                HttpServletResponse httpServletResponse, ContinuePayRequest continuePayRequest,
+                                boolean needSave) {
+
 
         ChargeAlipayModel chargeModel = (ChargeAlipayModel) chargeConfig;
 
@@ -81,8 +87,8 @@ public class AlipayServiceImpl implements AlipayService {
         alipayTradeWapPayModel.setSubject(UrlEscapers.urlFormParameterEscaper().escape(order.getSubjects()));
         alipayTradeWapPayModel.setTimeoutExpress(order.getExpiredTimeMinute() + "m");
         alipayTradeWapPayModel.setTotalAmount(UtilMoney.fenToYuan(order.getFee(), false));
-        if (StringUtils.isNotEmpty(payRequest.getCancelUrl())) {
-            alipayTradeWapPayModel.setQuitUrl(payRequest.getCancelUrl());
+        if (StringUtils.isNotEmpty(continuePayRequest.getCancelUrl())) {
+            alipayTradeWapPayModel.setQuitUrl(continuePayRequest.getCancelUrl());
         }
         alipayTradeWapPayModel.setProductCode("QUICK_WAP_WAY");
         alipayTradeWapPayRequest.setBizModel(alipayTradeWapPayModel);
@@ -94,6 +100,13 @@ public class AlipayServiceImpl implements AlipayService {
 
             AlipayTradeWapPayResponse alipayTradeWapPayResponse = alipayClient.pageExecute(alipayTradeWapPayRequest);
             if (alipayTradeWapPayResponse.isSuccess()) {
+                if (needSave) {
+                    int x = orderService.saveOrder(order);
+                    if (x != 1) {
+                        return new ModelAndView(UtilString.makeErrorPage(UnipayError.PageRefreshError,
+                                continuePayRequest.getBackUrl()));
+                    }
+                }
                 modelAndView.addObject("from", alipayTradeWapPayResponse.getBody());
             } else {
                 modelAndView.addObject("errorCode", 5000);
@@ -112,13 +125,12 @@ public class AlipayServiceImpl implements AlipayService {
     /**
      * SDK 支付 返回JSON
      *
-     * @param payRequest
      * @param order
      * @param chargeConfig
      * @return
      */
     @Override
-    public String sdkPay(PayRequest payRequest, Order order, ChargeAccount chargeConfig) {
+    public String sdkPay(Order order, ChargeAccount chargeConfig) {
         ChargeAlipayModel chargeModel = (ChargeAlipayModel) chargeConfig;
         //实例化客户端
         AlipayClient alipayClient = new DefaultAlipayClient(GATEWAYURL, chargeModel.getAppID(),
@@ -130,7 +142,7 @@ public class AlipayServiceImpl implements AlipayService {
             alipayTradeAppPayModel.setBody(order.getDescp());
             alipayTradeAppPayModel.setSubject(order.getSubjects());
             alipayTradeAppPayModel.setOutTradeNo(order.getId());
-            alipayTradeAppPayModel.setTimeoutExpress(payRequest.getExpireOutTime() + "m");
+            alipayTradeAppPayModel.setTimeoutExpress(order.getExpiredTimeMinute() + "m");
             alipayTradeAppPayModel.setTotalAmount(UtilMoney.fenToYuan(order.getFee(), false));
             alipayTradeAppPayRequest.setBizModel(alipayTradeAppPayModel);
             alipayTradeAppPayRequest.setNotifyUrl(domain + "/payment/alipay/" + order.getId());
@@ -235,7 +247,7 @@ public class AlipayServiceImpl implements AlipayService {
         request.setBizModel(model);
         try {
             AlipayTradeRefundResponse response = client.execute(request);
-            if (response.isSuccess()) {
+            if (response.isSuccess() && "Y".equalsIgnoreCase(response.getFundChange())) {
                 refund.setProcessResult(EnumRefundStatus.WaitSure.getCode());
                 refund.setStatusUpdateDatetime(new Date());
                 refund.setUpdateAt(refund.getStatusUpdateDatetime());

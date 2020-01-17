@@ -7,6 +7,8 @@ import cn.gotoil.bill.web.message.BillApiResponse;
 import cn.gotoil.unipay.config.consts.ConstsRole;
 import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.entity.Order;
+import cn.gotoil.unipay.model.entity.Refund;
+import cn.gotoil.unipay.model.enums.EnumOrderMessageType;
 import cn.gotoil.unipay.model.enums.EnumOrderStatus;
 import cn.gotoil.unipay.model.mapper.ext.ExtOrderQueryMapper;
 import cn.gotoil.unipay.web.message.request.admin.OrderQueryListRequest;
@@ -24,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -115,17 +118,28 @@ ExtOrderQueryMapper extOrderQueryMapper;
     @RequestMapping(value = "getNotifyLog/{orderId:^\\d{21}$}", method = RequestMethod.GET)
     @NeedLogin     @HasRole(values = {ConstsRole.ADMIN,ConstsRole.ORDER})
 
-    public Object getNotifyLogListAction(@PathVariable String orderId){
-        return noticeLogService.listByOrderId(orderId);
+    public Object getNotifyLogListAction(@PathVariable String orderId,@RequestParam  String type){
+        return noticeLogService.listByOrderId(orderId,type);
     }
 
-    @RequestMapping(value = "doNotify/{orderId:^\\d{21}$}", method = RequestMethod.GET)
+    @RequestMapping(value = {"doNotify/{method}/{orderId:^\\d{21}$}","doNotify/{method}/{orderId:r_\\d{21}_\\d+}"},
+            method =
+            RequestMethod.GET)
     @NeedLogin  @HasRole(values = {ConstsRole.ADMIN,ConstsRole.ORDER})
-    public Object sendNotifyAction(@PathVariable String orderId){
-        Order order = orderService.loadByOrderID(orderId);
-        if(order==null){
-            throw new BillException(UnipayError.OrderNotExists);
+    public Object sendNotifyAction(@PathVariable String orderId ,@PathVariable(required = true) String method){
+        if(EnumOrderMessageType.PAY.name().equalsIgnoreCase(method)){
+            Order order = orderService.loadByOrderID(orderId);
+            if(order==null){
+                throw new BillException(UnipayError.OrderNotExists);
+            }
+            return  orderService.manualSendNotify(order);
+        }else{
+            Refund refund = refundService.loadById(orderId);
+            if(refund ==null ){
+                throw new BillException(UnipayError.RefundQueryIdError);
+            }
+            return  orderService.manualSendNotify(refund);
         }
-        return  orderService.manualSendNotify(order);
+
     }
 }

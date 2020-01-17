@@ -76,4 +76,9 @@ public interface RefundService {
      * 更新退款记录
      */
     int updateRefund(Refund dbRefund, Refund newRefund);
+
+    /**
+     * 根据退款订单id找退款对象
+     */
+    Refund loadById(String refundId);
 }

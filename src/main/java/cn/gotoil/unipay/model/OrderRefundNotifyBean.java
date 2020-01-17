@@ -9,16 +9,16 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 /**
- *  订单支付  通知内容定义
+ *  退款通知
  *
  * @author think <syj247@qq.com>、
- * @date 2019-9-12、16:28
+ * @date 2020年1月8日17:31:24
  */
 @Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderNotifyBean implements Serializable {
+public class OrderRefundNotifyBean implements Serializable {
 
     /**
      * 应用号
@@ -33,16 +33,37 @@ public class OrderNotifyBean implements Serializable {
      * 通知类型 PAY 支付通知    REFUND 退款通知
      */
     @Builder.Default
-    String method = EnumOrderMessageType.PAY.name();
+    String method = EnumOrderMessageType.REFUND.name();
 
     /**
      * 传过来的订单号
      */
     String appOrderNO;
+
     /**
-     * 支付方订单号
+     *  应用退款订单号
      */
-    String paymentId;
+    String  appRefundOrderNo;
+
+    /**
+     * 统一退款订单号
+     */
+    String unionRefundOrderID;
+
+    /**
+     * 申请金额
+     */
+    int applyFee;
+
+    /**
+     * 申请时间 10位
+     */
+    long  applyDateTime;
+
+    /**
+     * 申请原因/备注
+     */
+    String remake;
 
     /**
      * 状态
@@ -51,35 +72,24 @@ public class OrderNotifyBean implements Serializable {
     byte status = -127;
 
     /**
-     * 订单金额
+     * 本次退款金额
      */
-    @Builder.Default
-    int orderFee = 0;
+    int passFee ;
+
     /**
-     * 支付金额
+     * 完成时间 10位
      */
-    @Builder.Default
-    int payFee = 0;
+    long finishDate;
 
-
-    @Builder.Default
-    int arrFee = 0;
-
+    /**
+     * 失败原因
+     */
+    String failReason;
 
     /**
      * 通知地址
      */
     String asyncUrl;
-
-    /**
-     * 扩展参数
-     */
-    String extraParam;
-
-    /**
-     * 支付时间 10位时间撮
-     */
-    long payDate;
 
 
     /**
@@ -101,7 +111,7 @@ public class OrderNotifyBean implements Serializable {
     int doCount = 0;
 
     /**
-     * 通知类型
+     * 通知类型 0自动 1手动
      */
     @Builder.Default
     byte sendType =0;
