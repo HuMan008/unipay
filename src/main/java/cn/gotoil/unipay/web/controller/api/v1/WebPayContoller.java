@@ -144,6 +144,7 @@ public class WebPayContoller {
                         map.put("redirect", domain + "/web/afterwechatgrant?param=" + param);
                         map.put("app_id", wechat_open_id_grant_id);
                         map.put("s_time", String.valueOf(time));
+                        map.put("auth_type","1");
                         String paramString = UtilMySign.makeSignStr(map);
                         String signStr =
                                 String.format(path, chargeWechatModel.getAppID()) + "|" + wechat_open_id_grant_id +
