@@ -174,7 +174,7 @@ public class WechatServiceImpl implements WechatService {
         modelAndView.addObject("subject", order.getSubjects());
         modelAndView.addObject("descp", order.getDescp());
         modelAndView.addObject("autoCommit", autoCommit);
-        modelAndView.addObject("orderFeeY", UtilMoney.fenToYuan(order.getFee(), true));
+        modelAndView.addObject("orderFeeY", UtilMoney.fenToYuan(order.getFee(), false));
     }
 
     /**
