@@ -96,7 +96,8 @@ public class RefundServiceImpl implements RefundService {
             throw new BillException(CommonError.SystemError);
         }
         // B2开始申请
-        ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(order.getAppId(), order.getPayType());
+        // 这里的退款申请需要用原下单账号
+        ChargeConfig chargeConfig = chargeConfigService.loadByChargeId(order.getChargeAccountId());
         if (EnumPayType.WechatSDK.getCode().equals(chargeConfig.getPayType()) || EnumPayType.WechatNAtive.getCode().equals(chargeConfig.getPayType()) || EnumPayType.WechatJSAPI.getCode().equals(chargeConfig.getPayType()) || EnumPayType.WechatH5.getCode().equals(chargeConfig.getPayType())) {
             ChargeWechatModel chargeWechatModel =
                     JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()), ChargeWechatModel.class);
@@ -212,7 +213,7 @@ public class RefundServiceImpl implements RefundService {
         if(order==null){
             throw new BillException(UnipayError.OrderNotExists);
         }
-        ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(order.getAppId(), order.getPayType());
+        ChargeConfig chargeConfig = chargeConfigService.loadByChargeId(order.getChargeAccountId());
         if (EnumPayType.WechatSDK.getCode().equals(chargeConfig.getPayType()) || EnumPayType.WechatNAtive.getCode().equals(chargeConfig.getPayType()) || EnumPayType.WechatJSAPI.getCode().equals(chargeConfig.getPayType()) || EnumPayType.WechatH5.getCode().equals(chargeConfig.getPayType())) {
             ChargeWechatModel chargeWechatModel =
                     JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()), ChargeWechatModel.class);
