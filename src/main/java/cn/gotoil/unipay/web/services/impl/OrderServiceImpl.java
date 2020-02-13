@@ -280,7 +280,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderQueryResponse queryOrderStatusFromRemote(Order order) {
         assert order != null;
-        ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(order.getAppId(), order.getPayType());
+        // 不能用应用现在的收款账号，要用下单时候的账号了。不然会导致应用修改收款账号后原订单无法查询远程状态
+        //  ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(order.getAppId(), order.getPayType());
+        ChargeConfig chargeConfig = chargeConfigService.loadByChargeId(order.getChargeAccountId());
 
         OrderQueryResponse orderQueryResponse = new OrderQueryResponse();
         if (EnumPayType.AlipayH5.getCode().equals(order.getPayType()) || EnumPayType.AlipaySDK.getCode().equals(order.getPayType())) {
