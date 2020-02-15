@@ -3,6 +3,8 @@ package cn.gotoil.unipay.utils;
 import cn.gotoil.bill.exception.BillError;
 import com.google.common.base.Charsets;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
@@ -41,14 +43,18 @@ public class UtilString {
     }
 
 
-    public static String makeErrorPage(BillError billError,String errorBackUrl) {
-        return "redirect:/web/error?errorCode=" + billError.getCode() + "&errorMsg=" + toUtf8(billError.getMessage())+"&backUrl="+toUtf8(errorBackUrl);
+    public static RedirectView  makeErrorPage(BillError billError,String errorBackUrl) {
+        String url =
+                "/web/error?errorCode=" + billError.getCode() + "&errorMsg=" + toUtf8(billError.getMessage())+"&backUrl="+toUtf8(errorBackUrl);
+        RedirectView redirectView = new RedirectView(url,true,false);
+        return redirectView;
     }
 
 
-
-    public static String makeErrorPage(int errorCode, String errorMsg,String errorBackUrl)  {
-        return "redirect:/web/error?errorCode=" + errorCode + "&errorMsg=" + toUtf8(errorMsg)+"&backUrl="+toUtf8(errorBackUrl) ;
+    public static RedirectView makeErrorPage(int errorCode, String errorMsg,String errorBackUrl)  {
+        String url  = "/web/error?errorCode=" + errorCode + "&errorMsg=" + toUtf8(errorMsg)+"&backUrl="+toUtf8(errorBackUrl) ;
+        RedirectView redirectView = new RedirectView(url,true,false);
+        return  redirectView;
     }
 
     public synchronized static boolean checkObjFieldIsNull(Object obj) {
