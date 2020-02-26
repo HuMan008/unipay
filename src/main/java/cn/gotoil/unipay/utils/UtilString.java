@@ -43,19 +43,6 @@ public class UtilString {
     }
 
 
-    public static RedirectView  makeErrorPage(BillError billError,String errorBackUrl) {
-        String url =
-                "/web/error?errorCode=" + billError.getCode() + "&errorMsg=" + toUtf8(billError.getMessage())+"&backUrl="+toUtf8(errorBackUrl);
-        RedirectView redirectView = new RedirectView(url,true,false);
-        return redirectView;
-    }
-
-
-    public static RedirectView makeErrorPage(int errorCode, String errorMsg,String errorBackUrl)  {
-        String url  = "/web/error?errorCode=" + errorCode + "&errorMsg=" + toUtf8(errorMsg)+"&backUrl="+toUtf8(errorBackUrl) ;
-        RedirectView redirectView = new RedirectView(url,true,false);
-        return  redirectView;
-    }
 
     public synchronized static boolean checkObjFieldIsNull(Object obj) {
         try {

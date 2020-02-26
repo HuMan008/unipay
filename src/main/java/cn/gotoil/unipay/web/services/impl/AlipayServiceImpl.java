@@ -10,6 +10,7 @@ import cn.gotoil.unipay.model.enums.EnumOrderStatus;
 import cn.gotoil.unipay.model.enums.EnumRefundStatus;
 import cn.gotoil.unipay.model.mapper.RefundMapper;
 import cn.gotoil.unipay.utils.UtilMoney;
+import cn.gotoil.unipay.utils.UtilPageRedirect;
 import cn.gotoil.unipay.utils.UtilString;
 import cn.gotoil.unipay.web.message.request.ContinuePayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
@@ -103,7 +104,7 @@ public class AlipayServiceImpl implements AlipayService {
                 if (needSave) {
                     int x = orderService.saveOrder(order);
                     if (x != 1) {
-                        return new ModelAndView(UtilString.makeErrorPage(UnipayError.PageRefreshError,
+                        return new ModelAndView(UtilPageRedirect.makeErrorPage(UnipayError.PageRefreshError,
                                 continuePayRequest.getBackUrl()));
                     }
                 }

@@ -12,10 +12,7 @@ import cn.gotoil.unipay.model.ChargeWechatModel;
 import cn.gotoil.unipay.model.entity.ChargeConfig;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.model.enums.EnumPayType;
-import cn.gotoil.unipay.utils.UtilBase64;
-import cn.gotoil.unipay.utils.UtilMySign;
-import cn.gotoil.unipay.utils.UtilRequest;
-import cn.gotoil.unipay.utils.UtilString;
+import cn.gotoil.unipay.utils.*;
 import cn.gotoil.unipay.web.message.request.ContinuePayRequest;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.services.*;
@@ -96,7 +93,7 @@ public class WebPayContoller {
             String signStr =
                     payRequest.getAppId() + payRequest.getAppOrderNo() + payRequest.getPayType() + payRequest.getFee() + appService.key(payRequest.getAppId());
             if (StringUtils.isEmpty(payRequest.getSign()) || !payRequest.getSign().equals(Hash.md5(signStr).toUpperCase())) {
-                return new ModelAndView(UtilString.makeErrorPage(UnipayError.IllegalRequest, payRequest.getBackUrl()));
+                return new ModelAndView(UtilPageRedirect.makeErrorPage(UnipayError.IllegalRequest, payRequest.getBackUrl()));
             }
         }
         try {
@@ -160,7 +157,7 @@ public class WebPayContoller {
                             return null;
                         } catch (IOException e) {
                             log.error("获取微信OPEI跳转过程中出错{}", e.getMessage());
-                            return new ModelAndView(UtilString.makeErrorPage(CommonError.SystemError,
+                            return new ModelAndView(UtilPageRedirect.makeErrorPage(CommonError.SystemError,
                                     payRequest.getBackUrl()));
                         }
                     }
@@ -177,9 +174,9 @@ public class WebPayContoller {
                     throw new BillException(UnipayError.PayTypeNotImpl);
             }
         } catch (BillException e) {
-            return new ModelAndView(UtilString.makeErrorPage(e.getTickcode(), e.getMessage(), payRequest.getBackUrl()));
+            return new ModelAndView(UtilPageRedirect.makeErrorPage(e.getTickcode(), e.getMessage(), payRequest.getBackUrl()));
         } catch (Exception e) {
-            return new ModelAndView(UtilString.makeErrorPage(CommonError.SystemError, payRequest.getBackUrl()));
+            return new ModelAndView(UtilPageRedirect.makeErrorPage(CommonError.SystemError, payRequest.getBackUrl()));
         }
     }
 
@@ -201,7 +198,7 @@ public class WebPayContoller {
             String signStr =
                     order.getAppId() + order.getAppOrderNo() + order.getPayType() + order.getFee() + appService.key(order.getAppId());
             if (StringUtils.isEmpty(continuePayRequest.getSign()) || !continuePayRequest.getSign().equals(Hash.md5(signStr).toUpperCase())) {
-                return new ModelAndView(UtilString.makeErrorPage(UnipayError.IllegalRequest,
+                return new ModelAndView(UtilPageRedirect.makeErrorPage(UnipayError.IllegalRequest,
                         continuePayRequest.getBackUrl()));
             }
         }
@@ -237,10 +234,10 @@ public class WebPayContoller {
                     throw new BillException(UnipayError.PayTypeNotImpl);
             }
         } catch (BillException e) {
-            return new ModelAndView(UtilString.makeErrorPage(e.getTickcode(), e.getMessage(),
+            return new ModelAndView(UtilPageRedirect.makeErrorPage(e.getTickcode(), e.getMessage(),
                     continuePayRequest.getBackUrl()));
         } catch (Exception e) {
-            return new ModelAndView(UtilString.makeErrorPage(CommonError.SystemError, continuePayRequest.getBackUrl()));
+            return new ModelAndView(UtilPageRedirect.makeErrorPage(CommonError.SystemError, continuePayRequest.getBackUrl()));
         }
     }
 
@@ -270,7 +267,7 @@ public class WebPayContoller {
         String mySign = Hmac.SHA1(playLoadStr, wechat_open_id_grant_key);
 
         if (!mySign.equals(sign)) {
-            return new ModelAndView(UtilString.makeErrorPage(5000, "Jumper验签失败", ""));
+            return new ModelAndView(UtilPageRedirect.makeErrorPage(5000, "Jumper验签失败", ""));
         }
         try {
             param = new String(UtilBase64.decode(param.replaceAll("GT680", "+")));

@@ -14,10 +14,7 @@ import cn.gotoil.unipay.model.OrderNotifyBean;
 import cn.gotoil.unipay.model.entity.*;
 import cn.gotoil.unipay.model.enums.*;
 import cn.gotoil.unipay.model.mapper.OrderMapper;
-import cn.gotoil.unipay.utils.UtilBase64;
-import cn.gotoil.unipay.utils.UtilMoney;
-import cn.gotoil.unipay.utils.UtilMySign;
-import cn.gotoil.unipay.utils.UtilString;
+import cn.gotoil.unipay.utils.*;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.services.*;
@@ -381,7 +378,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = loadByOrderID(orderId);
         if (order == null) {
-            return new ModelAndView(UtilString.makeErrorPage(UnipayError.OrderNotExists, ""));
+            return new ModelAndView(UtilPageRedirect.makeErrorPage(UnipayError.OrderNotExists, ""));
         } else if (StringUtils.isEmpty(order.getSyncUrl())) {
             //未设置同步地址
             ModelAndView modelAndView = new ModelAndView("payresult");

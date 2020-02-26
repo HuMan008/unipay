@@ -10,6 +10,7 @@ import OrderManage from '@/components/order-manage/order-manage';
 import PayingOrder from '@/components/order-manage/payingOrder';
 import OplogQuery from '@/components/oplog-manage/oplogQuery';
 import RefundManage from '@/components/refund-manage/refundlist';
+import Report from '@/components/report/report';
 
 Vue.use(Router)
 
@@ -60,6 +61,10 @@ export default new Router({
           path: '/main/refund',
           name: 'Refund',
           component: RefundManage
+        }, {
+          path: 'main/report',
+          name: 'Report',
+          component: Report
         }
       ]
     }

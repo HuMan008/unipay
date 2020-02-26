@@ -394,13 +394,13 @@ public class WechatNotifyController {
     @RequestMapping("return/{orderId:^\\d{21}$}")
     public ModelAndView syncNotify(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
                                    @PathVariable String orderId) throws Exception {
-        log.info("微信同步通知");
-        //稍微等一下异步通知
-        try {
-            Thread.sleep(RandomUtils.nextInt(500, 1200));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        log.debug("微信同步通知{}",orderId);
+//        //稍微等一下异步通知
+//        try {
+//            Thread.sleep(RandomUtils.nextInt(500, 1200));
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
         return orderService.syncUrl(orderId, httpServletRequest, httpServletResponse);
     }
 

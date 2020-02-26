@@ -1,9 +1,6 @@
 package cn.gotoil.unipay.web.message.response.admin;
 
-import cn.gotoil.unipay.model.enums.EnumOrderStatus;
-import cn.gotoil.unipay.model.enums.EnumPayType;
-import cn.gotoil.unipay.model.enums.EnumRefundStatus;
-import cn.gotoil.unipay.model.enums.EnumStatus;
+import cn.gotoil.unipay.model.enums.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,6 +42,18 @@ public class BaseComboResponse {
                 String.valueOf(es.getCode()))).collect(Collectors.toList());
     }
 
+    /**
+     * 返回支付类别下拉框
+     */
+    public static List<BaseComboResponse> getPayTypeCategoryCombo() {
+        return Arrays.stream(EnumPayCategory.values()).map(es -> new BaseComboResponse(es.getDescp(),
+                String.valueOf(es.getCode()))).collect(Collectors.toList());
+    }
+
+    public static List<BaseComboResponse> getPayTypeCategoryCodeCombo() {
+        return Arrays.stream(EnumPayCategory.values()).map(es -> new BaseComboResponse(es.getDescp(),
+                String.valueOf(es.getCodeValue()))).collect(Collectors.toList());
+    }
     /**
      * 返回订单状态下拉框
      * @return

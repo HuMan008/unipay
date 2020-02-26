@@ -100,7 +100,7 @@ public class WechatServiceImpl implements WechatService {
             sign = UtilWechat.generateSignature(data, chargeModel.getApiKey());
         } catch (Exception e) {
             log.error("微信加签错误", e.getMessage());
-            return new ModelAndView(UtilString.makeErrorPage(5000, "微信加签错误", continuePayRequest.getBackUrl()));
+            return new ModelAndView(UtilPageRedirect.makeErrorPage(5000, "微信加签错误", continuePayRequest.getBackUrl()));
         }
         data.put("sign", sign);
         try {
@@ -110,7 +110,7 @@ public class WechatServiceImpl implements WechatService {
                 if (needSave) {
                     int x = orderService.saveOrder(order);
                     if (x != 1) {
-                        return new ModelAndView(UtilString.makeErrorPage(UnipayError.PageRefreshError,
+                        return new ModelAndView(UtilPageRedirect.makeErrorPage(UnipayError.PageRefreshError,
                                 continuePayRequest.getBackUrl()));
                     }
                 }
@@ -150,16 +150,16 @@ public class WechatServiceImpl implements WechatService {
                     return modelAndView;
                 }
             } else {
-                return new ModelAndView(UtilString.makeErrorPage(5001, reMap.getOrDefault("return_msg", "微信支付出错"),
+                return new ModelAndView(UtilPageRedirect.makeErrorPage(5001, reMap.getOrDefault("return_msg", "微信支付出错"),
                         continuePayRequest.getBackUrl()));
             }
         } catch (Exception e) {
             if (e instanceof MySQLIntegrityConstraintViolationException || e instanceof DuplicateKeyException) {
-                return new ModelAndView(UtilString.makeErrorPage(UnipayError.PageRefreshError,
+                return new ModelAndView(UtilPageRedirect.makeErrorPage(UnipayError.PageRefreshError,
                         continuePayRequest.getBackUrl()));
             }
             log.error("微信支付订单创建出错{}", e.getMessage());
-            return new ModelAndView(UtilString.makeErrorPage(5000, e.getMessage(), continuePayRequest.getBackUrl()));
+            return new ModelAndView(UtilPageRedirect.makeErrorPage(5000, e.getMessage(), continuePayRequest.getBackUrl()));
         }
     }
 
