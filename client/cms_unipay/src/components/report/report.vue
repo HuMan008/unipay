@@ -170,10 +170,10 @@ export default {
         const r = res.data;
         this.chartSettings.dimension = Array.from(this.groupSet);
         if (r.status === 0) {
-          this.chartSettings.metrics = r.data.columns;
+          // this.chartSettings.metrics = r.data.columns;
           this.chartData = r.data;
           this.tHead = [];
-          for (const a in this.chartSettings.metrics) {
+          for (const a in r.data.columns) {
             var x = { title: r.data.columns[a], width: 180, dataIndex: r.data.columns[a] };
             this.tHead.push(x)
           }
