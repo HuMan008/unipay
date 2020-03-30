@@ -302,7 +302,7 @@ public class ChargeConfigServiceImpl implements ChargeConfigService {
     public int refreshAccount() {
         try {
             ChargeConfigExample example = new ChargeConfigExample();
-            List<ChargeConfig> list = chargeConfigMapper.selectByExample(example);
+            List<ChargeConfig> list = chargeConfigMapper.selectByExampleWithBLOBs(example);
             for (ChargeConfig config : list) {
                 String key = appChargAccountKey(config.getId());
                 redisHashHelper.set(key, config, IGNORESET);
