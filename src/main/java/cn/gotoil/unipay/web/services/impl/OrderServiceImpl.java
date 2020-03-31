@@ -319,7 +319,7 @@ public class OrderServiceImpl implements OrderService {
                 if (x == 1) {
                     log.info("订单【{}】状态更新为支付成功并发送通知", order.getId());
                     OrderNotifyBean orderNotifyBean =
-                            OrderNotifyBean.builder().unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appOrderNO(order.getAppOrderNo()).status(newOrder.getStatus()).orderFee(order.getFee()).payFee(orderQueryResponse.getPayFee()).arrFee(orderQueryResponse.getArrFee()).paymentId(newOrder.getPaymentId()).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(newOrder.getOrderPayDatetime()).
+                            OrderNotifyBean.builder().appId(order.getAppId()).unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appOrderNO(order.getAppOrderNo()).status(newOrder.getStatus()).orderFee(order.getFee()).payFee(orderQueryResponse.getPayFee()).arrFee(orderQueryResponse.getArrFee()).paymentId(newOrder.getPaymentId()).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(newOrder.getOrderPayDatetime()).
                             timeStamp(Instant.now().getEpochSecond()).build();
                     String appSecret = appService.key(order.getAppId());
                     String signStr = UtilMySign.sign(orderNotifyBean, appSecret);

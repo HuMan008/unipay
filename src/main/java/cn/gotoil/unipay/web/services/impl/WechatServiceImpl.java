@@ -21,7 +21,6 @@ import cn.gotoil.unipay.web.services.OrderService;
 import cn.gotoil.unipay.web.services.WechatService;
 import com.alibaba.fastjson.JSON;
 import com.google.common.net.UrlEscapers;
-import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +31,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
@@ -154,7 +154,7 @@ public class WechatServiceImpl implements WechatService {
                         continuePayRequest.getBackUrl()));
             }
         } catch (Exception e) {
-            if (e instanceof MySQLIntegrityConstraintViolationException || e instanceof DuplicateKeyException) {
+            if (e instanceof SQLIntegrityConstraintViolationException || e instanceof DuplicateKeyException) {
                 return new ModelAndView(UtilPageRedirect.makeErrorPage(UnipayError.PageRefreshError,
                         continuePayRequest.getBackUrl()));
             }
