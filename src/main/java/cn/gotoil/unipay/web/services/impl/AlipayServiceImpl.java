@@ -194,10 +194,10 @@ public class AlipayServiceImpl implements AlipayService {
                 } else if ("TRADE_SUCCESS".equalsIgnoreCase(tradeStatus) || "TRADE_FINISHED".equalsIgnoreCase(tradeStatus)) {
                     orderQueryResponse.setPaymentId(alipayTradeQueryResponse.getTradeNo());
                     orderQueryResponse.setPaymentUid(alipayTradeQueryResponse.getBuyerLogonId());
-                    orderQueryResponse.setPayFee(StringUtils.isEmpty(alipayTradeQueryResponse.getBuyerPayAmount()) ?
+                    orderQueryResponse.setPayFee(StringUtils.isEmpty(alipayTradeQueryResponse.getBuyerPayAmount()) || UtilMoney.yuanToFen(alipayTradeQueryResponse.getBuyerPayAmount())==0   ?
                             UtilMoney.yuanToFen(alipayTradeQueryResponse.getTotalAmount()) :
                             UtilMoney.yuanToFen(alipayTradeQueryResponse.getBuyerPayAmount()));
-                    orderQueryResponse.setArrFee(StringUtils.isEmpty(alipayTradeQueryResponse.getReceiptAmount()) ?
+                    orderQueryResponse.setArrFee(StringUtils.isEmpty(alipayTradeQueryResponse.getReceiptAmount()) || UtilMoney.yuanToFen(alipayTradeQueryResponse.getReceiptAmount())==0  ?
                             UtilMoney.yuanToFen(alipayTradeQueryResponse.getTotalAmount()) :
                             UtilMoney.yuanToFen(alipayTradeQueryResponse.getReceiptAmount()));
                     if (null != alipayTradeQueryResponse.getSendPayDate()) {
