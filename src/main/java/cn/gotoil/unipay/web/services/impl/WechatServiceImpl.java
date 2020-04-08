@@ -1,10 +1,8 @@
 package cn.gotoil.unipay.web.services.impl;
 
 import cn.gotoil.bill.exception.BillException;
-import cn.gotoil.bill.exception.CommonError;
 import cn.gotoil.bill.tools.ObjectHelper;
 import cn.gotoil.bill.tools.date.DateUtils;
-import cn.gotoil.bill.tools.encoder.Hmac;
 import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.model.ChargeWechatModel;
 import cn.gotoil.unipay.model.entity.Order;
@@ -15,7 +13,6 @@ import cn.gotoil.unipay.model.enums.EnumRefundStatus;
 import cn.gotoil.unipay.model.mapper.RefundMapper;
 import cn.gotoil.unipay.utils.*;
 import cn.gotoil.unipay.web.message.request.ContinuePayRequest;
-import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.message.response.OrderRefundResponse;
 import cn.gotoil.unipay.web.message.response.RefundQueryResponse;
@@ -33,8 +30,6 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.net.URL;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.time.Instant;
 import java.util.Date;
@@ -54,62 +49,13 @@ public class WechatServiceImpl implements WechatService {
 
     @Value("${domain}")
     String domain;
-
-    @Value("${wechat_open_id_grant_url}")
-    String wechat_open_id_grant_url;
-    @Value("${wechat_open_id_grant_id}")
-    String wechat_open_id_grant_id;
-    @Value("${wechat_open_id_grant_key}")
-    String wechat_open_id_grant_key;
     @Resource
     OrderService orderService;
     @Resource
     RefundMapper refundMapper;
     @Value("${isDebug}")
     private boolean isDebug;
-    private boolean mustNeedOpenId = false;
-    private PayRequest payRequest ;
 
-    @Override
-    public void setMustNeedOpenId(boolean mustNeedOpenId) {
-        this.mustNeedOpenId = mustNeedOpenId;
-    }
-
-    @Override
-    public void setPayRequest(PayRequest payRequest) {
-        this.payRequest = payRequest;
-    }
-
-    private Object getWechatOpenId(ChargeWechatModel chargeWechatModel, HttpServletResponse httpServletResponse){
-        try {
-            String param = UtilBase64.encode(ObjectHelper.jsonString(payRequest).getBytes()).replaceAll("\\+", "GT680");
-            long time = Instant.now().getEpochSecond();
-            String path = "";
-            URL url = new URL(wechat_open_id_grant_url);
-            path = url.getPath();
-            TreeMap<String, String> map = new TreeMap<>();
-            map.put("redirect", domain + "/web/afterwechatgrant?param=" + param);
-            map.put("app_id", wechat_open_id_grant_id);
-            map.put("s_time", String.valueOf(time));
-            map.put("auth_type", "1");
-            String paramString = UtilMySign.makeSignStr(map);
-            String signStr =
-                    String.format(path, chargeWechatModel.getAppID()) + "|" + wechat_open_id_grant_id + "|" + time +
-                            "|{" + paramString + "}";
-            String sign = Hmac.SHA1(signStr, wechat_open_id_grant_key);
-            //                        wechat_open_id_grant_url: "http://thirdparty.guotongshiyou
-            // .cn/third_party/oauth/wechat/%s?app_id=%s&sign=%s&s_time=%s&redirect=%s"
-            String redirectUrlP = String.format(wechat_open_id_grant_url, chargeWechatModel.getAppID(),
-                    wechat_open_id_grant_id, sign, time, domain + "/web/afterwechatgrant?param=" + param);
-
-            //这里转发了，后面没事干了。这个时候订单还没保存
-            httpServletResponse.sendRedirect(redirectUrlP);
-            return null;
-        } catch (Exception e) {
-            log.error("获取微信OPEI跳转过程中出错{}", e.getMessage());
-            return new ModelAndView(UtilPageRedirect.makeErrorPage(CommonError.SystemError, payRequest.getBackUrl()));
-        }
-    }
 
     /**
      * 页面支付
@@ -126,9 +72,6 @@ public class WechatServiceImpl implements WechatService {
     public ModelAndView pagePay(Order order, ChargeWechatModel chargeModel, HttpServletRequest httpServletRequest,
                                 HttpServletResponse httpServletResponse, ContinuePayRequest continuePayRequest,
                                 boolean needSave) {
-        if (this.mustNeedOpenId) {
-
-        }
 
         HashMap<String, String> data = new HashMap<String, String>();
         data.put("appid", chargeModel.getAppID());
@@ -155,7 +98,7 @@ public class WechatServiceImpl implements WechatService {
         try {
             sign = UtilWechat.generateSignature(data, chargeModel.getApiKey());
         } catch (Exception e) {
-            log.error("微信加签错误", e.getMessage());
+            log.error("微信加签错误{}", e);
             return new ModelAndView(UtilPageRedirect.makeErrorPage(5000, "微信加签错误", continuePayRequest.getBackUrl()));
         }
         data.put("sign", sign);

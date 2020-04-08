@@ -36,11 +36,6 @@ public interface WechatService extends BasePayService<ChargeWechatModel>   {
      */
     String RefundQueryUrl = "https://api.mch.weixin.qq.com/pay/refundquery";
 
-
-    void setMustNeedOpenId(boolean mustNeedOpenId);
-
-    void setPayRequest(PayRequest payRequest);
-
     enum TradeType {
         /**
          * jsapi
