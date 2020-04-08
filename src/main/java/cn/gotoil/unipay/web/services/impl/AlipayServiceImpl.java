@@ -46,7 +46,7 @@ import java.util.Date;
  * @date 2019-9-20、17:48
  */
 @Service
-public class AlipayServiceImpl implements AlipayService {
+public class AlipayServiceImpl implements AlipayService{
 
     @Value("${domain}")
     String domain;
@@ -58,11 +58,12 @@ public class AlipayServiceImpl implements AlipayService {
     RefundMapper refundMapper;
 
 
+
     /**
      * 页面支付
      *
      * @param order
-     * @param chargeConfig
+     * @param chargeModel
      * @param httpServletRequest
      * @param httpServletResponse
      * @param continuePayRequest
@@ -70,12 +71,9 @@ public class AlipayServiceImpl implements AlipayService {
      * @return
      */
     @Override
-    public ModelAndView pagePay(Order order, ChargeAccount chargeConfig, HttpServletRequest httpServletRequest,
+    public ModelAndView pagePay(Order order,ChargeAlipayModel chargeModel, HttpServletRequest httpServletRequest,
                                 HttpServletResponse httpServletResponse, ContinuePayRequest continuePayRequest,
                                 boolean needSave) {
-
-
-        ChargeAlipayModel chargeModel = (ChargeAlipayModel) chargeConfig;
 
         AlipayClient alipayClient = new DefaultAlipayClient(GATEWAYURL, chargeModel.getAppID(),
                 chargeModel.getPriKey(), FORMAT, Charsets.UTF_8.name(), chargeModel.getPubKey(), SIGNTYPE);
@@ -127,12 +125,12 @@ public class AlipayServiceImpl implements AlipayService {
      * SDK 支付 返回JSON
      *
      * @param order
-     * @param chargeConfig
+     * @param chargeModel
      * @return
      */
     @Override
-    public String sdkPay(Order order, ChargeAccount chargeConfig) {
-        ChargeAlipayModel chargeModel = (ChargeAlipayModel) chargeConfig;
+    public String sdkPay(Order order, ChargeAlipayModel chargeModel) {
+
         //实例化客户端
         AlipayClient alipayClient = new DefaultAlipayClient(GATEWAYURL, chargeModel.getAppID(),
                 chargeModel.getPriKey(), FORMAT, Charsets.UTF_8.name(), chargeModel.getPubKey(), SIGNTYPE);
@@ -167,11 +165,11 @@ public class AlipayServiceImpl implements AlipayService {
      * thirdCode = 5000的时候表示查询异常
      *
      * @param order
-     * @param chargeConfig
+     * @param chargeModel
      */
     @Override
-    public OrderQueryResponse orderQueryFromRemote(Order order, ChargeAccount chargeConfig) {
-        ChargeAlipayModel chargeModel = (ChargeAlipayModel) chargeConfig;
+    public OrderQueryResponse orderQueryFromRemote(Order order,ChargeAlipayModel chargeModel) {
+
         AlipayTradeQueryRequest alipay_request = new AlipayTradeQueryRequest();
         AlipayTradeQueryModel model = new AlipayTradeQueryModel();
         model.setOutTradeNo(order.getId());
@@ -230,13 +228,13 @@ public class AlipayServiceImpl implements AlipayService {
     /**
      * 退款申请
      *
-     * @param chargeConfig
+     * @param chargeModel
      * @param refund
      * @return
      */
     @Override
-    public OrderRefundResponse orderRefund(ChargeAccount chargeConfig, Refund refund) {
-        ChargeAlipayModel chargeModel = (ChargeAlipayModel) chargeConfig;
+    public OrderRefundResponse orderRefund(ChargeAlipayModel chargeModel, Refund refund) {
+
         AlipayClient client = new DefaultAlipayClient(GATEWAYURL, chargeModel.getAppID(), chargeModel.getPriKey(),
                 FORMAT, Charsets.UTF_8.name(), chargeModel.getPubKey(), SIGNTYPE);
         AlipayTradeRefundRequest request = new AlipayTradeRefundRequest();
@@ -276,13 +274,13 @@ public class AlipayServiceImpl implements AlipayService {
     /**
      * 退款状态查询
      *
-     * @param chargeConfig
+     * @param chargeModel
      * @param refund
      * @return
      */
     @Override
-    public RefundQueryResponse orderRefundQuery(ChargeAccount chargeConfig, Refund refund) {
-        ChargeAlipayModel chargeModel = (ChargeAlipayModel) chargeConfig;
+    public RefundQueryResponse orderRefundQuery(ChargeAlipayModel chargeModel, Refund refund) {
+
         AlipayClient client = new DefaultAlipayClient(GATEWAYURL, chargeModel.getAppID(), chargeModel.getPriKey(),
                 FORMAT, Charsets.UTF_8.name(), chargeModel.getPubKey(), SIGNTYPE);
         AlipayTradeFastpayRefundQueryRequest request = new AlipayTradeFastpayRefundQueryRequest();

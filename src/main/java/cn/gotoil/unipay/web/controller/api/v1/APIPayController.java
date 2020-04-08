@@ -8,7 +8,9 @@ import cn.gotoil.bill.web.annotation.Authentication;
 import cn.gotoil.bill.web.helper.ServletRequestHelper;
 import cn.gotoil.bill.web.interceptor.authentication.AuthenticationType;
 import cn.gotoil.unipay.classes.HashCompareAuthenticationKeyProvider;
+import cn.gotoil.unipay.classes.PayDispatcher;
 import cn.gotoil.unipay.exceptions.UnipayError;
+import cn.gotoil.unipay.model.ChargeAccount;
 import cn.gotoil.unipay.model.ChargeAlipayModel;
 import cn.gotoil.unipay.model.ChargeWechatModel;
 import cn.gotoil.unipay.model.entity.App;
@@ -51,15 +53,13 @@ public class APIPayController {
     ChargeConfigService chargeConfigService;
 
     @Autowired
-    AlipayService alipayService;
-
-    @Autowired
-    WechatService wechatService;
-
-    @Autowired
     RefundService refundService;
     @Autowired
     RedisLockHelper redisLockHelper;
+
+    @Autowired
+    PayDispatcher payDispatcher;
+
 
     @RequestMapping(value = "dopay", method = RequestMethod.POST)
     @ApiOperation(value = "API订单创建", position = 5)
@@ -82,31 +82,21 @@ public class APIPayController {
 private String  shunt(Order order){
     EnumPayType payType = EnumUtils.getEnum(EnumPayType.class, order.getPayType());
     ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(order.getAppId(), payType.getCode());
-    String payInfoStr = new String();
-    switch (payType) {
-        case WechatSDK: {
-            ChargeWechatModel chargeWechatModel =
-                    JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
-                            ChargeWechatModel.class);
-            payInfoStr = wechatService.sdkPay( order, chargeWechatModel);
-            break;
-        }
-        case WechatNAtive: {
-            ChargeWechatModel chargeWechatModel =
-                    JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
-                            ChargeWechatModel.class);
-            payInfoStr = wechatService.sdkPay( order, chargeWechatModel);
-            break;
-        }
-        case AlipaySDK:
-            ChargeAlipayModel chargeAlipayModel =
-                    JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
-                            ChargeAlipayModel.class);
-            payInfoStr = alipayService.sdkPay( order, chargeAlipayModel);
-            break;
-        default:
-            throw new BillException(UnipayError.PayTypeNotImpl);
+    if(!PayDispatcher.sdkPaySet.contains(payType)){
+        throw new BillException(UnipayError.PayTypeNotImpl);
     }
+    String payInfoStr = new String();
+    BasePayService payService =payDispatcher.payServerDispatcher(payType);
+    if(payService==null){
+        throw new BillException(UnipayError.PayTypeNotImpl);
+    }
+
+    ChargeAccount chargeAccount =  payDispatcher.getChargeAccountBean(chargeConfig);
+    if(chargeAccount==null){
+        throw new BillException(UnipayError.AppNotSupportThisPay);
+    }
+    payInfoStr =payService.sdkPay(order,chargeAccount);
+
     if (StringUtils.isEmpty(payInfoStr)) {
         throw new BillException(CommonError.SystemError);
     }

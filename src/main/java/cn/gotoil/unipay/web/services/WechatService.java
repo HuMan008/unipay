@@ -1,12 +1,17 @@
 package cn.gotoil.unipay.web.services;
 
+
+
+import cn.gotoil.unipay.model.ChargeWechatModel;
+import cn.gotoil.unipay.web.message.request.PayRequest;
+
 /**
  * 微信支付接口
  *
  * @author think <syj247@qq.com>、
  * @date 2019-9-26、15:56
  */
-public interface WechatService extends BasePayService {
+public interface WechatService extends BasePayService<ChargeWechatModel>   {
 
     String FAIL = "FAIL";
     String SUCCESS = "SUCCESS";
@@ -30,6 +35,11 @@ public interface WechatService extends BasePayService {
      * 退款查询地址
      */
     String RefundQueryUrl = "https://api.mch.weixin.qq.com/pay/refundquery";
+
+
+    void setMustNeedOpenId(boolean mustNeedOpenId);
+
+    void setPayRequest(PayRequest payRequest);
 
     enum TradeType {
         /**
