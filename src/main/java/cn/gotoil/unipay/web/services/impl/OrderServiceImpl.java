@@ -14,10 +14,7 @@ import cn.gotoil.unipay.model.OrderNotifyBean;
 import cn.gotoil.unipay.model.entity.*;
 import cn.gotoil.unipay.model.enums.*;
 import cn.gotoil.unipay.model.mapper.OrderMapper;
-import cn.gotoil.unipay.utils.UtilBase64;
-import cn.gotoil.unipay.utils.UtilMoney;
-import cn.gotoil.unipay.utils.UtilMySign;
-import cn.gotoil.unipay.utils.UtilString;
+import cn.gotoil.unipay.utils.*;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.services.*;
@@ -322,7 +319,7 @@ public class OrderServiceImpl implements OrderService {
                 if (x == 1) {
                     log.info("订单【{}】状态更新为支付成功并发送通知", order.getId());
                     OrderNotifyBean orderNotifyBean =
-                            OrderNotifyBean.builder().unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appOrderNO(order.getAppOrderNo()).status(newOrder.getStatus()).orderFee(order.getFee()).payFee(orderQueryResponse.getPayFee()).arrFee(orderQueryResponse.getArrFee()).paymentId(newOrder.getPaymentId()).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(newOrder.getOrderPayDatetime()).
+                            OrderNotifyBean.builder().appId(order.getAppId()).unionOrderID(order.getId()).method(EnumOrderMessageType.PAY.name()).appOrderNO(order.getAppOrderNo()).status(newOrder.getStatus()).orderFee(order.getFee()).payFee(orderQueryResponse.getPayFee()).arrFee(orderQueryResponse.getArrFee()).paymentId(newOrder.getPaymentId()).asyncUrl(order.getAsyncUrl()).extraParam(order.getExtraParam()).payDate(newOrder.getOrderPayDatetime()).
                             timeStamp(Instant.now().getEpochSecond()).build();
                     String appSecret = appService.key(order.getAppId());
                     String signStr = UtilMySign.sign(orderNotifyBean, appSecret);
@@ -381,7 +378,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = loadByOrderID(orderId);
         if (order == null) {
-            return new ModelAndView(UtilString.makeErrorPage(UnipayError.OrderNotExists, ""));
+            return new ModelAndView(UtilPageRedirect.makeErrorPage(UnipayError.OrderNotExists, ""));
         } else if (StringUtils.isEmpty(order.getSyncUrl())) {
             //未设置同步地址
             ModelAndView modelAndView = new ModelAndView("payresult");

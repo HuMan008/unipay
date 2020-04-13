@@ -144,6 +144,18 @@
               v-hasRole="['Admin','Order','Finance']"
             >退款列表</a-menu-item>
           </a-sub-menu>
+
+          <a-sub-menu key="sub4" class="mySubMenu">
+            <span slot="title">
+              <a-icon type="user" />
+              <span>报表管理</span>
+            </span>
+            <a-menu-item
+              key="41"
+              @click="routerChange('Report')"
+              v-hasRole="['Admin','Order','Finance']"
+            >订单报表</a-menu-item>
+          </a-sub-menu>
         </a-menu>
       </a-layout-sider>
       <a-layout style="padding: 0 24px 24px">

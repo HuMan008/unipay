@@ -4,7 +4,6 @@ import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.tools.ObjectHelper;
 import cn.gotoil.bill.tools.date.DateUtils;
 import cn.gotoil.unipay.exceptions.UnipayError;
-import cn.gotoil.unipay.model.ChargeAccount;
 import cn.gotoil.unipay.model.ChargeWechatModel;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.model.entity.Refund;
@@ -21,7 +20,6 @@ import cn.gotoil.unipay.web.services.OrderService;
 import cn.gotoil.unipay.web.services.WechatService;
 import com.alibaba.fastjson.JSON;
 import com.google.common.net.UrlEscapers;
-import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +30,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
@@ -47,21 +46,22 @@ import java.util.TreeMap;
 @Service
 @Slf4j
 public class WechatServiceImpl implements WechatService {
+
     @Value("${domain}")
     String domain;
-
-
     @Resource
     OrderService orderService;
     @Resource
     RefundMapper refundMapper;
+    @Value("${isDebug}")
+    private boolean isDebug;
 
 
     /**
      * 页面支付
      *
      * @param order
-     * @param chargeConfig
+     * @param chargeModel
      * @param httpServletRequest
      * @param httpServletResponse
      * @param continuePayRequest
@@ -69,11 +69,10 @@ public class WechatServiceImpl implements WechatService {
      * @return
      */
     @Override
-    public ModelAndView pagePay(Order order, ChargeAccount chargeConfig, HttpServletRequest httpServletRequest,
+    public ModelAndView pagePay(Order order, ChargeWechatModel chargeModel, HttpServletRequest httpServletRequest,
                                 HttpServletResponse httpServletResponse, ContinuePayRequest continuePayRequest,
                                 boolean needSave) {
 
-        ChargeWechatModel chargeModel = (ChargeWechatModel) chargeConfig;
         HashMap<String, String> data = new HashMap<String, String>();
         data.put("appid", chargeModel.getAppID());
         data.put("mch_id", chargeModel.getMerchID());
@@ -99,8 +98,8 @@ public class WechatServiceImpl implements WechatService {
         try {
             sign = UtilWechat.generateSignature(data, chargeModel.getApiKey());
         } catch (Exception e) {
-            log.error("微信加签错误", e.getMessage());
-            return new ModelAndView(UtilString.makeErrorPage(5000, "微信加签错误", continuePayRequest.getBackUrl()));
+            log.error("微信加签错误{}", e);
+            return new ModelAndView(UtilPageRedirect.makeErrorPage(5000, "微信加签错误", continuePayRequest.getBackUrl()));
         }
         data.put("sign", sign);
         try {
@@ -110,7 +109,7 @@ public class WechatServiceImpl implements WechatService {
                 if (needSave) {
                     int x = orderService.saveOrder(order);
                     if (x != 1) {
-                        return new ModelAndView(UtilString.makeErrorPage(UnipayError.PageRefreshError,
+                        return new ModelAndView(UtilPageRedirect.makeErrorPage(UnipayError.PageRefreshError,
                                 continuePayRequest.getBackUrl()));
                     }
                 }
@@ -150,16 +149,17 @@ public class WechatServiceImpl implements WechatService {
                     return modelAndView;
                 }
             } else {
-                return new ModelAndView(UtilString.makeErrorPage(5001, reMap.getOrDefault("return_msg", "微信支付出错"),
-                        continuePayRequest.getBackUrl()));
+                return new ModelAndView(UtilPageRedirect.makeErrorPage(5001, reMap.getOrDefault("return_msg",
+                        "微信支付出错"), continuePayRequest.getBackUrl()));
             }
         } catch (Exception e) {
-            if (e instanceof MySQLIntegrityConstraintViolationException || e instanceof DuplicateKeyException) {
-                return new ModelAndView(UtilString.makeErrorPage(UnipayError.PageRefreshError,
+            if (e instanceof SQLIntegrityConstraintViolationException || e instanceof DuplicateKeyException) {
+                return new ModelAndView(UtilPageRedirect.makeErrorPage(UnipayError.PageRefreshError,
                         continuePayRequest.getBackUrl()));
             }
             log.error("微信支付订单创建出错{}", e.getMessage());
-            return new ModelAndView(UtilString.makeErrorPage(5000, e.getMessage(), continuePayRequest.getBackUrl()));
+            return new ModelAndView(UtilPageRedirect.makeErrorPage(5000, e.getMessage(),
+                    continuePayRequest.getBackUrl()));
         }
     }
 
@@ -177,16 +177,17 @@ public class WechatServiceImpl implements WechatService {
         modelAndView.addObject("orderFeeY", UtilMoney.fenToYuan(order.getFee(), false));
     }
 
+
     /**
      * SDK 支付 返回JSON
      *
      * @param order
-     * @param chargeConfig
+     * @param chargeModel
      * @return
      */
     @Override
-    public String sdkPay(Order order, ChargeAccount chargeConfig) {
-        ChargeWechatModel chargeModel = (ChargeWechatModel) chargeConfig;
+    public String sdkPay(Order order, ChargeWechatModel chargeModel) {
+
         HashMap<String, String> data = new HashMap<String, String>();
         data.put("appid", chargeModel.getAppID());
         data.put("mch_id", chargeModel.getMerchID());
@@ -218,7 +219,7 @@ public class WechatServiceImpl implements WechatService {
             String repStr = UtilHttpClient.doPostStr(WechatService.CreateOrderUrl, UtilWechat.mapToXml(data));
             Map<String, String> reMap = processResponseXml(repStr, chargeModel.getApiKey());
             if (reMap.containsKey(RESULT_CODE) && reMap.get(RESULT_CODE).equals(SUCCESS) && SUCCESS.equals(reMap.getOrDefault(RETURN_CODE, ""))) {
-                return ObjectHelper.jsonString(createAppParam(reMap, ((ChargeWechatModel) chargeConfig).getApiKey()));
+                return ObjectHelper.jsonString(createAppParam(reMap, chargeModel.getApiKey()));
             } else {
                 return ObjectHelper.jsonString(reMap);
             }
@@ -252,23 +253,22 @@ public class WechatServiceImpl implements WechatService {
      * 订单支付状态查询 远程查
      *
      * @param order
-     * @param chargeConfig
+     * @param chargeModel
      */
     @Override
-    public OrderQueryResponse orderQueryFromRemote(Order order, ChargeAccount chargeConfig) {
-        ChargeWechatModel chargeWechatModel = (ChargeWechatModel) chargeConfig;
+    public OrderQueryResponse orderQueryFromRemote(Order order, ChargeWechatModel chargeModel) {
         Map<String, String> reMap = new HashMap<>();
         String return_code;
         try {
             TreeMap<String, String> map = new TreeMap<>();
-            map.put("appid", chargeWechatModel.getAppID());
-            map.put("mch_id", chargeWechatModel.getMerchID());
+            map.put("appid", chargeModel.getAppID());
+            map.put("mch_id", chargeModel.getMerchID());
             map.put("out_trade_no", order.getId());
             map.put("nonce_str", UtilWechat.generateNonceStr());
-            String sign = UtilWechat.generateSignature(map, chargeWechatModel.getApiKey());
+            String sign = UtilWechat.generateSignature(map, chargeModel.getApiKey());
             map.put(UtilWechat.FIELD_SIGN, sign); //加签
             String repStr = UtilHttpClient.doPostStr(WechatService.QueryOrderUrl, UtilWechat.mapToXml(map));
-            reMap = processResponseXml(repStr, chargeWechatModel.getApiKey());
+            reMap = processResponseXml(repStr, chargeModel.getApiKey());
 
 
             if (reMap != null && reMap.containsKey(RETURN_CODE)) {
@@ -390,13 +390,12 @@ public class WechatServiceImpl implements WechatService {
     /**
      * 退款状态查询
      *
-     * @param chargeConfig
+     * @param chargeModel
      * @param refund
      * @return
      */
     @Override
-    public RefundQueryResponse orderRefundQuery(ChargeAccount chargeConfig, Refund refund) {
-        ChargeWechatModel chargeModel = (ChargeWechatModel) chargeConfig;
+    public RefundQueryResponse orderRefundQuery(ChargeWechatModel chargeModel, Refund refund) {
         HashMap<String, String> data = new HashMap<String, String>();
         data.put("appid", chargeModel.getAppID());
         data.put("mch_id", chargeModel.getMerchID());
@@ -446,13 +445,12 @@ public class WechatServiceImpl implements WechatService {
     /**
      * 退款申请
      *
-     * @param chargeConfig
+     * @param chargeModel
      * @param refund
      * @return
      */
     @Override
-    public OrderRefundResponse orderRefund(ChargeAccount chargeConfig, Refund refund) {
-        ChargeWechatModel chargeModel = (ChargeWechatModel) chargeConfig;
+    public OrderRefundResponse orderRefund(ChargeWechatModel chargeModel, Refund refund) {
         if (StringUtils.isEmpty(chargeModel.getCertPath())) {
             Refund newRefund = new Refund();
             newRefund.setRefundOrderId(refund.getRefundOrderId());
@@ -510,4 +508,6 @@ public class WechatServiceImpl implements WechatService {
         }
 
     }
+
+
 }

@@ -147,13 +147,13 @@ public class AlipayNotifyController {
     @RequestMapping(value = "/return/{orderId:^\\d{21}$}", method = RequestMethod.GET)
     public ModelAndView syncNotify(@PathVariable String orderId, HttpServletRequest httpServletRequest,
                                    HttpServletResponse httpServletResponse) throws Exception {
-        log.info("支付宝同步通知");
+        log.debug("支付宝同步通知{}",orderId);
         //稍微等一下异步通知
-        try {
-            Thread.sleep(RandomUtils.nextInt(500, 1200));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            Thread.sleep(RandomUtils.nextInt(500, 1200));
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
 
         return orderService.syncUrl(orderId, httpServletRequest, httpServletResponse);
 

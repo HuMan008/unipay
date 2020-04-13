@@ -1,8 +1,9 @@
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
+import VCharts from "v-charts"
 import store from './store'
-import { Button, Layout, message, Icon, Breadcrumb, Form, Input, DatePicker, notification, Select, Divider, Card } from 'ant-design-vue'
+import { Button, Layout, message, Icon, Breadcrumb, Form, Input, DatePicker, notification, Select, Divider, Card, Radio, Checkbox } from 'ant-design-vue'
 import 'ant-design-vue/dist/antd.less'
 import Menu from 'ant-design-vue/lib/menu'
 // import Antd from 'ant-design-vue'
@@ -23,7 +24,7 @@ Vue.use(Meta, {
   tagIDKeyName: 'vmid' // the property name that vue-meta uses to determine whether to overwrite or append a tag
 })
 // Vue.component(Button.name, Button)
-Vue.use(Layout).use(message).use(Form).use(Input).use(DatePicker).use(notification).use(Select)
+Vue.use(Layout).use(message).use(Form).use(Input).use(DatePicker).use(notification).use(Select).use(Radio).use(Checkbox)
 Vue.use(Button)
 Vue.use(Menu)
 Vue.use(Icon)
@@ -31,6 +32,7 @@ Vue.use(Breadcrumb)
 Vue.use(Divider)
 Vue.use(Card)
 Vue.use(hasRole)
+Vue.use(VCharts)
 Vue.config.productionTip = false
 
 Vue.prototype.$message = message
@@ -46,6 +48,7 @@ new Vue({
   el: '#app',
   router,
   store,
+  VCharts,
   components: {
     App
   },

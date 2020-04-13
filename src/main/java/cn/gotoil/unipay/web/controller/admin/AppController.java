@@ -82,6 +82,13 @@ public class AppController {
         return  BaseComboResponse.getPayTypeCombo();
     }
 
+    @ApiOperation(value = "支付方式类别类型", position = 3, tags = "应用管理")
+    @RequestMapping(value = "getPayTypeCategoryCombo", method = RequestMethod.GET)
+    @NeedLogin
+    public Object getPayTypeCategoryComboAction() {
+        return  BaseComboResponse.getPayTypeCategoryCodeCombo();
+    }
+
     @ApiOperation(value = "新增APP", position = 5, tags = "应用管理")
     @RequestMapping(value = "/addApp", method = {RequestMethod.POST})
     @NeedLogin     @HasRole(value = ConstsRole.ADMIN)
