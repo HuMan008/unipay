@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletResponse;
  * @date 2019-9-19、15:28
  */
 @Service
-@ConditionalOnBean(OrderService.class)
+@ConditionalOnBean({OrderService.class, RefundService.class})
 public interface BasePayService<T extends ChargeAccount> {
 
     @Resource

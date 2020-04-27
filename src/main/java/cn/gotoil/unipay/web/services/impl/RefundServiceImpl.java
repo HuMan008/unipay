@@ -3,9 +3,9 @@ package cn.gotoil.unipay.web.services.impl;
 import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.exception.CommonError;
 import cn.gotoil.bill.tools.date.DateUtils;
+import cn.gotoil.unipay.classes.PayDispatcher;
 import cn.gotoil.unipay.exceptions.UnipayError;
-import cn.gotoil.unipay.model.ChargeAlipayModel;
-import cn.gotoil.unipay.model.ChargeWechatModel;
+import cn.gotoil.unipay.model.ChargeAccount;
 import cn.gotoil.unipay.model.OrderRefundQueryModel;
 import cn.gotoil.unipay.model.RefundDetail;
 import cn.gotoil.unipay.model.entity.ChargeConfig;
@@ -17,14 +17,11 @@ import cn.gotoil.unipay.model.enums.EnumPayType;
 import cn.gotoil.unipay.model.enums.EnumRefundStatus;
 import cn.gotoil.unipay.model.mapper.RefundMapper;
 import cn.gotoil.unipay.model.mapper.ext.ExtRefundQueryMapper;
-import cn.gotoil.unipay.utils.DateUtil;
 import cn.gotoil.unipay.web.message.BasePageResponse;
 import cn.gotoil.unipay.web.message.request.RefundRequest;
 import cn.gotoil.unipay.web.message.request.admin.RefundQueryListRequest;
 import cn.gotoil.unipay.web.message.response.RefundQueryResponse;
 import cn.gotoil.unipay.web.services.*;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -55,6 +52,9 @@ public class RefundServiceImpl implements RefundService {
 
     @Autowired
     OrderService orderService;
+
+    @Autowired
+    PayDispatcher payDispatcher;
 
     @Resource
     ExtRefundQueryMapper extRefundQueryMapper;
@@ -98,7 +98,14 @@ public class RefundServiceImpl implements RefundService {
         // B2开始申请
         // 这里的退款申请需要用原下单账号
         ChargeConfig chargeConfig = chargeConfigService.loadByChargeId(order.getChargeAccountId());
-        if (EnumPayType.WechatSDK.getCode().equals(chargeConfig.getPayType()) || EnumPayType.WechatNAtive.getCode().equals(chargeConfig.getPayType()) || EnumPayType.WechatJSAPI.getCode().equals(chargeConfig.getPayType()) || EnumPayType.WechatH5.getCode().equals(chargeConfig.getPayType())) {
+        ChargeAccount chargeAccount = payDispatcher.getChargeAccountBean(chargeConfig);
+        BasePayService payService = payDispatcher.payServerDispatcher(EnumPayType.valueOf(order.getPayType()));
+        if (payService != null) {
+            return payService.orderRefund(chargeAccount, refund);
+        }
+       /* if (EnumPayType.WechatSDK.getCode().equals(chargeConfig.getPayType()) || EnumPayType.WechatNAtive.getCode()
+       .equals(chargeConfig.getPayType()) || EnumPayType.WechatJSAPI.getCode().equals(chargeConfig.getPayType()) ||
+       EnumPayType.WechatH5.getCode().equals(chargeConfig.getPayType())) {
             ChargeWechatModel chargeWechatModel =
                     JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()), ChargeWechatModel.class);
             return wechatService.orderRefund(chargeWechatModel, refund);
@@ -106,7 +113,8 @@ public class RefundServiceImpl implements RefundService {
             ChargeAlipayModel chargeAlipayModel =
                     JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()), ChargeAlipayModel.class);
             return alipayService.orderRefund(chargeAlipayModel, refund);
-        } else {
+        }*/
+        else {
             throw new BillException((UnipayError.UnSupportRefund));
         }
 
@@ -214,7 +222,14 @@ public class RefundServiceImpl implements RefundService {
             throw new BillException(UnipayError.OrderNotExists);
         }
         ChargeConfig chargeConfig = chargeConfigService.loadByChargeId(order.getChargeAccountId());
-        if (EnumPayType.WechatSDK.getCode().equals(chargeConfig.getPayType()) || EnumPayType.WechatNAtive.getCode().equals(chargeConfig.getPayType()) || EnumPayType.WechatJSAPI.getCode().equals(chargeConfig.getPayType()) || EnumPayType.WechatH5.getCode().equals(chargeConfig.getPayType())) {
+        ChargeAccount chargeAccount = payDispatcher.getChargeAccountBean(chargeConfig);
+        BasePayService payService = payDispatcher.payServerDispatcher(EnumPayType.valueOf(order.getPayType()));
+        if (payService != null) {
+            return payService.orderRefundQuery(chargeAccount, refund);
+        }
+       /* if (EnumPayType.WechatSDK.getCode().equals(chargeConfig.getPayType()) || EnumPayType.WechatNAtive.getCode()
+       .equals(chargeConfig.getPayType()) || EnumPayType.WechatJSAPI.getCode().equals(chargeConfig.getPayType()) ||
+       EnumPayType.WechatH5.getCode().equals(chargeConfig.getPayType())) {
             ChargeWechatModel chargeWechatModel =
                     JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()), ChargeWechatModel.class);
             return wechatService.orderRefundQuery(chargeWechatModel, refund);
@@ -222,7 +237,8 @@ public class RefundServiceImpl implements RefundService {
             ChargeAlipayModel chargeAlipayModel =
                     JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()), ChargeAlipayModel.class);
             return alipayService.orderRefundQuery(chargeAlipayModel, refund);
-        } else {
+        } */
+        else {
             throw new BillException((UnipayError.UnSupportRefund));
         }
 
@@ -275,7 +291,7 @@ public class RefundServiceImpl implements RefundService {
         newRefund.setUpdateAt(new Date());
         newRefund.setStatusUpdateDatetime(newRefund.getUpdateAt());
         RefundExample refundExample = new RefundExample();
-        refundExample.createCriteria().andUpdateAtEqualTo(dbRefund.getUpdateAt());
+        refundExample.createCriteria().andRefundOrderIdEqualTo(dbRefund.getRefundOrderId());
         return refundMapper.updateByExampleSelective(newRefund, refundExample);
     }
 
