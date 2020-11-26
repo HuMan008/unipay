@@ -17,11 +17,13 @@ import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.message.response.OrderRefundResponse;
 import cn.gotoil.unipay.web.message.response.RefundQueryResponse;
 import cn.gotoil.unipay.web.services.OrderService;
+import cn.gotoil.unipay.web.services.RefundService;
 import cn.gotoil.unipay.web.services.WechatService;
 import com.alibaba.fastjson.JSON;
 import com.google.common.net.UrlEscapers;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.time.Instant;
 import java.util.Date;
@@ -55,6 +58,9 @@ public class WechatServiceImpl implements WechatService {
     RefundMapper refundMapper;
     @Value("${isDebug}")
     private boolean isDebug;
+
+    @Autowired
+    RefundService refundService;
 
 
     /**
@@ -434,8 +440,7 @@ public class WechatServiceImpl implements WechatService {
                 refundQueryResponse.setRefundStatus(enumOrderStatus.getCode());
                 return refundQueryResponse;
             } else {
-                throw new BillException(5003, reMap.get(RESULT_CODE) + reMap.get(RETURN_CODE) + reMap.get("return_msg"
-                ));
+                throw new BillException(5003, JSON.toJSONString(reMap));
             }
         } catch (Exception e) {
             throw new BillException(55, e.getMessage());
@@ -451,14 +456,17 @@ public class WechatServiceImpl implements WechatService {
      */
     @Override
     public OrderRefundResponse orderRefund(ChargeWechatModel chargeModel, Refund refund) {
-        if (StringUtils.isEmpty(chargeModel.getCertPath())) {
-            Refund newRefund = new Refund();
-            newRefund.setRefundOrderId(refund.getRefundOrderId());
+        Refund newRefund = new Refund();
+        newRefund.setRefundOrderId(refund.getRefundOrderId());
+        try {
+            File certFile = new File(chargeModel.getCertPath());
+            if (StringUtils.isEmpty(chargeModel.getCertPath()) || !certFile.isFile() || !certFile.exists()) {
+
             newRefund.setProcessResult(EnumRefundStatus.Failed.getCode());
             newRefund.setFailMsg(UnipayError.RefundError_NoCertPath.getMessage());
-            refundService.updateRefund(refund, newRefund);
             throw new BillException(UnipayError.RefundError_NoCertPath);
         }
+
         HashMap<String, String> data = new HashMap<String, String>();
         data.put("appid", chargeModel.getAppID());
         data.put("mch_id", chargeModel.getMerchID());
@@ -478,33 +486,33 @@ public class WechatServiceImpl implements WechatService {
         }
         data.put(UtilWechat.FIELD_SIGN, sign);
 
-        try {
+
             String repStr = UtilHttpClient.postConnWithCert(WechatService.RefundUrl, UtilWechat.mapToXml(data),
                     chargeModel.getCertPath(), chargeModel.getMerchID());
             Map<String, String> reMap = processResponseXml(repStr, chargeModel.getApiKey());
             if (reMap.containsKey(RESULT_CODE) && reMap.get(RESULT_CODE).equals(SUCCESS) && SUCCESS.equals(reMap.getOrDefault(RETURN_CODE, ""))) {
                 // 提交对了
-                refund.setStatusUpdateDatetime(new Date());
-                refund.setProcessResult(EnumRefundStatus.WaitSure.getCode());
-                refund.setUpdateAt(refund.getStatusUpdateDatetime());
+                newRefund.setStatusUpdateDatetime(new Date());
+                newRefund.setProcessResult(EnumRefundStatus.WaitSure.getCode());
+                newRefund.setUpdateAt(refund.getStatusUpdateDatetime());
                 OrderRefundResponse orderRefundResponse = new OrderRefundResponse();
                 orderRefundResponse.setRefundStatus(EnumRefundStatus.Refunding.getCode());
                 orderRefundResponse.setMsg("退款申请成功，请调用查询退款获取退款结果");
                 orderRefundResponse.setReslutQueryId(refund.getRefundOrderId());
                 return orderRefundResponse;
             } else {
-                refund.setFailMsg(UtilString.getLongString(reMap.get("return_msg"), 199));
+                newRefund.setFailMsg(UtilString.getLongString(reMap.get("return_msg"), 199));
                 OrderRefundResponse orderRefundResponse = new OrderRefundResponse();
                 orderRefundResponse.setRefundStatus(EnumRefundStatus.Refunding.getCode());
                 orderRefundResponse.setReslutQueryId(refund.getRefundOrderId());
-                refund.setProcessResult(EnumRefundStatus.Failed.getCode());
+                newRefund.setProcessResult(EnumRefundStatus.Failed.getCode());
                 orderRefundResponse.setMsg("退款申请失败:" + reMap.get("return_msg"));
                 return orderRefundResponse;
             }
         } catch (Exception e) {
             throw new BillException(55, e.getMessage());
         } finally {
-            refundMapper.updateByPrimaryKey(refund);
+            refundService.updateRefund(refund, newRefund);
         }
 
     }

@@ -94,7 +94,7 @@ public class AlipayServiceImpl implements AlipayService{
         alipayTradeWapPayRequest.setNotifyUrl(domain + "/payment/alipay/" + order.getId());
         alipayTradeWapPayRequest.setReturnUrl(domain + "/payment/alipay/return/" + order.getId());
         ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName("/alipay/submit");
+        modelAndView.setViewName("alipay/submit");
         try {
 
             AlipayTradeWapPayResponse alipayTradeWapPayResponse = alipayClient.pageExecute(alipayTradeWapPayRequest);

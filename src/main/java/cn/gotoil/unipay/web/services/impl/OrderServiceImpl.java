@@ -5,16 +5,19 @@ import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.tools.date.DateUtils;
 import cn.gotoil.bill.tools.encoder.Hash;
 import cn.gotoil.bill.web.message.BillApiResponse;
+import cn.gotoil.unipay.classes.PayDispatcher;
 import cn.gotoil.unipay.config.consts.ConstsRabbitMQ;
 import cn.gotoil.unipay.exceptions.UnipayError;
 import cn.gotoil.unipay.futrue.RefundFutrue;
-import cn.gotoil.unipay.model.ChargeAlipayModel;
-import cn.gotoil.unipay.model.ChargeWechatModel;
+import cn.gotoil.unipay.model.ChargeAccount;
 import cn.gotoil.unipay.model.OrderNotifyBean;
 import cn.gotoil.unipay.model.entity.*;
 import cn.gotoil.unipay.model.enums.*;
 import cn.gotoil.unipay.model.mapper.OrderMapper;
-import cn.gotoil.unipay.utils.*;
+import cn.gotoil.unipay.utils.UtilBase64;
+import cn.gotoil.unipay.utils.UtilMoney;
+import cn.gotoil.unipay.utils.UtilMySign;
+import cn.gotoil.unipay.utils.UtilPageRedirect;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.services.*;
@@ -62,6 +65,9 @@ public class OrderServiceImpl implements OrderService {
     AlipayService alipayService;
     @Autowired
     WechatService wechatService;
+
+    @Autowired
+    PayDispatcher payDispatcher;
 
     @Autowired
     ChargeConfigService chargeConfigService;
@@ -280,18 +286,26 @@ public class OrderServiceImpl implements OrderService {
         // 不能用应用现在的收款账号，要用下单时候的账号了。不然会导致应用修改收款账号后原订单无法查询远程状态
         //  ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(order.getAppId(), order.getPayType());
         ChargeConfig chargeConfig = chargeConfigService.loadByChargeId(order.getChargeAccountId());
+        ChargeAccount chargeAccount = payDispatcher.getChargeAccountBean(chargeConfig);
+        BasePayService payService = payDispatcher.payServerDispatcher(EnumPayType.valueOf(order.getPayType()));
+        return payService.orderQueryFromRemote(order, chargeAccount);
 
-        OrderQueryResponse orderQueryResponse = new OrderQueryResponse();
-        if (EnumPayType.AlipayH5.getCode().equals(order.getPayType()) || EnumPayType.AlipaySDK.getCode().equals(order.getPayType())) {
-            ChargeAlipayModel chargeAlipayModel =
-                    JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()), ChargeAlipayModel.class);
-            orderQueryResponse = alipayService.orderQueryFromRemote(order, chargeAlipayModel);
-        } else if (EnumPayType.WechatH5.getCode().equals(order.getPayType()) || EnumPayType.WechatJSAPI.getCode().equals(order.getPayType()) || EnumPayType.WechatNAtive.getCode().equals(order.getPayType()) || EnumPayType.WechatSDK.getCode().equals(order.getPayType())) {
-            ChargeWechatModel chargeWechatModel =
-                    JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()), ChargeWechatModel.class);
-            orderQueryResponse = wechatService.orderQueryFromRemote(order, chargeWechatModel);
-        }
-        return orderQueryResponse;
+        //        OrderQueryResponse orderQueryResponse = new OrderQueryResponse();
+        //        if (EnumPayType.AlipayH5.getCode().equals(order.getPayType()) || EnumPayType.AlipaySDK.getCode()
+        // .equals(order.getPayType())) {
+        //            ChargeAlipayModel chargeAlipayModel =
+        //                    JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
+        // ChargeAlipayModel.class);
+        //            orderQueryResponse = alipayService.orderQueryFromRemote(order, chargeAlipayModel);
+        //        } else if (EnumPayType.WechatH5.getCode().equals(order.getPayType()) || EnumPayType.WechatJSAPI
+        // .getCode().equals(order.getPayType()) || EnumPayType.WechatNAtive.getCode().equals(order.getPayType()) ||
+        // EnumPayType.WechatSDK.getCode().equals(order.getPayType())) {
+        //            ChargeWechatModel chargeWechatModel =
+        //                    JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
+        // ChargeWechatModel.class);
+        //            orderQueryResponse = wechatService.orderQueryFromRemote(order, chargeWechatModel);
+        //        }
+        //        return orderQueryResponse;
     }
 
 
