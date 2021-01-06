@@ -13,7 +13,6 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,8 +29,9 @@ import static cn.gotoil.unipay.web.helper.RedisLockHelper.Key.OrderStatusSync;
  * @author think <syj247@qq.com>、
  * @date 2019-10-11、10:47
  */
-@Component
+//@Component
 @Slf4j
+//改成队列模式  不再刷表了 2021年01月05日 16:04 苏亚江
 public class OrderTask {
 
     @Autowired
@@ -81,7 +81,8 @@ public class OrderTask {
     }
 
 
-    @Scheduled(initialDelay = 5000, fixedDelay = 1000 * 60 * 3)
+    //    @Scheduled(initialDelay = 5000, fixedDelay = 1000 * 60 * 3)
+    @Scheduled(initialDelay = 5000, fixedDelay = 1000 * 10)
     @Async
     public void getOrderStatus() {
         log.info("订单状态检查定时任务");

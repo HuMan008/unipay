@@ -274,22 +274,21 @@ public class AppServiceImpl implements AppService {
         //页面上选的accountIds
         List<Integer> pageChoose = pageModelMap.values().stream().map(m -> m.getAccId()).collect(Collectors.toList());
         //已设置的应用收款账号关系
-        List<AppChargeAccount> AppChargeAccountReList = chargeConfigService.getRByAppId(appAccountIds.getAppKey());
+        List<AppChargeAccount> appChargeAccountReList = chargeConfigService.getRByAppId(appAccountIds.getAppKey());
         //页面啥都没传
         if (pageModelMap == null || pageModelMap.size() == 0) {
             deleteByappIdAccId(appAccountIds.getAppKey(), pageChoose);
             return true;
         }
         //以前无数据
-        if (AppChargeAccountReList.isEmpty()) {
+        if (appChargeAccountReList.isEmpty()) {
             //直接添加关系；
             addAppConfigRelation(appAccountIds.getAppKey(),
                     pageModelMap.values().stream().collect(Collectors.toList()));
             return true;
         } else {
             //已配置的支付方式ID
-            List<Integer> hasPay =
-                    AppChargeAccountReList.stream().map(e -> e.getAccountId()).collect(Collectors.toList());
+            List<Integer> hasPay = appChargeAccountReList.stream().map(e -> e.getAccountId()).collect(Collectors.toList());
             //页面数据-数据库已有数据就是需要增加的
             List<Integer> watiAddList = new ArrayList<>(pageChoose);
             watiAddList.removeAll(hasPay);

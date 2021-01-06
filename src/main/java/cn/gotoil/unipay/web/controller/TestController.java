@@ -57,8 +57,14 @@ public class TestController {
 
     @RequestMapping("t2")
     public Object t3() {
-        rabbitTemplate.convertAndSend(ConstsRabbitMQ.ORDERFIRSTEXCHANGENAME, ConstsRabbitMQ.ORDERROUTINGKEY,
-                "我是一条消息哈哈哈哈哈");
+        rabbitTemplate.convertAndSend(ConstsRabbitMQ.EXCHANGE_ORDER_STATUS, ConstsRabbitMQ.ORDERROUTINGKEY, "该查询订单了 " +
+                "---》 ");
+
+        //         MessageProperties properties= new MessageProperties();
+        //        properties.setDelay(5);
+        //        properties.setContentType(MessageProperties.CONTENT_TYPE_TEXT_PLAIN);
+        //        rabbitTemplate.send(ConstsRabbitMQ.EXCHANGE_ORDER_STATUS,ConstsRabbitMQ.ORDERROUTINGKEY,
+        //                new Message(new String("abcaafewew---->").getBytes(),properties));
         return "ssss";
     }
 
@@ -120,5 +126,6 @@ public class TestController {
         }
         return null;
     }
+
 
 }

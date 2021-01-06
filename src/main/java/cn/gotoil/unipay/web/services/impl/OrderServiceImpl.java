@@ -122,7 +122,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * 补充请求里每天的参数
+     * 补充请求里必填的参数
      *
      * @param payRequest
      */
@@ -270,6 +270,9 @@ public class OrderServiceImpl implements OrderService {
     public int saveOrder(Order order) {
         log.info("订单【{}】\t应用订单号【{}】\t下单金额【{}】\t支付方式【{}】被创建", order.getId(), order.getAppOrderNo(), order.getFee(),
                 EnumUtils.getEnum(EnumPayType.class, order.getPayType()).getDescp());
+        // 加入获取结果支付结果|(过期处理)队列
+        rabbitTemplate.convertAndSend(ConstsRabbitMQ.EXCHANGE_ORDER_STATUS, ConstsRabbitMQ.ORDERROUTINGKEY,
+                new String(order.getId()));
         return orderMapper.insert(order);
     }
 

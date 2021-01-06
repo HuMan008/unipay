@@ -21,7 +21,7 @@ spring:
         max-idle: 8
         max-active: 64
   rabbitmq:
-    host: 201.201.201.176
+    host: 10.0.250.1
     port: 5672
     username: gtsy
     password: gtsy

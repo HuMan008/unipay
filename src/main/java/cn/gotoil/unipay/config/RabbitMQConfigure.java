@@ -35,6 +35,10 @@ public class RabbitMQConfigure {
     public static final String DEAEXCHANGENAME4ORDER = "unipay.order.exchange.dead";
     public static final String DEADQUEUENAME4ORDER = "unipay.order.queue.dead";
 
+    public static final String DEAD_EXCHANGE_ORDER_STATUS = "unipay.orderquery.exchange.dead";
+    public static final String DEAD_QUEUE_ORDER_STATUS = "unipay.orderquery.queue.dead";
+
+
 
     public static final String DEAEXCHANGENAME4Refund = "unipay.refund.exchange.dead";
     public static final String DEADQUEUENAME4Refund = "unipay.refund.queue.dead";
@@ -91,6 +95,26 @@ public class RabbitMQConfigure {
         }
     }
 
+
+    @PostConstruct
+    public void initoOrderQueryConfig() {
+
+        DirectExchange deadExchange = new DirectExchange(DEAD_EXCHANGE_ORDER_STATUS, true, false);
+        rabbitAdmin(connectionFactory).declareExchange(deadExchange);
+
+        Queue deadQueue = new Queue(DEAD_QUEUE_ORDER_STATUS);
+        rabbitAdmin(connectionFactory).declareQueue(deadQueue);
+        rabbitAdmin(connectionFactory).declareBinding(BindingBuilder.bind(deadQueue).to(deadExchange).with(ConstsRabbitMQ.ORDERROUTINGKEY));
+
+        DirectExchange exchange = new DirectExchange(ConstsRabbitMQ.EXCHANGE_ORDER_STATUS, true, false);
+        rabbitAdmin(connectionFactory).declareExchange(exchange);
+        //配置死信队列的交换机
+        args.put("x-dead-letter-exchange", DEAD_EXCHANGE_ORDER_STATUS);
+        args.put("x-message-ttl", 60000);
+        Queue n1 = new Queue(ConstsRabbitMQ.QUEUE_ORDER_STATUS, true, false, false, args);
+        rabbitAdmin(connectionFactory).declareQueue(n1);
+        rabbitAdmin(connectionFactory).declareBinding(BindingBuilder.bind(n1).to(exchange).with(ConstsRabbitMQ.ORDERROUTINGKEY));
+    }
     /**
      * 初始化退款队列
      */

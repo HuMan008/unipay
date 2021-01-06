@@ -20,4 +20,7 @@ public class ConstsRabbitMQ {
     public static Map<String, Integer> REFUNDORDERQUEUEINDEX = new HashMap();
 
 
+    public static String EXCHANGE_ORDER_STATUS = "unipay.orderquery.exchange";
+    public static String QUEUE_ORDER_STATUS = "unipay.orderquery.queue";
+
 }
