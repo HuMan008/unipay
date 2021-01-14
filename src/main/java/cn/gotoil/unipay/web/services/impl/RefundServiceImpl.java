@@ -98,8 +98,9 @@ public class RefundServiceImpl implements RefundService {
         // B2开始申请
         // 这里的退款申请需要用原下单账号
         ChargeConfig chargeConfig = chargeConfigService.loadByChargeId(order.getChargeAccountId());
-        ChargeAccount chargeAccount = payDispatcher.getChargeAccountBean(chargeConfig);
-        BasePayService payService = payDispatcher.payServerDispatcher(EnumPayType.valueOf(order.getPayType()));
+        ChargeAccount chargeAccount = payDispatcher.getChargeAccountBean(chargeConfig, order.getApiVersion());
+        BasePayService payService = payDispatcher.payServerDispatcher(EnumPayType.valueOf(order.getPayType()),
+                order.getApiVersion());
         if (payService != null) {
             return payService.orderRefund(chargeAccount, refund);
         }
@@ -222,8 +223,9 @@ public class RefundServiceImpl implements RefundService {
             throw new BillException(UnipayError.OrderNotExists);
         }
         ChargeConfig chargeConfig = chargeConfigService.loadByChargeId(order.getChargeAccountId());
-        ChargeAccount chargeAccount = payDispatcher.getChargeAccountBean(chargeConfig);
-        BasePayService payService = payDispatcher.payServerDispatcher(EnumPayType.valueOf(order.getPayType()));
+        ChargeAccount chargeAccount = payDispatcher.getChargeAccountBean(chargeConfig, order.getApiVersion());
+        BasePayService payService = payDispatcher.payServerDispatcher(EnumPayType.valueOf(order.getPayType()),
+                order.getApiVersion());
         if (payService != null) {
             return payService.orderRefundQuery(chargeAccount, refund);
         }

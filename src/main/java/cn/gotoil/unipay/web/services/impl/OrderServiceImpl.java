@@ -199,7 +199,7 @@ public class OrderServiceImpl implements OrderService {
      * @param payRequest 支付请求
      */
     @Override
-    public Order warpPayRequest2UnionOrder(PayRequest payRequest) {
+    public Order warpPayRequest2UnionOrder(PayRequest payRequest, HttpServletRequest httpServletRequest) {
         Order order = new Order();
 
         String currentDateTime = DateUtils.simpleDateTimeWithMilliSecondNoSymbolFormatter().format(new Date());
@@ -225,7 +225,8 @@ public class OrderServiceImpl implements OrderService {
                 payRequest.getPayType());
         assert chargeConfig != null;
         order.setChargeAccountId(chargeConfig.getId());
-        order.setApiVersion("v1.0");
+        //        order.setApiVersion("v1.0");
+        order.setApiVersion(apiVersion(httpServletRequest));
         order.setDataVersion(0);
         order.setCreatedAt(new Date());
         order.setUpdatedAt(order.getCreatedAt());
@@ -289,8 +290,9 @@ public class OrderServiceImpl implements OrderService {
         // 不能用应用现在的收款账号，要用下单时候的账号了。不然会导致应用修改收款账号后原订单无法查询远程状态
         //  ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(order.getAppId(), order.getPayType());
         ChargeConfig chargeConfig = chargeConfigService.loadByChargeId(order.getChargeAccountId());
-        ChargeAccount chargeAccount = payDispatcher.getChargeAccountBean(chargeConfig);
-        BasePayService payService = payDispatcher.payServerDispatcher(EnumPayType.valueOf(order.getPayType()));
+        ChargeAccount chargeAccount = payDispatcher.getChargeAccountBean(chargeConfig, order.getApiVersion());
+        BasePayService payService = payDispatcher.payServerDispatcher(EnumPayType.valueOf(order.getPayType()),
+                order.getApiVersion());
         return payService.orderQueryFromRemote(order, chargeAccount);
 
         //        OrderQueryResponse orderQueryResponse = new OrderQueryResponse();
@@ -478,5 +480,16 @@ public class OrderServiceImpl implements OrderService {
     public OrderQueryResponse orderQueryLocal(Order order) {
         assert order != null;
         return OrderQueryResponse.warpOrderToOrderQuyerResponse(order);
+    }
+
+    public String apiVersion(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        if (uri.indexOf("/v2") != -1) {
+            return APIVERSIONV2;
+        } else if (uri.indexOf("v1") != -1) {
+            return APIVERSIONV1;
+        } else {
+            return APIVERSIONV_Old;
+        }
     }
 }

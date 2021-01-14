@@ -7,13 +7,13 @@ spring:
     #    url: "jdbc:mysql://201.201.201.173:3306/banshee?characterEncoding=utf8"
     #    username:  dev
     #    password:  devMysql!@#!123
-    url: "jdbc:mysql://172.200.209.13:3306/unipayDEV?characterEncoding=utf8"
+    url: "jdbc:mysql://10.0.250.1:3306/unipayDEV?characterEncoding=utf8"
     username:  dev
     password:  ChongQing@MySQL3306
     driver-class-name: "com.mysql.jdbc.Driver"
   redis:
     database: 7
-    host: 201.201.201.176
+    host: 10.0.250.1
     port: 6379
     timeout: 5s
     jedis:
@@ -49,9 +49,10 @@ logging:
 isDebug: true
 
 #本机域名或者IP 必须能外网访问的
-domain: "http://ka89nh.natappfree.cc"
+domain: "http://737wwt.natappfree.cc"
 #微信授权域名 勇哥那的地址 第一个占位符是wxappid 第二个占位符是跳转的地址
-wechat_open_id_grant_url: "http://thirdparty.guotongshiyou.cn/third_party/oauth/wechat/%s?auth_type=1&app_id=%s&sign=%s&s_time=%s&redirect=%s"
+#wechat_open_id_grant_url: "http://thirdparty.guotongshiyou.cn/third_party/oauth/wechat/%s?auth_type=1&app_id=%s&sign=%s&s_time=%s&redirect=%s"
+wechat_open_id_grant_url: "http://jumper.dbbank.xyz/third_party/oauth/wechat/%s?auth_type=1&app_id=%s&sign=%s&s_time=%s&redirect=%s"
 wechat_open_id_grant_id: "unipay"
 wechat_open_id_grant_key: "ljofjdfjdsf324234"
 

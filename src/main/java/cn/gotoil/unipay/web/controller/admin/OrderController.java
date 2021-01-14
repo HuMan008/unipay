@@ -13,7 +13,6 @@ import cn.gotoil.unipay.model.enums.EnumOrderStatus;
 import cn.gotoil.unipay.model.mapper.ext.ExtOrderQueryMapper;
 import cn.gotoil.unipay.web.message.request.admin.OrderQueryListRequest;
 import cn.gotoil.unipay.web.message.request.admin.OrderQueryPayingListRequest;
-import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.message.response.admin.BaseComboResponse;
 import cn.gotoil.unipay.web.services.NoticeLogService;
 import cn.gotoil.unipay.web.services.OrderQueryService;
@@ -26,7 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.nio.file.Path;
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,8 +84,7 @@ ExtOrderQueryMapper extOrderQueryMapper;
     @RequestMapping(value = "queryOrderStatus", method = RequestMethod.GET)
     @NeedLogin  @HasRole(values = {ConstsRole.ADMIN,ConstsRole.ORDER})
     public Object queryOrderStatusAction(@ApiParam(value = "appkey") @RequestParam String appkey, @ApiParam(value = "订单号") @RequestParam String orderId,
-                                         @ApiParam(value = " localStatus/remoteStatus 本地/远程查询订单状态, " + "localRefund/remoteRefund 本地/远程查询退款状态",
-                                           allowableValues = "localStatus,remoteStatus,localRefund,remoteRefund", example = "localStatus") @RequestParam(defaultValue = "localStatus") String type) {
+                                         @ApiParam(value = " localStatus/remoteStatus 本地/远程查询订单状态, " + "localRefund/remoteRefund 本地/远程查询退款状态", allowableValues = "localStatus,remoteStatus,localRefund,remoteRefund", example = "localStatus") @RequestParam(defaultValue = "localStatus") String type, HttpServletRequest httpServletRequest) {
 
         if("localStatus".equals(type) ||  "remoteStatus".equals(type)){
             Order order = orderQueryService.getOrderByAppKeyAndId(appkey,orderId);

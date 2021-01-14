@@ -21,6 +21,11 @@ public interface OrderService {
 
     String APPORDERNOKEY = "Unipay:AppOrderNo:";
 
+    String APIVERSIONV1 = "v1";
+    String APIVERSIONV2 = "v2";
+    String APIVERSIONV_Old = "v1.0";
+
+
     /**
      * 校验支付请求参数
      *
@@ -65,7 +70,7 @@ public interface OrderService {
      *
      * @param payRequest 支付请求
      */
-    Order warpPayRequest2UnionOrder(PayRequest payRequest);
+    Order warpPayRequest2UnionOrder(PayRequest payRequest, HttpServletRequest request);
 
     /**
      * 根据主键 统一订单号找订单

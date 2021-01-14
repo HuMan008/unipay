@@ -10,5 +10,14 @@ import java.io.Serializable;
  */
 public class ChargeAccount implements Serializable {
 
+    // 特殊ID
+    String mySpaceId;
 
+    public String getMySpaceId() {
+        return mySpaceId;
+    }
+
+    public void setMySpaceId(String mySpaceId) {
+        this.mySpaceId = mySpaceId;
+    }
 }

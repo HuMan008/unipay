@@ -32,7 +32,7 @@ public interface ChargeConfigService {
      * @param status
      * @return
      */
-    List queryAccounts(String accountName, String payType, String status);
+    List<ChargeConfig> queryAccounts(String accountName, String payType, String status);
 
     void addAppChargeAccount2Redis(AppChargeAccount appChargeAccount);
 

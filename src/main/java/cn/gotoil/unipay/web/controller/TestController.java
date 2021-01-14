@@ -108,7 +108,7 @@ public class TestController {
             //填充请求 有些参数请求里没传的
             orderService.fillPayRequest(payRequest);
             //创建订单（不持久化）
-            Order order = orderService.warpPayRequest2UnionOrder(payRequest);
+            Order order = orderService.warpPayRequest2UnionOrder(payRequest, httpServletRequest);
 
             EnumPayType payType = EnumUtils.getEnum(EnumPayType.class, payRequest.getPayType());
             ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(payRequest.getAppId(),

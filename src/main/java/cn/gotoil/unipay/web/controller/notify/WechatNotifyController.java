@@ -1,7 +1,6 @@
 package cn.gotoil.unipay.web.controller.notify;
 
 import cn.gotoil.bill.tools.date.DateUtils;
-import cn.gotoil.bill.tools.encoder.Hash;
 import cn.gotoil.bill.web.annotation.NeedLogin;
 import cn.gotoil.unipay.config.consts.ConstsRabbitMQ;
 import cn.gotoil.unipay.futrue.RefundFutrue;
@@ -14,7 +13,10 @@ import cn.gotoil.unipay.model.entity.Refund;
 import cn.gotoil.unipay.model.enums.EnumOrderMessageType;
 import cn.gotoil.unipay.model.enums.EnumOrderStatus;
 import cn.gotoil.unipay.model.enums.EnumRefundStatus;
-import cn.gotoil.unipay.utils.*;
+import cn.gotoil.unipay.utils.UtilBase64;
+import cn.gotoil.unipay.utils.UtilMySign;
+import cn.gotoil.unipay.utils.UtilString;
+import cn.gotoil.unipay.utils.UtilWechat;
 import cn.gotoil.unipay.web.helper.RedisLockHelper;
 import cn.gotoil.unipay.web.services.*;
 import com.alibaba.fastjson.JSON;
@@ -22,15 +24,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.jcajce.provider.digest.MD5;
-import org.bouncycastle.math.raw.Mod;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -43,7 +41,6 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 微信通知入口
@@ -73,6 +70,7 @@ public class WechatNotifyController {
     RefundService refundService;
     @Value("${domain}")
     String domain;
+
 
     @RequestMapping(value = {"{orderId:^\\d{21}$}"})
     @NeedLogin(value = false)

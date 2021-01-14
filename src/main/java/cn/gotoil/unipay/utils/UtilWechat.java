@@ -2,7 +2,9 @@ package cn.gotoil.unipay.utils;
 
 import cn.gotoil.bill.tools.encoder.Hash;
 import com.google.common.base.Charsets;
+import lombok.SneakyThrows;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.Base64Utils;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -20,6 +22,9 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.security.MessageDigest;
+import java.security.PrivateKey;
+import java.security.Signature;
+import java.security.cert.X509Certificate;
 import java.util.*;
 
 
@@ -306,4 +311,68 @@ public class UtilWechat {
         return key;
     }
 
+
+    /**
+     * 处理 HTTPS API返回数据，转换成Map对象。return_code为SUCCESS时，验证签名。
+     *
+     * @param xmlStr API返回的XML格式数据
+     * @return Map类型数据
+     * @throws Exception
+     */
+    public static Map<String, String> processResponseXml(String xmlStr, String key) throws Exception {
+
+        String return_code;
+        Map<String, String> respData = UtilWechat.xmlToMap(xmlStr);
+        if (respData.containsKey("return_code")) {
+            return_code = respData.get("return_code");
+        } else {
+            throw new Exception(String.format("No `return_code` in XML: %s", xmlStr));
+        }
+
+        if (return_code.equals("FAIL")) {
+            return respData;
+        } else if (return_code.equals("SUCCESS")) {
+            if (isResponseSignatureValid(respData, key)) {
+                return respData;
+            } else {
+                throw new Exception(String.format("Invalid sign value in XML: %s", xmlStr));
+            }
+        } else {
+            throw new Exception(String.format("return_code value %s is invalid in XML: %s", return_code, xmlStr));
+        }
+    }
+
+
+    /**
+     * 判断xml数据的sign是否有效，必须包含sign字段，否则返回false。
+     *
+     * @param reqData 向wxpay post的请求数据
+     * @return 签名是否有效
+     * @throws Exception
+     */
+    public static boolean isResponseSignatureValid(Map<String, String> reqData, String key) throws Exception {
+        // 返回数据的签名方式和请求中给定的签名方式是一致的
+        return UtilWechat.isSignatureValid(reqData, key, UtilWechat.SignType.MD5);
+    }
+
+
+    // V3 -----------------------
+
+    @SneakyThrows
+    public static String sign(String text, PrivateKey privateKey) {
+        Signature signature = Signature.getInstance("SHA256withRSA");
+        signature.initSign(privateKey);
+        signature.update(text.getBytes("UTF-8"));
+        byte[] signedData = signature.sign();
+        return Base64.getEncoder().encodeToString(signedData);
+    }
+
+    @SneakyThrows
+    public static boolean verify(X509Certificate certificate, String text, String wechatpaySignature) {
+        Signature signature = Signature.getInstance("SHA256withRSA");
+        signature.initVerify(certificate);
+        signature.update(text.getBytes("UTF-8"));
+        return signature.verify(Base64Utils.decodeFromString(wechatpaySignature));
+
+    }
 }

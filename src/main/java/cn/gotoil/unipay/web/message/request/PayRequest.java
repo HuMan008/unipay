@@ -126,5 +126,9 @@ public class PayRequest {
     @ApiModelProperty(required = false, example = "", value = "签名，WEB支付必传,API支付不用传,加密为 " + "MD5(appId+appOrderNo" +
             "+payType+fee+appKey) 再转大写 ", position = 70)
     private String sign;
+
+    // aip版本号
+    private String apiVersion;
+
 }
 

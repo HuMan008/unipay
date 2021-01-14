@@ -1,7 +1,6 @@
 package cn.gotoil.unipay.utils;
 
 import cn.gotoil.bill.tools.date.DateUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,44 +12,20 @@ import java.util.GregorianCalendar;
 /**
  * Created by Administrator on 2018/2/22.
  */
-public class DateUtil {
+public class DateUtil extends DateUtils {
     static Logger logger = LoggerFactory.getLogger(DateUtil.class);
+
+    private static ThreadLocal<SimpleDateFormat> threadLocalRFC3339Formatter = new ThreadLocal<SimpleDateFormat>() {
+        protected SimpleDateFormat initialValue() {
+            return new SimpleDateFormat(RFC3339);
+        }
+    };
 
     public static final String NYR = "yyyy-MM-dd";
     public static final String NYRSFM = "yyyy-MM-dd HH:mm:ss";
     public static final String NYRSFM1 = "yyyyMMddHHmmss";
+    public static final String RFC3339 = "YYYY-MM-DD'T'HH:mm:ssXXX";
 
-    public static String formatByNyr(Date date) {
-        return formatByCustom(date, NYR);
-    }
-
-    public static String formatByNyrsfm(Date date) {
-        return formatByCustom(date, NYRSFM);
-    }
-
-    public static String formatByNyrsfm1(Date date) {
-        return formatByCustom(date, NYRSFM1);
-    }
-
-    public static String formatByCustom(Date date, String format) {
-        if (date == null || StringUtils.isEmpty(format)) {
-            return "";
-        }
-        SimpleDateFormat formatter = new SimpleDateFormat(format);
-        return formatter.format(date);
-    }
-
-    public static Date stringtoDateByNyr(String time) {
-        return stringtoDate(time, NYR);
-    }
-
-    public static Date stringtoDateByNyrsfm(String time) {
-        return stringtoDate(time, NYRSFM);
-    }
-
-    public static Date stringtoDateByNyrsfm1(String time) {
-        return stringtoDate(time, NYRSFM1);
-    }
 
     public static Date stringtoDate(String time, String format) {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
@@ -72,7 +47,7 @@ public class DateUtil {
         cal.set(Calendar.DATE, 1);
         cal.roll(Calendar.DATE, -1);
         Date endTime = cal.getTime();
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(NYR);
+        SimpleDateFormat simpleDateFormat = fetchSimpleDateFormatter(NYR);
         return simpleDateFormat.format(endTime);
     }
 
@@ -85,7 +60,7 @@ public class DateUtil {
         Calendar cal = Calendar.getInstance();
         cal.set(GregorianCalendar.DAY_OF_MONTH, 1);
         Date endTime = cal.getTime();
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(NYR);
+        SimpleDateFormat simpleDateFormat = fetchSimpleDateFormatter(NYR);
         return simpleDateFormat.format(endTime);
     }
 

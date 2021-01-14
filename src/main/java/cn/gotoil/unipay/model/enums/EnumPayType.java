@@ -24,6 +24,8 @@ public enum EnumPayType {
 
     WechatNAtive("WechatNative", "微信Native", EnumPayCategory.Wechat),
 
+    WechatApplet("WechatApplet", "微信小程序", EnumPayCategory.Wechat),
+
 
     AlipayH5("AlipayH5", "支付宝H5", EnumPayCategory.Alipay),
 

@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -41,7 +42,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2019-9-20、15:05
  */
 @RestController
-@RequestMapping("api/v1")
+@RequestMapping({"api/v1", "api/v2"})
 @Authentication(authenticationType = AuthenticationType.Signature)
 public class APIPayController {
 
@@ -61,7 +62,7 @@ public class APIPayController {
 
     @RequestMapping(value = "dopay", method = RequestMethod.POST)
     @ApiOperation(value = "API订单创建", position = 5)
-    public Object createOrderAction(@Valid @RequestBody PayRequest payRequest) {
+    public Object createOrderAction(@Valid @RequestBody PayRequest payRequest, HttpServletRequest request) {
         if (!payRequest.getAppId().equals(ServletRequestHelper.XU())) {
             throw new BillException(UnipayError.CreatOrderError);
         }
@@ -70,7 +71,7 @@ public class APIPayController {
         //填充请求 有些参数请求里没传的
         orderService.fillPayRequest(payRequest);
         //创建订单（不持久化）
-        Order order = orderService.warpPayRequest2UnionOrder(payRequest);
+        Order order = orderService.warpPayRequest2UnionOrder(payRequest, request);
         String payInfoStr = shunt(order);
         orderService.saveOrder(order);
         return warpPayInfoStr2Object(payInfoStr,order.getExtraParam(),
@@ -84,12 +85,12 @@ private String  shunt(Order order){
         throw new BillException(UnipayError.PayTypeNotImpl);
     }
     String payInfoStr = new String();
-    BasePayService payService =payDispatcher.payServerDispatcher(payType);
+    BasePayService payService = payDispatcher.payServerDispatcher(payType, order.getApiVersion());
     if(payService==null){
         throw new BillException(UnipayError.PayTypeNotImpl);
     }
 
-    ChargeAccount chargeAccount =  payDispatcher.getChargeAccountBean(chargeConfig);
+    ChargeAccount chargeAccount = payDispatcher.getChargeAccountBean(chargeConfig, order.getApiVersion());
     if(chargeAccount==null){
         throw new BillException(UnipayError.AppNotSupportThisPay);
     }
@@ -124,7 +125,7 @@ private Object warpPayInfoStr2Object(String payInfoStr,String extraParam,String 
 
     @RequestMapping(value = "remoteQuery/{oid:^\\d{21}$}", method = RequestMethod.POST)
     @ApiOperation(value = "订单支付状态 远程", position = 10)
-    public Object queryOrderFromRemoteAction(@PathVariable String oid) {
+    public Object queryOrderFromRemoteAction(@PathVariable String oid, HttpServletRequest request) {
         Order o = orderService.loadByOrderID(oid);
 
         Optional.ofNullable(o).orElseThrow(() -> new BillException(UnipayError.OrderNotExists));

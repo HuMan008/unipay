@@ -110,7 +110,7 @@ public class WechatServiceImpl implements WechatService {
         data.put("sign", sign);
         try {
             String repStr = UtilHttpClient.doPostStr(WechatService.CreateOrderUrl, UtilWechat.mapToXml(data));
-            Map<String, String> reMap = processResponseXml(repStr, chargeModel.getApiKey());
+            Map<String, String> reMap = UtilWechat.processResponseXml(repStr, chargeModel.getApiKey());
             if (reMap.containsKey(RETURN_CODE) && reMap.containsKey(RESULT_CODE) && SUCCESS.equals(reMap.get(RETURN_CODE)) && SUCCESS.equals(reMap.get(RESULT_CODE))) {
                 if (needSave) {
                     int x = orderService.saveOrder(order);
@@ -223,7 +223,7 @@ public class WechatServiceImpl implements WechatService {
         data.put(UtilWechat.FIELD_SIGN, sign);
         try {
             String repStr = UtilHttpClient.doPostStr(WechatService.CreateOrderUrl, UtilWechat.mapToXml(data));
-            Map<String, String> reMap = processResponseXml(repStr, chargeModel.getApiKey());
+            Map<String, String> reMap = UtilWechat.processResponseXml(repStr, chargeModel.getApiKey());
             if (reMap.containsKey(RESULT_CODE) && reMap.get(RESULT_CODE).equals(SUCCESS) && SUCCESS.equals(reMap.getOrDefault(RETURN_CODE, ""))) {
                 return ObjectHelper.jsonString(createAppParam(reMap, chargeModel.getApiKey()));
             } else {
@@ -274,7 +274,7 @@ public class WechatServiceImpl implements WechatService {
             String sign = UtilWechat.generateSignature(map, chargeModel.getApiKey());
             map.put(UtilWechat.FIELD_SIGN, sign); //加签
             String repStr = UtilHttpClient.doPostStr(WechatService.QueryOrderUrl, UtilWechat.mapToXml(map));
-            reMap = processResponseXml(repStr, chargeModel.getApiKey());
+            reMap = UtilWechat.processResponseXml(repStr, chargeModel.getApiKey());
 
 
             if (reMap != null && reMap.containsKey(RETURN_CODE)) {
@@ -349,48 +349,7 @@ public class WechatServiceImpl implements WechatService {
     }
 
 
-    /**
-     * 处理 HTTPS API返回数据，转换成Map对象。return_code为SUCCESS时，验证签名。
-     *
-     * @param xmlStr API返回的XML格式数据
-     * @return Map类型数据
-     * @throws Exception
-     */
-    public Map<String, String> processResponseXml(String xmlStr, String key) throws Exception {
 
-        String return_code;
-        Map<String, String> respData = UtilWechat.xmlToMap(xmlStr);
-        if (respData.containsKey(RETURN_CODE)) {
-            return_code = respData.get(RETURN_CODE);
-        } else {
-            throw new Exception(String.format("No `return_code` in XML: %s", xmlStr));
-        }
-
-        if (return_code.equals(FAIL)) {
-            return respData;
-        } else if (return_code.equals(SUCCESS)) {
-            if (isResponseSignatureValid(respData, key)) {
-                return respData;
-            } else {
-                throw new Exception(String.format("Invalid sign value in XML: %s", xmlStr));
-            }
-        } else {
-            throw new Exception(String.format("return_code value %s is invalid in XML: %s", return_code, xmlStr));
-        }
-    }
-
-
-    /**
-     * 判断xml数据的sign是否有效，必须包含sign字段，否则返回false。
-     *
-     * @param reqData 向wxpay post的请求数据
-     * @return 签名是否有效
-     * @throws Exception
-     */
-    public boolean isResponseSignatureValid(Map<String, String> reqData, String key) throws Exception {
-        // 返回数据的签名方式和请求中给定的签名方式是一致的
-        return UtilWechat.isSignatureValid(reqData, key, UtilWechat.SignType.MD5);
-    }
 
 
     /**
@@ -416,7 +375,7 @@ public class WechatServiceImpl implements WechatService {
         data.put(UtilWechat.FIELD_SIGN, sign);
         try {
             String repStr = UtilHttpClient.doPostStr(WechatService.RefundQueryUrl, UtilWechat.mapToXml(data));
-            Map<String, String> reMap = processResponseXml(repStr, chargeModel.getApiKey());
+            Map<String, String> reMap = UtilWechat.processResponseXml(repStr, chargeModel.getApiKey());
             if (reMap.containsKey(RESULT_CODE) && reMap.get(RESULT_CODE).equals(SUCCESS) && SUCCESS.equals(reMap.getOrDefault(RETURN_CODE, ""))) {
                 RefundQueryResponse refundQueryResponse =
                         RefundQueryResponse.builder().orderRefundId(refund.getRefundOrderId()).thirdCode(reMap.get(RESULT_CODE + RETURN_CODE)).thirdMsg(reMap.get("return_msg") + reMap.get("err_code_des")).orderId(refund.getOrderId()).appOrderNo(refund.getAppOrderNo()).appOrderRefundNo(refund.getAppOrderRefundNo()).applyFee(refund.getApplyFee()).build();
@@ -489,7 +448,7 @@ public class WechatServiceImpl implements WechatService {
 
             String repStr = UtilHttpClient.postConnWithCert(WechatService.RefundUrl, UtilWechat.mapToXml(data),
                     chargeModel.getCertPath(), chargeModel.getMerchID());
-            Map<String, String> reMap = processResponseXml(repStr, chargeModel.getApiKey());
+            Map<String, String> reMap = UtilWechat.processResponseXml(repStr, chargeModel.getApiKey());
             if (reMap.containsKey(RESULT_CODE) && reMap.get(RESULT_CODE).equals(SUCCESS) && SUCCESS.equals(reMap.getOrDefault(RETURN_CODE, ""))) {
                 // 提交对了
                 newRefund.setStatusUpdateDatetime(new Date());
