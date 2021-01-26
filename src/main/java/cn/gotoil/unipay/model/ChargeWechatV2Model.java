@@ -27,7 +27,12 @@ public class ChargeWechatV2Model extends ChargeAccount {
     /**
      * APIKEY V3的值
      */
-    String apiKey;
+    String apiKeyV3;
+
+    /**
+     * APIkEY V2的值
+     */
+    String apiKeyV2;
 
     /**
      * 商户私钥文件路径
@@ -48,7 +53,7 @@ public class ChargeWechatV2Model extends ChargeAccount {
     /**
      * 微信证书路径
      * zip文件里的
-     * apiclient_cert.pem 的序列号
+     * apiclient_cert.p12
      */
     String certPath;
 

@@ -159,7 +159,7 @@ public class WechatV2NotifyController {
                         Stream.of(wechatpayTimeStamp, wechatpayNonce, body).collect(Collectors.joining("\n", "",
                                 "\n")), wechatpaySignature)) {
 
-                    AesUtil aesUtil = new AesUtil(model.getApiKey().getBytes());
+                    AesUtil aesUtil = new AesUtil(model.getApiKeyV3().getBytes());
                     String josnStr =
                             aesUtil.decryptToString(payNotifyModel.getResource().getAssociated_data().getBytes(),
                                     payNotifyModel.getResource().getNonce().getBytes(),
@@ -365,7 +365,7 @@ public class WechatV2NotifyController {
      * @param refundOrderId       统一退款订单号
      * @throws Exception
      */
-    @RequestMapping(value = {"refund/v2/{orderId:^\\d{21}$}/{refundOrderId}"})
+    @RequestMapping(value = {"refund/{orderId:^\\d{21}$}/{refundOrderId}"})
     @NeedLogin(value = false)
     public void asyncRefundNotify(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
                                   @PathVariable String orderId, @PathVariable String refundOrderId) throws Exception {
@@ -426,7 +426,7 @@ public class WechatV2NotifyController {
                 ChargeConfig chargeConfig = chargeConfigService.loadByChargeId(order.getChargeAccountId());
                 ChargeWechatV2Model model = JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
                         ChargeWechatV2Model.class);
-                String merchanKey = model == null ? "" : model.getApiKey();
+                String merchanKey = model == null ? "" : model.getApiKeyV2();
                 // 解密 req_info
                 String req_info = reMap.get("req_info");
                 String req_infoXML = UtilWechat.decryptData(req_info, merchanKey);

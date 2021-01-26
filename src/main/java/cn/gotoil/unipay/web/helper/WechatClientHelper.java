@@ -88,9 +88,21 @@ public class WechatClientHelper {
 
 
     public void initClientMap(ChargeWechatV2Model chargeWechatModel) {
+        //        if (StringUtils.isEmpty(chargeWechatModel.getPrivateKeyPath())) {
+        //            log.info("未设置商户【{}】私钥文件路径 ----> skip", chargeWechatModel.getMerchId());
+        //            return;
+        //        }
+        if (StringUtils.isEmpty(chargeWechatModel.getCertPath())) {
+            chargeWechatModel.setCertPath("/application/certs/" + chargeWechatModel.getMerchId() + "_apiclient_cert" +
+                    ".p12");
+        }
         if (StringUtils.isEmpty(chargeWechatModel.getPrivateKeyPath())) {
-            log.info("未设置商户【{}】私钥文件路径 ----> skip", chargeWechatModel.getMerchId());
-            return;
+            chargeWechatModel.setPrivateKeyPath("/application/certs/" + chargeWechatModel.getMerchId() +
+                    "_apiclient_key.pem");
+        }
+        if (StringUtils.isEmpty(chargeWechatModel.getWxPublicPemPath())) {
+            chargeWechatModel.setWxPublicPemPath("/application/certs/" + chargeWechatModel.getMerchId() +
+                    "_wxPublicPem.pem");
         }
 
         CloseableHttpClient closeableHttpClient = init(chargeWechatModel);
@@ -122,8 +134,7 @@ public class WechatClientHelper {
 
             AutoUpdateCertificatesVerifier verifier =
                     new AutoUpdateCertificatesVerifier(new WechatPay2Credentials(chargeWechatModel.getMerchId(),
-                            new PrivateKeySigner(chargeWechatModel.getSerialNo(), merchantPrivateKey)),
-                            chargeWechatModel.getApiKey().getBytes("utf-8"));
+                            new PrivateKeySigner(chargeWechatModel.getSerialNo(), merchantPrivateKey)), chargeWechatModel.getApiKeyV3().getBytes("utf-8"));
             CloseableHttpClient httpClient =
                     WechatPayHttpClientBuilder.create().withMerchant(chargeWechatModel.getMerchId(),
                             chargeWechatModel.getSerialNo(), merchantPrivateKey).withValidator(new WechatPay2Validator(verifier)).build();

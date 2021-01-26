@@ -339,11 +339,10 @@ public class WechatV2ServiceImpl implements WechatV2Service {
             data.put("total_fee", String.valueOf(refund.getOrderFee()));
             data.put("refund_fee", String.valueOf(refund.getApplyFee()));
             data.put("refund_desc", refund.getDescp());
-            data.put("notify_url",
-                    domain + "/payment/wechat/refund/v2/" + refund.getOrderId() + "/" + refund.getRefundOrderId());
+            data.put("notify_url", domain + "/payment/wechat/v2/refund/" + refund.getOrderId() + "/" + refund.getRefundOrderId());
             String sign = "";
             try {
-                sign = UtilWechat.generateSignature(data, chargeModel.getApiKey());
+                sign = UtilWechat.generateSignature(data, chargeModel.getApiKeyV2());
             } catch (Exception e) {
                 log.error("微信加签错误", e.getMessage());
             }
@@ -352,7 +351,7 @@ public class WechatV2ServiceImpl implements WechatV2Service {
 
             String repStr = UtilHttpClient.postConnWithCert(WechatService.RefundUrl, UtilWechat.mapToXml(data),
                     chargeModel.getCertPath(), chargeModel.getMerchId());
-            Map<String, String> reMap = UtilWechat.processResponseXml(repStr, chargeModel.getApiKey());
+            Map<String, String> reMap = UtilWechat.processResponseXml(repStr, chargeModel.getApiKeyV2());
             if (reMap.containsKey("return_code") && reMap.get("return_code").equals("SUCCESS") && "SUCCESS".equals(reMap.getOrDefault("return_code", ""))) {
                 // 提交对了
                 newRefund.setStatusUpdateDatetime(new Date());
@@ -397,14 +396,14 @@ public class WechatV2ServiceImpl implements WechatV2Service {
         data.put("out_refund_no", refund.getRefundOrderId());
         String sign = "";
         try {
-            sign = UtilWechat.generateSignature(data, chargeModel.getApiKey());
+            sign = UtilWechat.generateSignature(data, chargeModel.getApiKeyV2());
         } catch (Exception e) {
             log.error("微信加签错误", e.getMessage());
         }
         data.put(UtilWechat.FIELD_SIGN, sign);
         try {
             String repStr = UtilHttpClient.doPostStr(WechatService.RefundQueryUrl, UtilWechat.mapToXml(data));
-            Map<String, String> reMap = UtilWechat.processResponseXml(repStr, chargeModel.getApiKey());
+            Map<String, String> reMap = UtilWechat.processResponseXml(repStr, chargeModel.getApiKeyV2());
             if (reMap.containsKey("return_code") && reMap.get("return_code").equals("SUCCESS") && "SUCCESS".equals(reMap.getOrDefault("return_code", ""))) {
                 RefundQueryResponse refundQueryResponse =
                         RefundQueryResponse.builder().orderRefundId(refund.getRefundOrderId()).thirdCode(reMap.get(
