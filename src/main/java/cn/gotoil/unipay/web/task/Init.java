@@ -2,8 +2,10 @@ package cn.gotoil.unipay.web.task;
 
 import cn.gotoil.unipay.classes.PayDispatcher;
 import cn.gotoil.unipay.model.ChargeAccount;
+import cn.gotoil.unipay.model.ChargeAlipayModel;
 import cn.gotoil.unipay.model.ChargeWechatV2Model;
 import cn.gotoil.unipay.model.entity.ChargeConfig;
+import cn.gotoil.unipay.web.helper.AlipayConfigHelper;
 import cn.gotoil.unipay.web.helper.WechatClientHelper;
 import cn.gotoil.unipay.web.services.AppService;
 import cn.gotoil.unipay.web.services.ChargeConfigService;
@@ -57,9 +59,13 @@ public class Init implements CommandLineRunner  {
                     WechatClientHelper.getInstance().initClientMap((ChargeWechatV2Model) account);
                     initedMerSet.add(mid);
                 }
+            } else if (account instanceof ChargeAlipayModel) {
+                AlipayConfigHelper.getInstance().init((ChargeAlipayModel) account);
             }
         }
         logger.info("=====>\t结束");
+
+
     }
 
 

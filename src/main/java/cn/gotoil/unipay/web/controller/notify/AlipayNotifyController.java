@@ -17,15 +17,12 @@ import cn.gotoil.unipay.utils.UtilMoney;
 import cn.gotoil.unipay.utils.UtilMySign;
 import cn.gotoil.unipay.utils.UtilRequest;
 import cn.gotoil.unipay.utils.UtilString;
+import cn.gotoil.unipay.web.helper.AlipayConfigHelper;
 import cn.gotoil.unipay.web.helper.RedisLockHelper;
 import cn.gotoil.unipay.web.services.*;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.alipay.api.AlipayApiException;
-import com.alipay.api.internal.util.AlipaySignature;
-import com.google.common.base.Charsets;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +36,6 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
@@ -75,8 +71,7 @@ public class AlipayNotifyController {
 
     @RequestMapping(value = {"{orderId:^\\d{21}$}"}, method = RequestMethod.POST)
     @NeedLogin(value = false)
-    public void asyncNotify(Model model, HttpServletRequest request, HttpServletResponse httpServletResponse,
-                            @PathVariable String orderId) throws UnsupportedEncodingException, AlipayApiException {
+    public void asyncNotify(Model model, HttpServletRequest request, HttpServletResponse httpServletResponse, @PathVariable String orderId) {
         Map<String, String> params = UtilRequest.request2Map(request);
         NotifyAccept notifyAccept = NotifyAcceptService.createDefault(request, EnumOrderMessageType.PAY, orderId);
         log.debug("支付宝异步通知【{}】\n", orderId, JSONObject.toJSONString(params));
@@ -103,8 +98,10 @@ public class AlipayNotifyController {
             ChargeAlipayModel chargeAlipayModel =
                     JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()), ChargeAlipayModel.class);
             //开始验签
-            boolean signVerified = AlipaySignature.rsaCheckV1(params, chargeAlipayModel.getPubKey(),
-                    Charsets.UTF_8.name(), AlipayService.SIGNTYPE);
+            boolean signVerified =
+                    AlipayConfigHelper.getInstance().getFactory(chargeAlipayModel.getAppID()).Common().verifyNotify(params);
+            //            boolean signVerified = AlipaySignature.rsaCheckV1(params, chargeAlipayModel.getPubKey(),
+            //                    Charsets.UTF_8.name(), AlipayService.SIGNTYPE);
             //调用SDK验证签名 并且判断通知里的APPID是不是等于订单收款账户的APPID
             if (signVerified && chargeAlipayModel.getAppID().equalsIgnoreCase(params.get("app_id")) && orderId.equalsIgnoreCase(params.get("out_trade_no"))) {
                 if(isPayNotify(params)){

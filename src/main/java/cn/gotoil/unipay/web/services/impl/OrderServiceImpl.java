@@ -24,11 +24,13 @@ import cn.gotoil.unipay.web.services.*;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.stereotype.Service;
@@ -38,9 +40,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.Instant;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -76,6 +76,8 @@ public class OrderServiceImpl implements OrderService {
     RabbitTemplate rabbitTemplate;
     @Autowired
     RefundService refundService;
+    @Value("${domain}")
+    String domain;
 
     /**
      * 校验支付请求参数
@@ -384,7 +386,7 @@ public class OrderServiceImpl implements OrderService {
 
 
     /**
-     * 异步通知处理
+     * 同步通知处理
      *
      * @param orderId
      * @param httpServletRequest
@@ -414,8 +416,23 @@ public class OrderServiceImpl implements OrderService {
             String param = UtilBase64.encode(JSONObject.toJSONString(orderNotifyBean).getBytes()).replaceAll("\\+",
                     "GT680");
             String sign = Hash.md5(param + appService.key(order.getAppId()));
-            httpServletResponse.sendRedirect(order.getSyncUrl() + "?param=" + param + "&sign=" + sign);
-            return null;
+            //            httpServletResponse.sendRedirect(order.getSyncUrl() + "?param=" + param + "&sign=" + sign);
+            ModelAndView modelAndView = new ModelAndView("payredirect");
+            modelAndView.addObject("orderId", order.getId());
+            Long now = Instant.now().getEpochSecond();
+            modelAndView.addObject("timeStamp", now);
+            modelAndView.addObject("domain", domain);
+            modelAndView.addObject("sign", Hash.md5(orderId + now + appService.key(order.getAppId())));
+            Map<String, Object> map = new HashMap<>(5);
+            map.put("orderId", order.getId());
+            map.put("timeStamp", now);
+            map.put("sign", Hash.md5(orderId + now + appService.key(order.getAppId())));
+
+            String redirectUrl =
+                    domain + "/payment/payR?s=" + new String(Base64.encodeBase64(JSONObject.toJSONString(map).getBytes(), false, true));
+            ;
+            modelAndView.addObject("nextPage", redirectUrl);
+            return modelAndView;
         }
     }
 

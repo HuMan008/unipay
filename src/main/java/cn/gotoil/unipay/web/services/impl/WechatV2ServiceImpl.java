@@ -191,7 +191,7 @@ public class WechatV2ServiceImpl implements WechatV2Service {
                     jo.put("appid", chargeModel.getAppId());
                     jo.put("partnerid", chargeModel.getMerchId());
                     jo.put("prepayid", retJo.getString("prepay_id"));
-                    jo.put("package", retJo.getString("Sign=WXPay"));
+                    jo.put("package", "Sign=WXPay");
                     jo.put("noncestr", UtilWechat.generateNonceStr());
                     jo.put("timestamp", String.valueOf(Instant.now().getEpochSecond()));
                     String sign;

@@ -26,6 +26,8 @@ public enum UnipayError implements BillError {
     IllegalRequest(5000, "非法请求"),
     PageRefreshError(4021,"本页面禁止刷新,请返回后重试！"),
 
+    PageTimeOut(4022, "页面过期了"),
+
     WebUserError_UserPwdError(11009, "用户名密码错误"),
 
     OrderStatusIsNotPaySuccess(4021,"订单状态不是支付成功，不允许发送通知"),
