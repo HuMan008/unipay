@@ -1,14 +1,6 @@
 package cn.gotoil.unipay.web.controller.admin;
 
-import cn.gotoil.bill.exception.BillException;
 import cn.gotoil.bill.web.annotation.NeedLogin;
-import cn.gotoil.bill.web.message.BillApiResponse;
-import cn.gotoil.bill.web.services.AdminUserService;
-import cn.gotoil.unipay.config.properties.UserConfig;
-import cn.gotoil.unipay.config.properties.UserDefine;
-import cn.gotoil.unipay.exceptions.UnipayError;
-import cn.gotoil.unipay.model.entity.AdminUser;
-import cn.gotoil.unipay.model.entity.AdminUserExample;
 import cn.gotoil.unipay.web.message.request.admin.ModifyPwdRequest;
 import cn.gotoil.unipay.web.services.MyAdminUserService;
 import io.swagger.annotations.Api;
@@ -20,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.util.List;
 
 @RestController
 @RequestMapping("web/user")

@@ -1,3 +1,4 @@
+
 server:
   port: 80
 spring:
@@ -20,6 +21,7 @@ spring:
       pool:
         max-idle: 8
         max-active: 64
+    password:
   rabbitmq:
     host: 10.0.250.1
     port: 5672

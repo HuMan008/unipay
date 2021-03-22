@@ -23,7 +23,7 @@ public interface OrderService {
 
     String APIVERSIONV1 = "v1";
     String APIVERSIONV2 = "v2";
-    String APIVERSIONV_Old = "v1.0";
+    String APIVERSIONV_OLD = "v1.0";
 
 
     /**

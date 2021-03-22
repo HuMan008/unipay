@@ -39,9 +39,8 @@ public class RabbitMQConfigure {
     public static final String DEAD_QUEUE_ORDER_STATUS = "unipay.orderquery.queue.dead";
 
 
-
-    public static final String DEAEXCHANGENAME4Refund = "unipay.refund.exchange.dead";
-    public static final String DEADQUEUENAME4Refund = "unipay.refund.queue.dead";
+    public static final String DEAEX_CHANGE_NAME_FOR_REFUND = "unipay.refund.exchange.dead";
+    public static final String DEAD_QUEUE_NAME_FOR_REFUND = "unipay.refund.queue.dead";
 
     public static Map<String, Object> args = new HashMap<>();
 
@@ -122,11 +121,11 @@ public class RabbitMQConfigure {
     public void initoRefundOrderConfig() {
 
         //配置死信队列的交换机
-        args.put("x-dead-letter-exchange", DEAEXCHANGENAME4Refund);
+        args.put("x-dead-letter-exchange", DEAEX_CHANGE_NAME_FOR_REFUND);
 
-        DirectExchange deadExchange = new DirectExchange(DEAEXCHANGENAME4Refund, true, false);
+        DirectExchange deadExchange = new DirectExchange(DEAEX_CHANGE_NAME_FOR_REFUND, true, false);
         rabbitAdmin(connectionFactory).declareExchange(deadExchange);
-        Queue deadQueue = new Queue(DEADQUEUENAME4Refund);
+        Queue deadQueue = new Queue(DEAD_QUEUE_NAME_FOR_REFUND);
         rabbitAdmin(connectionFactory).declareQueue(deadQueue);
         rabbitAdmin(connectionFactory).declareBinding(BindingBuilder.bind(deadQueue).to(deadExchange).with(ConstsRabbitMQ.ORDERROUTINGKEY));
         List<RefundMessageQueueDefine> defineList  =

@@ -122,7 +122,7 @@ public class WebPayContoller {
             continuePayRequest.setCancelUrl(payRequest.getCancelUrl());
             continuePayRequest.setAutoCommit(payRequest.getAutoCommit());
 
-            if(!PayDispatcher.pagePaySet.contains(payType)){
+            if (!PayDispatcher.PAGE_PAY_SET.contains(payType)) {
                 throw new BillException(UnipayError.PayTypeNotImpl);
             }
             BasePayService payService = payDispatcher.payServerDispatcher(payType, order.getApiVersion());

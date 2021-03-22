@@ -4,8 +4,7 @@ import cn.gotoil.bill.tools.date.DateUtils;
 import cn.gotoil.unipay.futrue.RefundFutrue;
 import cn.gotoil.unipay.model.entity.Refund;
 import cn.gotoil.unipay.model.enums.EnumRefundStatus;
-import cn.gotoil.unipay.utils.DateUtil;
-import cn.gotoil.unipay.web.helper.RedisLockHelper;
+import cn.gotoil.unipay.web.helper.RedissonLockHelper;
 import cn.gotoil.unipay.web.message.response.RefundQueryResponse;
 import cn.gotoil.unipay.web.services.AppService;
 import cn.gotoil.unipay.web.services.OrderService;
@@ -18,10 +17,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 
-import static cn.gotoil.unipay.web.helper.RedisLockHelper.Key.RefundStatusSync;
+//import static cn.gotoil.unipay.web.helper.RedissonLockHelper.Key.RefundStatusSync;
 
 /**
  * 订单定时任务
@@ -33,8 +30,7 @@ import static cn.gotoil.unipay.web.helper.RedisLockHelper.Key.RefundStatusSync;
 @Slf4j
 public class RefundTask {
 
-    @Autowired
-    RedisLockHelper redisLockHelper;
+
     @Autowired
     RefundService refundService;
 
@@ -48,42 +44,50 @@ public class RefundTask {
 
     @Scheduled(initialDelay = 1200, fixedDelay = 1000 * 60 * 3)
     public void fetchRefundOrder() {
-        if (redisLockHelper.hasLock(RefundStatusSync)) {
+
+        if (RedissonLockHelper.isLocked(RedissonLockHelper.Key.RefundStatusSync)) {
             return;
         }
-        log.info("退款状态同步任务");
-        redisLockHelper.addLock(RefundStatusSync, true, 30, TimeUnit.MINUTES);
-        try {
-            //已经提交了2个小时，状态还是处理中的
-            List<Refund> refundList = refundService.getWaitSureResultList();
+        if (RedissonLockHelper.tryLock(RedissonLockHelper.Key.RefundStatusSync)) {
 
-            for (Refund refund : refundList) {
-                if(DateUtils.dateAdd(refund.getCreatedAt(),0,0,0,1,0,0).after(new Date())){
-                    //1小时以内提交的跳过
-                    continue;
-                }
-                RefundQueryResponse refundQueryResponse = refundService.refundQueryFromRemote(refund.getRefundOrderId());
-                if (refundQueryResponse != null && (EnumRefundStatus.Success.getCode() == refundQueryResponse.getRefundStatus()  || EnumRefundStatus.Failed.getCode() == refundQueryResponse.getRefundStatus() )  ) {
-                    Refund newRefund = new Refund();
-                    newRefund.setRefundOrderId(refund.getRefundOrderId());
-                    newRefund.setProcessResult(refundQueryResponse.getRefundStatus());
-                    newRefund.setFee(refundQueryResponse.getPassFee());
-                    int x = refundService.updateRefund(refund, newRefund);
-                    if (x != 1) {
-                        log.error("【{}】退款状态更新出错", refund.getRefundOrderId());
+            //
+            log.info("退款状态同步任务");
+            //        redisLockHelper.addLock(RefundStatusSync, true, 30, TimeUnit.MINUTES);
+            try {
+                //已经提交了2个小时，状态还是处理中的
+                List<Refund> refundList = refundService.getWaitSureResultList();
+
+                for (Refund refund : refundList) {
+                    if(DateUtils.dateAdd(refund.getCreatedAt(),0,0,0,1,0,0).after(new Date())){
+                        //1小时以内提交的跳过
+                        continue;
                     }
-                    RefundFutrue refundFutrue = new RefundFutrue(refund.getRefundOrderId(),refundService,orderService
-                            ,appService,rabbitTemplate);
-                    refundFutrue.afterFetchRefundResult(false);
-                    log.info("订单退款状态更新完成【{}】", refund.getRefundOrderId());
-                } else{
-                    log.error("获取退款订单【{}】,远程响应{}",refund.getRefundOrderId(),refundQueryResponse.toString());
+                    RefundQueryResponse refundQueryResponse = refundService.refundQueryFromRemote(refund.getRefundOrderId());
+                    if (refundQueryResponse != null && (EnumRefundStatus.Success.getCode() == refundQueryResponse.getRefundStatus()  || EnumRefundStatus.Failed.getCode() == refundQueryResponse.getRefundStatus() )  ) {
+                        Refund newRefund = new Refund();
+                        newRefund.setRefundOrderId(refund.getRefundOrderId());
+                        newRefund.setProcessResult(refundQueryResponse.getRefundStatus());
+                        newRefund.setFee(refundQueryResponse.getPassFee());
+                        int x = refundService.updateRefund(refund, newRefund);
+                        if (x != 1) {
+                            log.error("【{}】退款状态更新出错", refund.getRefundOrderId());
+                        }
+                        RefundFutrue refundFutrue = new RefundFutrue(refund.getRefundOrderId(),refundService,orderService,appService,rabbitTemplate);
+                        refundFutrue.afterFetchRefundResult(false);
+                        log.info("订单退款状态更新完成【{}】", refund.getRefundOrderId());
+                    } else{
+                        log.error("获取退款订单【{}】,远程响应{}",refund.getRefundOrderId(),refundQueryResponse.toString());
+                    }
                 }
+            } catch (Exception e) {
+                log.error("退款状态同步任务{}", e);
+            } finally {
+                RedissonLockHelper.unlock(RedissonLockHelper.Key.RefundStatusSync);
+                //            redisLockHelper.releaseLock(RefundStatusSync);
             }
-        } catch (Exception e) {
-            log.error("退款状态同步任务{}", e);
-        } finally {
-            redisLockHelper.releaseLock(RefundStatusSync);
+
+        } else {
+            return;
         }
     }
 

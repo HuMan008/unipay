@@ -3,7 +3,7 @@ package cn.gotoil.unipay.web.task;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.model.enums.EnumOrderStatus;
 import cn.gotoil.unipay.model.enums.EnumPayCategory;
-import cn.gotoil.unipay.web.helper.RedisLockHelper;
+import cn.gotoil.unipay.web.helper.RedissonLockHelper;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
 import cn.gotoil.unipay.web.services.AppService;
 import cn.gotoil.unipay.web.services.OrderQueryService;
@@ -13,6 +13,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,8 +21,6 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
-import static cn.gotoil.unipay.web.helper.RedisLockHelper.Key.OrderExpiredSync;
-import static cn.gotoil.unipay.web.helper.RedisLockHelper.Key.OrderStatusSync;
 
 /**
  * 订单定时任务
@@ -29,13 +28,11 @@ import static cn.gotoil.unipay.web.helper.RedisLockHelper.Key.OrderStatusSync;
  * @author think <syj247@qq.com>、
  * @date 2019-10-11、10:47
  */
-//@Component
+@Component
 @Slf4j
 //改成队列模式  不再刷表了 2021年01月05日 16:04 苏亚江
 public class OrderTask {
 
-    @Autowired
-    RedisLockHelper redisLockHelper;
     @Autowired
     OrderService orderService;
 
@@ -48,13 +45,16 @@ public class OrderTask {
     private ExecutorService executorService;
 
 
-    @Scheduled(initialDelay = 8000, fixedDelay = 1000 * 60 * 30)
+    @Scheduled(initialDelay = 8000, fixedDelay = 1000 * 60 * 15)
     public void expiredOrder() {
         log.info("过期订单检查定时任务");
-        if (redisLockHelper.hasLock(OrderExpiredSync)) {
+        if (RedissonLockHelper.isLocked(RedissonLockHelper.Key.OrderExpiredSync)) {
             return;
         }
-        redisLockHelper.addLock(OrderExpiredSync, true, 30, TimeUnit.MINUTES);
+        boolean r = RedissonLockHelper.tryLock(RedissonLockHelper.Key.OrderExpiredSync);
+        if (!r) {
+            return;
+        }
         try {
             //已经过期了10分钟，但是本地状态还是待支付的订单 单批次取200条
             List<Order> orderList = orderQueryService.queryOrderByOut10();
@@ -76,7 +76,7 @@ public class OrderTask {
         } catch (Exception e) {
             log.error("关闭订单任务出错{}", e);
         } finally {
-            redisLockHelper.releaseLock(OrderExpiredSync);
+            RedissonLockHelper.unlock(RedissonLockHelper.Key.OrderExpiredSync);
         }
     }
 
@@ -86,11 +86,15 @@ public class OrderTask {
     @Async
     public void getOrderStatus() {
         log.info("订单状态检查定时任务");
-        if (redisLockHelper.hasLock(OrderStatusSync)) {
+        if (RedissonLockHelper.isLocked(RedissonLockHelper.Key.OrderStatusSync)) {
             return;
         }
-        redisLockHelper.addLock(OrderStatusSync, true, 10, TimeUnit.MINUTES);
+
+
         try {
+            if (!RedissonLockHelper.tryLock(RedissonLockHelper.Key.OrderStatusSync)) {
+                return;
+            }
             List<Order> orderList = orderQueryService.queryOrderByIn10();
             if (orderList != null && orderList.size() == 0) {
                 //无数据
@@ -129,7 +133,7 @@ public class OrderTask {
                     //pass 等待线程全部搞完
                 }
                 //任务做完了。释放锁
-                redisLockHelper.releaseLock(RedisLockHelper.Key.OrderStatusSync);
+                RedissonLockHelper.unlock(RedissonLockHelper.Key.OrderStatusSync);
 
                 //释放数组
                 aliPayOrders.clear();
@@ -142,11 +146,12 @@ public class OrderTask {
         } catch (Exception e) {
             log.error("同步订单状态任务出错{}", e);
         } finally {
-            redisLockHelper.releaseLock(RedisLockHelper.Key.OrderStatusSync);
+            RedissonLockHelper.unlock(RedissonLockHelper.Key.OrderStatusSync);
         }
     }
 
     private void initExecutoreServe() {
+        //noinspection AlibabaThreadShouldSetName
         executorService =
                 new ThreadPoolExecutor(12, 12,
                         15L, TimeUnit.SECONDS,

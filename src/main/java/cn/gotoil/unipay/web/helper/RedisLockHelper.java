@@ -3,17 +3,25 @@ package cn.gotoil.unipay.web.helper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 
 /**
  * 分布式锁
  *
+ * 这个锁有问题。改用
+ * <p>
+ * {@link cn.gotoil.unipay.utils.RedissonLocker}
+ * </p>
+ *
+ * @Modify 2021年3月3日16点20分 苏亚江 标记过期
+ *
+ *
  * @author think <syj247@qq.com>、
  * @date 2019-9-27、17:25
  */
-@Component
+//@Component
+@Deprecated
 public class RedisLockHelper {
     public static final String LOCKPREFIX = "Unipay:Lock:";
 

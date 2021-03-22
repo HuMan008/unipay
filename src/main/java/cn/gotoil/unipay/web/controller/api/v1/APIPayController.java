@@ -15,7 +15,7 @@ import cn.gotoil.unipay.model.entity.ChargeConfig;
 import cn.gotoil.unipay.model.entity.Order;
 import cn.gotoil.unipay.model.enums.EnumOrderStatus;
 import cn.gotoil.unipay.model.enums.EnumPayType;
-import cn.gotoil.unipay.web.helper.RedisLockHelper;
+import cn.gotoil.unipay.web.helper.RedissonLockHelper;
 import cn.gotoil.unipay.web.message.request.PayRequest;
 import cn.gotoil.unipay.web.message.request.RefundRequest;
 import cn.gotoil.unipay.web.message.response.OrderQueryResponse;
@@ -33,7 +33,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 /**
  * api入口
@@ -53,8 +52,7 @@ public class APIPayController {
 
     @Autowired
     RefundService refundService;
-    @Autowired
-    RedisLockHelper redisLockHelper;
+
 
     @Autowired
     PayDispatcher payDispatcher;
@@ -81,7 +79,7 @@ public class APIPayController {
 private String  shunt(Order order){
     EnumPayType payType = EnumUtils.getEnum(EnumPayType.class, order.getPayType());
     ChargeConfig chargeConfig = chargeConfigService.loadByAppIdPayType(order.getAppId(), payType.getCode());
-    if(!PayDispatcher.sdkPaySet.contains(payType)){
+    if (!PayDispatcher.SDK_PAY_SET.contains(payType)) {
         throw new BillException(UnipayError.PayTypeNotImpl);
     }
     String payInfoStr = new String();
@@ -149,10 +147,13 @@ private Object warpPayInfoStr2Object(String payInfoStr,String extraParam,String 
         if(StringUtils.isEmpty(refundRequest.getAppOrderRefundNo())){
             refundRequest.setAppOrderRefundNo(refundRequest.getAppOrderNo());
         }
-        if(redisLockHelper.hasLock(RedisLockHelper.Key.Refund+refundRequest.getAppOrderRefundNo())){
+        if (RedissonLockHelper.isLocked(RedissonLockHelper.Key.Refund + refundRequest.getAppOrderRefundNo())) {
             throw new BillException(UnipayError.SystemBusy);
         }
-        redisLockHelper.addLock(RedisLockHelper.Key.Refund+refundRequest.getAppOrderRefundNo(),true,3, TimeUnit.MINUTES);
+        boolean r = RedissonLockHelper.tryLock(RedissonLockHelper.Key.Refund + refundRequest.getAppOrderRefundNo());
+        if (!r) {
+            throw new BillException(UnipayError.SystemBusy);
+        }
         Order order = orderService.loadByAppOrderNo(refundRequest.getAppOrderNo(), ServletRequestHelper.XU());
         Optional.ofNullable(order).orElseThrow(() -> new BillException(UnipayError.OrderNotExists));
         if(EnumOrderStatus.PaySuccess.getCode()!=order.getStatus()){
@@ -163,7 +164,8 @@ private Object warpPayInfoStr2Object(String payInfoStr,String extraParam,String 
         }catch(Exception e){
             throw new BillException(5000,e.getMessage());
         }finally {
-            redisLockHelper.releaseLock(RedisLockHelper.Key.Refund+refundRequest.getAppOrderRefundNo());
+            RedissonLockHelper.unlock(RedissonLockHelper.Key.Refund + refundRequest.getAppOrderRefundNo());
+
         }
     }
    /* @RequestMapping(value = "refundQuery/{refundId:^r_\\d{21}_\\d+$}",method = RequestMethod.POST)

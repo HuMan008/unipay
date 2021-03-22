@@ -35,9 +35,12 @@ public interface WechatV2Service extends BasePayService<ChargeWechatV2Model> {
                 break;
             case Applet:
                 url = url + "jsapi";
+                break;
             case NATIVE:
                 url = url + "native";
                 break;
+            default:
+                url = url + "";
         }
         return url;
     }

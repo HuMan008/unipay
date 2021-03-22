@@ -352,7 +352,7 @@ public class WechatV2ServiceImpl implements WechatV2Service {
             String repStr = UtilHttpClient.postConnWithCert(WechatService.RefundUrl, UtilWechat.mapToXml(data),
                     chargeModel.getCertPath(), chargeModel.getMerchId());
             Map<String, String> reMap = UtilWechat.processResponseXml(repStr, chargeModel.getApiKeyV2());
-            if (reMap.containsKey("return_code") && reMap.get("return_code").equals("SUCCESS") && "SUCCESS".equals(reMap.getOrDefault("return_code", ""))) {
+            if (reMap.containsKey("return_code") && "SUCCESS".equalsIgnoreCase(reMap.get("return_code")) && "SUCCESS".equals(reMap.getOrDefault("return_code", ""))) {
                 // 提交对了
                 newRefund.setStatusUpdateDatetime(new Date());
                 newRefund.setProcessResult(EnumRefundStatus.WaitSure.getCode());
@@ -404,7 +404,7 @@ public class WechatV2ServiceImpl implements WechatV2Service {
         try {
             String repStr = UtilHttpClient.doPostStr(WechatService.RefundQueryUrl, UtilWechat.mapToXml(data));
             Map<String, String> reMap = UtilWechat.processResponseXml(repStr, chargeModel.getApiKeyV2());
-            if (reMap.containsKey("return_code") && reMap.get("return_code").equals("SUCCESS") && "SUCCESS".equals(reMap.getOrDefault("return_code", ""))) {
+            if (reMap.containsKey("return_code") && "SUCCESS".equalsIgnoreCase(reMap.get("return_code")) && "SUCCESS".equals(reMap.getOrDefault("return_code", ""))) {
                 RefundQueryResponse refundQueryResponse =
                         RefundQueryResponse.builder().orderRefundId(refund.getRefundOrderId()).thirdCode(reMap.get(
                                 "result_code") + reMap.get("return_code")).thirdMsg(reMap.get("return_msg") + reMap.get("err_code_des")).orderId(refund.getOrderId()).appOrderNo(refund.getAppOrderNo()).appOrderRefundNo(refund.getAppOrderRefundNo()).applyFee(refund.getApplyFee()).build();

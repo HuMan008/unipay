@@ -329,9 +329,9 @@ public class UtilWechat {
             throw new Exception(String.format("No `return_code` in XML: %s", xmlStr));
         }
 
-        if (return_code.equals("FAIL")) {
+        if ("FAIL".equalsIgnoreCase(return_code)) {
             return respData;
-        } else if (return_code.equals("SUCCESS")) {
+        } else if ("SUCCESS".equalsIgnoreCase(return_code)) {
             if (isResponseSignatureValid(respData, key)) {
                 return respData;
             } else {

@@ -18,7 +18,7 @@ import cn.gotoil.unipay.utils.UtilMySign;
 import cn.gotoil.unipay.utils.UtilRequest;
 import cn.gotoil.unipay.utils.UtilString;
 import cn.gotoil.unipay.web.helper.AlipayConfigHelper;
-import cn.gotoil.unipay.web.helper.RedisLockHelper;
+import cn.gotoil.unipay.web.helper.RedissonLockHelper;
 import cn.gotoil.unipay.web.services.*;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -51,8 +51,7 @@ import java.util.Map;
 @Controller
 public class AlipayNotifyController {
 
-    @Autowired
-    RedisLockHelper redisLockHelper;
+
     @Autowired
     OrderService orderService;
     @Autowired
@@ -77,13 +76,16 @@ public class AlipayNotifyController {
         log.debug("支付宝异步通知【{}】\n", orderId, JSONObject.toJSONString(params));
         try {
             //判断是否正在处理这个订单
-            if (redisLockHelper.hasLock(RedisLockHelper.Key.Notify + orderId)) {
+            if (RedissonLockHelper.isLocked(RedissonLockHelper.Key.Notify + orderId)) {
                 log.error("支付宝订单【{}】异步通知处理冲突，忽略本次通知", orderId);
                 notifyAccept.setResponstr("error:处理中");
                 httpServletResponse.getOutputStream().print("error");
                 return;
             }
-            redisLockHelper.addLock(RedisLockHelper.Key.Notify + orderId, false, 0, null);
+            boolean r = RedissonLockHelper.tryLock(RedissonLockHelper.Key.Notify + orderId);
+            if (!r) {
+                return;
+            }
             //订单查询
             Order order = orderService.loadByOrderID(orderId);
             if (order == null) {
@@ -129,12 +131,14 @@ public class AlipayNotifyController {
             log.error("支付宝订单【{}】异步通知处理失败{}", orderId,e);
             notifyAccept.setResponstr(UtilString.getLongString("error:异常" + e.getMessage(), 4000));
             try {
+                RedissonLockHelper.unlock(RedissonLockHelper.Key.Notify + orderId);
                 httpServletResponse.getOutputStream().print("error");
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
         } finally {
-            redisLockHelper.releaseLock(RedisLockHelper.Key.Notify + orderId);
+
+            RedissonLockHelper.unlock(RedissonLockHelper.Key.Notify + orderId);
             notifyAcceptService.add(notifyAccept);
         }
 

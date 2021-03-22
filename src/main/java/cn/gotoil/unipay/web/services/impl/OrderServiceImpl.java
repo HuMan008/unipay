@@ -506,7 +506,7 @@ public class OrderServiceImpl implements OrderService {
         } else if (uri.indexOf("v1") != -1) {
             return APIVERSIONV1;
         } else {
-            return APIVERSIONV_Old;
+            return APIVERSIONV_OLD;
         }
     }
 }

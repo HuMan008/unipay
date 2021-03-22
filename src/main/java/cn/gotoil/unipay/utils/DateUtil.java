@@ -16,6 +16,7 @@ public class DateUtil extends DateUtils {
     static Logger logger = LoggerFactory.getLogger(DateUtil.class);
 
     private static ThreadLocal<SimpleDateFormat> threadLocalRFC3339Formatter = new ThreadLocal<SimpleDateFormat>() {
+        @Override
         protected SimpleDateFormat initialValue() {
             return new SimpleDateFormat(RFC3339);
         }

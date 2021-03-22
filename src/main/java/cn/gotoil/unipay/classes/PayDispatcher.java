@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
@@ -27,6 +28,7 @@ import java.util.Set;
  */
 @Slf4j
 @Component
+@ConditionalOnBean(value = {WechatService.class, AlipayService.class, WechatV2Service.class})
 public class PayDispatcher {
 
     @Autowired
@@ -37,18 +39,18 @@ public class PayDispatcher {
     WechatV2Service wechatV2Service;
 
 
-    public final static Set<EnumPayType> sdkPaySet = new HashSet<>();
+    public final static Set<EnumPayType> SDK_PAY_SET = new HashSet<>();
 
-    public final static Set<EnumPayType> pagePaySet = new HashSet<>();
+    public final static Set<EnumPayType> PAGE_PAY_SET = new HashSet<>();
 
     static{
-        sdkPaySet.add(EnumPayType.WechatSDK);
-        sdkPaySet.add(EnumPayType.AlipaySDK);
-        sdkPaySet.add(EnumPayType.WechatNAtive);
+        SDK_PAY_SET.add(EnumPayType.WechatSDK);
+        SDK_PAY_SET.add(EnumPayType.AlipaySDK);
+        SDK_PAY_SET.add(EnumPayType.WechatNAtive);
 
-        pagePaySet.add(EnumPayType.AlipayH5);
-        pagePaySet.add(EnumPayType.WechatH5);
-        pagePaySet.add(EnumPayType.WechatJSAPI);
+        PAGE_PAY_SET.add(EnumPayType.AlipayH5);
+        PAGE_PAY_SET.add(EnumPayType.WechatH5);
+        PAGE_PAY_SET.add(EnumPayType.WechatJSAPI);
     }
 
 

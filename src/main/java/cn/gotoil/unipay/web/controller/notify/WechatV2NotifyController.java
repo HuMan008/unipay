@@ -15,7 +15,7 @@ import cn.gotoil.unipay.model.enums.EnumOrderStatus;
 import cn.gotoil.unipay.model.enums.EnumRefundStatus;
 import cn.gotoil.unipay.utils.*;
 import cn.gotoil.unipay.web.controller.notify.wechatnotify.model.PayNotifyModel;
-import cn.gotoil.unipay.web.helper.RedisLockHelper;
+import cn.gotoil.unipay.web.helper.RedissonLockHelper;
 import cn.gotoil.unipay.web.helper.WechatClientHelper;
 import cn.gotoil.unipay.web.services.*;
 import com.alibaba.fastjson.JSON;
@@ -57,8 +57,7 @@ import java.util.stream.Stream;
 @Controller
 public class WechatV2NotifyController {
 
-    @Autowired
-    RedisLockHelper redisLockHelper;
+
     @Autowired
     OrderService orderService;
     @Autowired
@@ -107,14 +106,17 @@ public class WechatV2NotifyController {
         JSONObject mm = new JSONObject();
         try {
             //判断是否正在处理这个订单
-            if (redisLockHelper.hasLock(RedisLockHelper.Key.Notify + orderId)) {
+            if (RedissonLockHelper.isLocked(RedissonLockHelper.Key.Notify + orderId)) {
                 mm.put("code", "FAIL");
                 mm.put("message", "OrderProcessing");
                 notifyAccept.setResponstr("FAIL:订单处理中");
                 httpServletResponse.getOutputStream().print(JSONObject.toJSONString(mm));
                 return;
             }
-            redisLockHelper.addLock(RedisLockHelper.Key.Notify + orderId, false, 0, null);
+            boolean r = RedissonLockHelper.tryLock(RedissonLockHelper.Key.Notify + orderId);
+            if (!r) {
+                return;
+            }
 
             notifyAccept.setParams(JSON.toJSONString(payNotifyModel));
 
@@ -353,7 +355,8 @@ public class WechatV2NotifyController {
             return;
 
         } finally {
-            redisLockHelper.releaseLock(RedisLockHelper.Key.Notify + orderId);
+            RedissonLockHelper.unlock(RedissonLockHelper.Key.Notify + orderId);
+
             notifyAcceptService.add(notifyAccept);
         }
     }
@@ -377,14 +380,17 @@ public class WechatV2NotifyController {
                 , orderId);
         try {
             //判断是否正在处理这个订单
-            if (redisLockHelper.hasLock(RedisLockHelper.Key.RefundNotify + refundOrderId)) {
+            if (RedissonLockHelper.isLocked(RedissonLockHelper.Key.RefundNotify + refundOrderId)) {
                 mm.put(WechatService.RETURN_CODE, "FAIL");
                 mm.put("return_msg", "OrderProcessing");
                 notifyAccept.setResponstr("FAIL:退款通知处理中");
                 httpServletResponse.getOutputStream().print(UtilWechat.mapToXml(mm));
                 return;
             }
-            redisLockHelper.addLock(RedisLockHelper.Key.RefundNotify + refundOrderId, false, 0, null);
+            boolean r = RedissonLockHelper.tryLock(RedissonLockHelper.Key.RefundNotify + refundOrderId);
+            if (!r) {
+                return;
+            }
             requestBodyXml = CharStreams.toString(httpServletRequest.getReader());
             notifyAccept.setParams(requestBodyXml);
             //响应XML转成Map
@@ -499,7 +505,7 @@ public class WechatV2NotifyController {
             return;
 
         } finally {
-            redisLockHelper.releaseLock(RedisLockHelper.Key.RefundNotify + refundOrderId);
+            RedissonLockHelper.unlock(RedissonLockHelper.Key.RefundNotify + refundOrderId);
             notifyAcceptService.add(notifyAccept);
         }
     }

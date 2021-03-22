@@ -72,7 +72,14 @@ dependencies {
 
 //    compile group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.9.0'
 
-//    compile group: 'org.redisson', name: 'redisson-spring-boot-starter', version: '3.10.1'
+    implementation group: 'org.redisson', name: 'redisson', version: '3.10.0'
+
+
+//    compile("org.redisson:redisson-spring-boot-starter:3.10.0"){exclude group: 'org.springframework.boot',module: 'spring-boot-starter-actuator'}
+
+
+    compile("org.springframework.boot:spring-boot-starter-test:${springBootVersion}")
+    compile("org.springframework.boot:spring-boot-devtools:${springBootVersion}")
 
 
 }

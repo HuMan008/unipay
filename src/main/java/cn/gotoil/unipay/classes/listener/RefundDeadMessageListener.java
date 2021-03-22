@@ -4,7 +4,6 @@ import cn.gotoil.bill.tools.ObjectHelper;
 import cn.gotoil.unipay.config.RabbitMQConfigure;
 import cn.gotoil.unipay.config.consts.ConstsRabbitMQ;
 import cn.gotoil.unipay.config.properties.OrderMessageConfig;
-import cn.gotoil.unipay.model.OrderNotifyBean;
 import cn.gotoil.unipay.model.OrderRefundNotifyBean;
 import cn.gotoil.unipay.model.entity.NoticeLog;
 import cn.gotoil.unipay.model.enums.EnumOrderMessageType;
@@ -40,7 +39,7 @@ import java.util.*;
  */
 @Slf4j
 @Service
-@RabbitListener(queues = RabbitMQConfigure.DEADQUEUENAME4Refund)
+@RabbitListener(queues = RabbitMQConfigure.DEAD_QUEUE_NAME_FOR_REFUND)
 public class RefundDeadMessageListener {
 
     @Autowired

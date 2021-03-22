@@ -11,6 +11,7 @@ import com.wechat.pay.contrib.apache.httpclient.util.PemUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -105,7 +106,12 @@ public class WechatClientHelper {
                     "_wxPublicPem.pem");
         }
 
-        CloseableHttpClient closeableHttpClient = init(chargeWechatModel);
+        CloseableHttpClient closeableHttpClient = null;
+        try {
+            init(chargeWechatModel);
+        } catch (Exception e) {
+            log.error("{}---> skip ", e.getMessage());
+        }
         if (closeableHttpClient != null) {
             add(chargeWechatModel.getMerchId(), closeableHttpClient);
             log.info("==========》\t加载微信商户【{}】client 完成 \t", chargeWechatModel.getMerchId());
@@ -118,9 +124,17 @@ public class WechatClientHelper {
     private CloseableHttpClient init(ChargeWechatV2Model chargeWechatModel) {
         assert StringUtils.isNotEmpty(chargeWechatModel.getPrivateKeyPath());
         assert StringUtils.isNotEmpty(chargeWechatModel.getSerialNo());
+        Assert.isTrue(StringUtils.isNotEmpty(chargeWechatModel.getApiKeyV3()), chargeWechatModel.getMerchId() +
+                "未配置api_key_v3");
+        Assert.isTrue(StringUtils.isNotEmpty(chargeWechatModel.getApiKeyV2()), chargeWechatModel.getMerchId() +
+                "未配置api_key");
+
         try {
             PrivateKey merchantPrivateKey =
                     PemUtil.loadPrivateKey(new FileInputStream(new File(chargeWechatModel.getPrivateKeyPath())));
+            if (merchantPrivateKey == null) {
+                return null;
+            }
 
             merchantPrivateKeyMap.put(chargeWechatModel.getMerchId(), merchantPrivateKey);
 
