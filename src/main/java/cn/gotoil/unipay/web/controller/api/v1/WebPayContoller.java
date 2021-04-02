@@ -138,8 +138,10 @@ public class WebPayContoller {
             }
 
         } catch (BillException e) {
+            log.error("{}", e);
             return new ModelAndView(UtilPageRedirect.makeErrorPage(e.getTickcode(), e.getMessage(), payRequest.getBackUrl()));
         } catch (Exception e) {
+            log.error("{}", e);
             return new ModelAndView(UtilPageRedirect.makeErrorPage(CommonError.SystemError, payRequest.getBackUrl()));
         }
     }

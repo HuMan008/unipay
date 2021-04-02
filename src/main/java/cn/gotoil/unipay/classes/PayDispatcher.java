@@ -6,10 +6,7 @@ import cn.gotoil.unipay.model.ChargeWechatModel;
 import cn.gotoil.unipay.model.ChargeWechatV2Model;
 import cn.gotoil.unipay.model.entity.ChargeConfig;
 import cn.gotoil.unipay.model.enums.EnumPayType;
-import cn.gotoil.unipay.web.services.AlipayService;
-import cn.gotoil.unipay.web.services.BasePayService;
-import cn.gotoil.unipay.web.services.WechatService;
-import cn.gotoil.unipay.web.services.WechatV2Service;
+import cn.gotoil.unipay.web.services.*;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
@@ -84,7 +81,7 @@ public class PayDispatcher {
 
     public ChargeAccount getChargeAccountBean(ChargeConfig chargeConfig, String apiVsersion) {
         EnumPayType payType = EnumUtils.getEnum(EnumPayType.class, chargeConfig.getPayType());
-        if (StringUtils.isEmpty(apiVsersion) || "v1".equalsIgnoreCase(apiVsersion)) {
+        if (StringUtils.isEmpty(apiVsersion) || OrderService.APIVERSIONV1.equalsIgnoreCase(apiVsersion) || OrderService.APIVERSIONV_OLD.equalsIgnoreCase(apiVsersion)) {
             if (EnumPayType.AlipaySDK.equals(payType) || EnumPayType.AlipayH5.equals(payType)) {
                 ChargeAlipayModel chargeAlipayModel =
                         JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
@@ -99,7 +96,7 @@ public class PayDispatcher {
             } else {
                 return null;
             }
-        } else if ("v2".equalsIgnoreCase(apiVsersion)) {
+        } else if (OrderService.APIVERSIONV2.equalsIgnoreCase(apiVsersion)) {
             if (EnumPayType.AlipaySDK.equals(payType) || EnumPayType.AlipayH5.equals(payType)) {
                 ChargeAlipayModel chargeAlipayModel =
                         JSONObject.toJavaObject((JSON) JSON.parse(chargeConfig.getConfigJson()),
